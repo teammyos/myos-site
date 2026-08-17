@@ -641,14 +641,22 @@ strong{color:var(--heading);font-weight:600;}
 }
 .cases::-webkit-scrollbar{display:none;}
 .cases:focus-visible{outline:none;box-shadow:0 0 0 3px var(--focus-bg),0 0 0 6px var(--focus-ring);border-radius:.75rem;}
-/* נייד וטאבלט: קרוסלה — כרטיס אחד במרכז והשכנים מציצים משני הצדדים */
+/* קרוסלה בכל הרוחבים — כרטיס אחד במרכז והשכנים מציצים משני הצדדים */
 .case{flex:0 0 88%;scroll-snap-align:center;scroll-snap-stop:always;}
-@media (min-width:700px){.case{flex-basis:74%;}}
-/* דסקטופ: כל ארבעת המקרים גלויים ברשת 2×2 — בלי קרוסלה */
+@media (min-width:700px){.case{flex-basis:78%;}}
+@media (min-width:960px){.case{flex-basis:82%;}}
+/* מבנה הכרטיס: בנייד — טקסט ואז מדיה; בדסקטופ — טקסט מימין, מדיה משמאל */
+.case-main{display:flex;flex-direction:column;gap:.85rem;min-width:0;}
+.case-media{min-width:0;}
 @media (min-width:960px){
-  .cases{display:grid;grid-template-columns:1fr 1fr;overflow:visible;scroll-snap-type:none;padding:.25rem;}
-  .case{flex-basis:auto;}
-  .case-clone,.case-dots,.case-nav{display:none!important;}
+  .cases .case{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);
+        gap:1rem 1.9rem;align-items:center;}
+  .case-main:only-child{grid-column:1 / -1;}
+  .case-media{display:flex;align-items:center;justify-content:center;}
+  /* צילום לגובה (התוסף) — נגבל בגובה; צילום לרוחב (דשבורד) — ממלא את העמודה */
+  .case-media .case-shot img{width:auto;max-width:100%;max-height:400px;}
+  .case-media .case-shot.wide img{width:100%;height:auto;max-height:none;}
+  .case-media .soon{min-height:260px;}
 }
 /* צילום מסך מתוך המערכת — הוכחה חזותית בתוך הכרטיס */
 .case-shot{
@@ -664,6 +672,19 @@ strong{color:var(--heading);font-weight:600;}
 .case-shot figcaption{
   margin-top:.55rem;font-size:.78rem;color:var(--text-dim);
 }
+/* תיבת "בקרוב" — מחזיקה את מקום ההתנסות החיה בתוסף */
+.soon{
+  width:100%;min-height:200px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;
+  border:1.5px dashed var(--line);border-radius:.9rem;
+  color:var(--text-dim);text-align:center;padding:1.4rem 1rem;
+}
+.soon-mark{width:2.3rem;height:2.3rem;fill:var(--accent);opacity:.85;}
+.soon-badge{
+  font-size:.72rem;font-weight:700;letter-spacing:.14em;color:var(--accent);
+  background:var(--pill);padding:.32rem .75rem;border-radius:999px;
+}
+.soon p{margin:0;font-size:.93rem;}
 /* טבלת לפני/אחרי — הוכחה קומפקטית בתוך הכרטיס */
 .ba{width:100%;border-collapse:collapse;margin-top:.8rem;font-size:.83rem;line-height:1.5;}
 .ba th{
@@ -837,8 +858,8 @@ body.high-contrast .cta-watermark{display:none;}
 .form-status:empty{display:none;}
 .form-status.ok{color:#04121a;background:#8dfff4;font-weight:600;}
 .form-status.bad{color:#ffd9d1;background:rgba(255,120,96,.16);border:1px solid #ff9b8a;}
-.form-legal{font-size:.82rem;color:#93a1bd;text-align:center;margin:0;max-width:46ch;line-height:1.6;}
-.nobr{white-space:nowrap;}
+.form-legal{font-size:.82rem;color:#93a1bd;text-align:center;margin:0;line-height:1.7;}
+.form-legal .legal-line{display:block;}
 .form-legal a{color:#8dfff4;}
 
 /* ============ הצוות ============ */
@@ -1293,6 +1314,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
       </button>
       <div class="cases" id="casesTrack" tabindex="0" role="group" aria-roledescription="קרוסלה" aria-label="ארבעה מקרי בוחן — גללו הצידה למעבר ביניהם">
         <article class="case">
+          <div class="case-main">
           <span class="case-tag">public sector</span>
           <h3>המגזר הציבורי — עירייה</h3>
           <dl>
@@ -1318,6 +1340,8 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
               <dd><span class="big-stat">חיסכון של שעות עבודה</span>קיצור משמעותי בזמן העבודה של פקידי העירייה, צמצום טעויות אנוש והתייעלות בשירות לאזרח.</dd>
             </div>
           </dl>
+          </div>
+          <div class="case-media">
           <figure class="case-shot">
             <picture>
               <source srcset="img/case-crm.webp" type="image/webp">
@@ -1326,9 +1350,11 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
             </picture>
             <figcaption>מתוך המערכת: מסך העבודה של הפקיד — סנכרון וניווט בלחיצה</figcaption>
           </figure>
+          </div>
         </article>
 
         <article class="case">
+          <div class="case-main">
           <span class="case-tag">fintech</span>
           <h3>המגזר הפיננסי — ייעוץ משכנתאות ופיננסים</h3>
           <dl>
@@ -1354,6 +1380,8 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
               <dd><span class="big-stat">מפקידות — לייעוץ</span>תהליך איטי, רפטטיבי ומועד לטעויות הפך למהיר, מובנה ורווחי. היועצים מתמקדים בבניית תמהיל מנצח ובמשא ומתן מול הבנקים, במקום לטבוע בעבודת פקידות שוחקת.</dd>
             </div>
           </dl>
+          </div>
+          <div class="case-media">
           <figure class="case-shot wide">
             <picture>
               <source srcset="img/case-fin.webp" type="image/webp">
@@ -1362,9 +1390,11 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
             </picture>
             <figcaption>מתוך המערכת: דשבורד ניהול התיקים — משימות, יומן וביצועי צוות בזמן אמת</figcaption>
           </figure>
+          </div>
         </article>
 
         <article class="case">
+          <div class="case-main">
           <span class="case-tag">real estate</span>
           <h3>עולם הנדל״ן והיזמות — אוטומציית נתונים ממשלתיים</h3>
           <dl>
@@ -1390,9 +1420,18 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
               <dd><span class="big-stat">לחיצה אחת במקום שעות</span>חיסכון של שעות עבודה שבועיות, הפחתה ניכרת של טעויות העתקה, וסידור אוטומטי של המידע הגולמי בפורמט נקי וקריא שמוכן מיד לעבודה ולניתוח.</dd>
             </div>
           </dl>
+          </div>
+          <div class="case-media">
+            <div class="soon">
+              <svg class="soon-mark" viewBox="6 -7 88 101" aria-hidden="true" focusable="false"><path d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg>
+              <span class="soon-badge">בקרוב</span>
+              <p>התנסות חיה בתוסף — ממש כאן</p>
+            </div>
+          </div>
         </article>
 
         <article class="case">
+          <div class="case-main">
           <span class="case-tag">nonprofit</span>
           <h3>המגזר השלישי — עמותה בפריסה ארצית</h3>
           <dl>
@@ -1418,6 +1457,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
               <dd><span class="big-stat">פחות תלות בעבודת מזכירות</span>צוואר הבקבוק הצטמצם משמעותית: הרכזים פנויים לעשייה בשטח, והעמותה מפיקה דוחות מורכבים ושקופים לתורמים כמעט ללא עבודה ידנית.</dd>
             </div>
           </dl>
+          </div>
         </article>
       </div>
       <div class="case-dots" id="caseDots"></div>
@@ -1586,8 +1626,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
         </button>
 
         <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
-        <!-- הקישור והנקודה כרוכים יחד — בלי זה הנקודה נשברת לשורה משלה ונתקעת בצד -->
-        <p class="form-legal">הפרטים משמשים אותנו אך ורק כדי לחזור אליכם בנוגע לפנייה. פרטים נוספים <span class="nobr">ב<a href="#accessibility">הצהרת הנגישות והפרטיות</a>.</span></p>
+        <p class="form-legal"><span class="legal-line">הפרטים משמשים אותנו אך ורק כדי לחזור אליכם בנוגע לפנייה.</span><span class="legal-line">מידע נוסף: <a href="#accessibility">הצהרת הנגישות והפרטיות</a>.</span></p>
       </form>
 
       <a class="btn" id="ctaMailFallback" href="mailto:team@myos.co.il?subject=%D7%91%D7%95%D7%90%D7%95%20%D7%A0%D7%93%D7%91%D7%A8%20%D7%A2%D7%9C%20%D7%94%D7%9E%D7%A2%D7%A8%D7%9B%D7%AA%20%D7%A9%D7%9C%D7%A0%D7%95">
