@@ -398,8 +398,8 @@ body:not(.no-motion) .hero-logo .halo{animation:breathe 4s ease-in-out .55s infi
   transition:color calc(.45s * var(--dur)) ease;
 }
 .hero-punch .hl{color:var(--accent);}
-/* הנעה לפעולה בתוך The Hook — למי שמוכן לדבר בלי לגלול עד הסוף */
-.hook-cta{display:flex;align-items:center;flex-wrap:wrap;gap:.9rem 1.4rem;margin-top:1.5rem;}
+/* הנעה לפעולה בתוך The Hook — אחרי התרשים, לרוחב מלא */
+.hook-cta{display:flex;align-items:center;flex-wrap:wrap;gap:.9rem 1.4rem;margin-top:.25rem;grid-column:1 / -1;}
 .link-more{
   color:var(--accent);font-weight:600;font-size:.98rem;
   text-decoration:underline;text-underline-offset:.28em;border-radius:.35rem;
@@ -587,52 +587,55 @@ strong{color:var(--heading);font-weight:600;}
 /* סקשן 2 */
 .split{display:grid;grid-template-columns:1fr;gap:clamp(1.75rem,4vw,3rem);align-items:start;}
 @media (min-width:900px){.split{grid-template-columns:1.05fr .95fr;}}
+/* בלי קופסה נראית — אבל רקע שקוף-למחצה בגוון הסקשן מעמעם את לוג הריצה
+   שמאחורי התרשים, אחרת הטקסטים נבלעים בו */
 .aside-mark{
-  display:grid;place-items:center;padding:clamp(1rem,5vw,3rem);
-  background:var(--surface);border:1px solid var(--line);border-radius:1.25rem;
-  transition:background-color calc(.45s * var(--dur)) ease,border-color calc(.45s * var(--dur)) ease;
+  display:grid;place-items:center;padding:clamp(.9rem,3vw,1.6rem);
+  background:rgba(239,236,229,.9);
+  -webkit-backdrop-filter:blur(2.5px);backdrop-filter:blur(2.5px);
+  border-radius:1.1rem;
 }
-/* ---- תרשים "מרכז השליטה": שתי מערכות → MyOS → סביבת עבודה אחת ---- */
-.flow2{display:grid;gap:0;width:100%;max-width:24rem;justify-items:stretch;}
-.f2-sources{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
+/* ---- תרשים "מרכז השליטה": שתי מערכות → MyOS → סביבת עבודה אחת ----
+   קטן, שקוף וצנוע — בצבעי האזור בלבד: כחול-אפור, טורקיז ורקע השמנת. */
+.flow2{display:grid;gap:0;width:100%;max-width:16rem;justify-items:stretch;margin:0 auto;}
+.f2-sources{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
 .f2-box{
-  padding:.65rem .8rem;border:1px solid var(--line);border-radius:.75rem;
-  font-size:.86rem;color:var(--text-dim);text-align:center;background:var(--surface);
+  padding:.45rem .55rem;border:1px solid #d5d0c6;border-radius:.6rem;
+  font-size:.76rem;color:#55617d;text-align:center;background:transparent;
 }
-.f2-lines{display:block;width:100%;height:2.4rem;overflow:visible;}
-.f2-lines path.f2-wire{fill:none;stroke:var(--line);stroke-width:1.5;}
-.f2-dot{fill:var(--accent);}
-/* הכרטיס המרכזי */
+.f2-lines{display:block;width:100%;height:1.9rem;overflow:visible;}
+.f2-lines path.f2-wire{fill:none;stroke:#12879b;stroke-opacity:.45;stroke-width:1.3;}
+.f2-dot{fill:#12879b;}
+/* הכרטיס המרכזי — קומפקטי, מילוי טורקיז עדין וזוהר חלש */
 .f2-core{
-  position:relative;text-align:center;
-  padding:.9rem .9rem 1rem;border:1.5px solid var(--accent);border-radius:.9rem;
-  background:var(--surface);
-  box-shadow:0 8px 26px rgba(10,87,102,.14);
+  text-align:center;
+  padding:.55rem .7rem .6rem;border:1px solid rgba(10,87,102,.35);border-radius:.7rem;
+  background:#e7f4f5;
+  box-shadow:0 4px 14px rgba(18,135,155,.16);
 }
 .f2-core-title{
-  display:inline-flex;align-items:baseline;justify-content:center;gap:.45em;
-  font-size:1.05rem;font-weight:700;color:var(--heading);
+  display:inline-flex;align-items:baseline;justify-content:center;gap:.4em;
+  font-size:.95rem;font-weight:700;color:#0a5766;
 }
-.f2-core-title .mark{width:1.05em;height:1.05em;align-self:center;overflow:visible;}
-.f2-core-title .f2-ring{fill:var(--accent);}
-.f2-core-title .f2-stem{fill:var(--accent);}
+.f2-core-title .mark{width:1em;height:1em;align-self:center;overflow:visible;}
+.f2-core-title .f2-ring,.f2-core-title .f2-stem{fill:#0a5766;}
 /* ה-O "נדלקת" לרגע כשנקודות האור מגיעות — מסונכרן למחזור של 4.8ש */
 @keyframes f2glow{
-  0%,38%{filter:drop-shadow(0 0 0 rgba(47,240,230,0));}
-  46%{filter:drop-shadow(0 0 9px rgba(47,240,230,.95));}
-  58%,100%{filter:drop-shadow(0 0 0 rgba(47,240,230,0));}
+  0%,38%{filter:drop-shadow(0 0 0 rgba(18,135,155,0));}
+  46%{filter:drop-shadow(0 0 7px rgba(18,135,155,.8));}
+  58%,100%{filter:drop-shadow(0 0 0 rgba(18,135,155,0));}
 }
 body:not(.no-motion) .f2-core-title .mark{animation:f2glow 4.8s ease-in-out infinite;}
-.f2-core-sub{display:block;margin-top:.15rem;font-size:.82rem;color:var(--text-dim);}
-.f2-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;margin-top:.6rem;}
-.f2-chips span{
-  font-size:.72rem;font-weight:600;color:var(--accent);
-  background:var(--pill);padding:.28rem .6rem;border-radius:999px;white-space:nowrap;
-}
-/* כרטיס התוצאה */
-.f2-result{border-color:var(--accent);}
-.f2-result strong{display:block;color:var(--heading);font-size:.95rem;}
-.f2-result span{display:block;margin-top:.15rem;font-size:.8rem;}
+.f2-core-sub{display:block;margin-top:.05rem;font-size:.74rem;color:#55617d;}
+.f2-ops{display:block;margin-top:.3rem;font-size:.72rem;font-weight:600;color:#0a5766;letter-spacing:.04em;}
+/* שורת התוצאה — טקסט בלבד, לא כרטיס */
+.f2-result{text-align:center;}
+.f2-result strong{display:block;color:#0a5766;font-size:.86rem;font-weight:700;}
+.f2-result span{display:block;margin-top:.05rem;font-size:.72rem;color:#55617d;}
+/* ניגודיות גבוהה — צבעי הערכה במקום הגוונים הקבועים */
+body.high-contrast .f2-box,body.high-contrast .f2-core-sub,body.high-contrast .f2-result span{color:var(--text);}
+body.high-contrast .f2-core-title,body.high-contrast .f2-ops,body.high-contrast .f2-result strong{color:var(--accent);}
+body.high-contrast .f2-core{background:var(--surface);border-color:var(--line);box-shadow:none;}
 /* צמצום תנועה — התרשים סטטי, בלי נקודות אור */
 body.no-motion .f2-dot{display:none;}
 @media (prefers-reduced-motion:reduce){.f2-dot{display:none;}}
@@ -1272,10 +1275,6 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
         <p class="lead">אנחנו מחברים בין המערכות, המידע והאנשים — ויוצרים סביבם סביבת עבודה אחת שפשוט עובדת.</p>
         <p class="lead">השוק מוצף בפתרונות שמבטיחים לייעל את העבודה, אבל בפועל, עסקים מגלים שפתרונות ״מדף״ פשוט לא מספיקים כדי לפתור להם את הבעיות האמיתיות.</p>
         <p class="lead">ב־MyOS אנחנו לא מסתפקים בחיבור טכני בין תוכנות. אנחנו לומדים את התהליך, מפצחים את המורכבות ובונים סביבת עבודה שלמה המותאמת לעסק שלכם.</p>
-        <div class="hook-cta">
-          <a class="btn" href="#contact">קובעים פגישת אבחון</a>
-          <a class="link-more" href="#cases">ראו פתרונות שבנינו</a>
-        </div>
       </div>
 
       <div class="aside-mark" aria-hidden="true">
@@ -1302,7 +1301,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
               <span>MyOS</span>
             </span>
             <span class="f2-core-sub">שכבת החיבור החכמה</span>
-            <div class="f2-chips"><span>מתרגמת מידע</span><span>מפעילה תהליכים</span><span>מסנכרנת מערכות</span></div>
+            <span class="f2-ops">מתרגמת · מסנכרנת · מפעילה</span>
           </div>
           <svg class="f2-lines" viewBox="0 0 384 38" preserveAspectRatio="none" focusable="false">
             <path id="f2pC" class="f2-wire" d="M192 0 L192 38"/>
@@ -1311,8 +1310,13 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
               <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.52;0.56;0.76;0.82;1"/>
             </circle>
           </svg>
-          <div class="f2-box f2-result"><strong>סביבת עבודה אחת</strong><span>האנשים, המידע והמערכות עובדים יחד</span></div>
+          <div class="f2-result"><strong>סביבת עבודה אחת</strong><span>האנשים, המידע והמערכות עובדים יחד</span></div>
         </div>
+      </div>
+
+      <div class="hook-cta">
+        <a class="btn" href="#contact">קובעים פגישת אבחון</a>
+        <a class="link-more" href="#cases">ראו פתרונות שבנינו</a>
       </div>
     </div>
   </section>
@@ -2049,10 +2053,11 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
   (function () {
     var fab = document.getElementById('floatCta');
     if (!fab || !('IntersectionObserver' in window)) return;
-    var heroVis = true, contactVis = false;
-    function sync() { fab.hidden = heroVis || contactVis; }
+    var heroVis = true, contactVis = false, hookCtaVis = false;
+    function sync() { fab.hidden = heroVis || contactVis || hookCtaVis; }
     var hero = document.querySelector('.hero-dark');
     var contact = document.getElementById('contact');
+    var hookCta = document.querySelector('.hook-cta');
     if (!hero || !contact) return;
     new IntersectionObserver(function (es) {
       es.forEach(function (e) { heroVis = e.isIntersecting; }); sync();
@@ -2060,6 +2065,12 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
     new IntersectionObserver(function (es) {
       es.forEach(function (e) { contactVis = e.isIntersecting; }); sync();
     }, { threshold: 0.04 }).observe(contact);
+    /* לא מציגים את הצף כשכפתורי הסקשן ממילא על המסך — אחרת הם נערמים */
+    if (hookCta) {
+      new IntersectionObserver(function (es) {
+        es.forEach(function (e) { hookCtaVis = e.isIntersecting; }); sync();
+      }, { threshold: 0.04 }).observe(hookCta);
+    }
   })();
 
   /* ---------- תפריט הניווט העליון (נייד) ---------- */
