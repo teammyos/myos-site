@@ -587,17 +587,17 @@ strong{color:var(--heading);font-weight:600;}
 /* סקשן 2 */
 .split{display:grid;grid-template-columns:1fr;gap:clamp(1.75rem,4vw,3rem);align-items:start;}
 @media (min-width:900px){.split{grid-template-columns:1.05fr .95fr;}}
-/* בלי קופסה נראית — אבל רקע שקוף-למחצה בגוון הסקשן מעמעם את לוג הריצה
-   שמאחורי התרשים, אחרת הטקסטים נבלעים בו */
-.aside-mark{
-  display:grid;place-items:center;padding:clamp(.9rem,3vw,1.6rem);
-  background:rgba(239,236,229,.9);
-  -webkit-backdrop-filter:blur(2.5px);backdrop-filter:blur(2.5px);
-  border-radius:1.1rem;
-}
+/* העטיפה שקופה לגמרי — הרקע המעמעם יושב על התרשים עצמו וצמוד אליו,
+   כך שלוג הריצה רץ קרוב ואין "ריבוע שקט" גדול מסביב */
+.aside-mark{display:grid;place-items:center;padding:0;}
 /* ---- תרשים "מרכז השליטה": שתי מערכות → MyOS → סביבת עבודה אחת ----
    קטן, שקוף וצנוע — בצבעי האזור בלבד: כחול-אפור, טורקיז ורקע השמנת. */
-.flow2{display:grid;gap:0;width:100%;max-width:16rem;justify-items:stretch;margin:0 auto;}
+.flow2{
+  display:grid;gap:0;width:100%;max-width:16rem;justify-items:stretch;margin:0 auto;
+  background:rgba(239,236,229,.9);
+  -webkit-backdrop-filter:blur(2.5px);backdrop-filter:blur(2.5px);
+  border-radius:1rem;padding:.8rem .9rem;
+}
 .f2-sources{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
 .f2-box{
   padding:.45rem .55rem;border:1px solid #d5d0c6;border-radius:.6rem;
