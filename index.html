@@ -590,12 +590,23 @@ strong{color:var(--heading);font-weight:600;}
 /* העטיפה שקופה לגמרי — הרקע המעמעם יושב על התרשים עצמו וצמוד אליו,
    כך שלוג הריצה רץ קרוב ואין "ריבוע שקט" גדול מסביב */
 .aside-mark{display:grid;place-items:center;padding:0;}
-/* בדסקטופ העמודה נמתחת עד קצה המסך ולמלוא גובה הטקסט, והתרשים ממורכז
-   באמצע האזור הפנוי של הלוג — אופקית ואנכית */
+/* מיקום מוחלט בדסקטופ, לפי הכלל: אופקית — אמצע האזור שבין המילה השמאלית
+   ביותר בטקסט (הקצה השמאלי של עמודת הטקסט) לבין קצה המסך השמאלי;
+   אנכית — בדיוק אמצע הגובה של כל הסקשן הבהיר. מחושב מרוחב ה-inner בפועל. */
 @media (min-width:900px){
-  .split .aside-mark{
-    align-self:stretch;
-    margin-inline-end:calc(-1 * max(1.25rem, (100vw - 74rem) / 2 + 1.25rem));
+  #hook{
+    --innerw:min(100vw - 2.5rem, 74rem);
+    --sgap:clamp(1.75rem, 4vw, 3rem);
+    /* הקצה השמאלי של עמודת הטקסט: שול העמוד + עמודת התרשים (‎.95fr) + הרווח */
+    --textleft:calc((100vw - var(--innerw)) / 2 + (var(--innerw) - var(--sgap)) * 0.475 + var(--sgap));
+  }
+  #hook .aside-mark{
+    position:absolute;
+    top:50%;
+    /* הקונטיינר הממקם הוא ה-inner (יש לו position:relative) — מפחיתים את שול העמוד */
+    left:calc(var(--textleft) / 2 - (100vw - var(--innerw)) / 2);
+    transform:translate(-50%, -50%);
+    width:min(17.8rem, calc(var(--textleft) - 1.5rem));
   }
 }
 /* ---- תרשים "מרכז השליטה": שתי מערכות → MyOS → סביבת עבודה אחת ----
