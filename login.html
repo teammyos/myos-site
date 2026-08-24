@@ -9,10 +9,11 @@
 <style>
   *{box-sizing:border-box;margin:0}
   body{
-    min-height:100svh;display:grid;place-items:center;padding:1.25rem;
+    min-height:100svh;display:flex;flex-direction:column;
     background:#0E1A33;color:#cfd8ea;
     font-family:'Heebo',system-ui,'Segoe UI',Arial,sans-serif;line-height:1.7;
   }
+  .wrap{flex:1;display:grid;place-items:center;padding:1.25rem;width:100%;}
   .card{
     width:min(24rem,100%);background:#16264a;border:1px solid #26375c;border-radius:1.1rem;
     padding:2rem 1.75rem;
@@ -24,12 +25,13 @@
     font-weight:700}
   .logo svg{width:.72em;height:.826em;align-self:center;overflow:visible}
   h1{font-size:1.15rem;font-weight:600;color:#eef3fb;text-align:center;margin-bottom:1.25rem}
-  label{display:block;font-size:.9rem;margin:0 0 .3rem;color:#cbd6ea}
+  label{display:block;font-size:.92rem;margin:0 0 .35rem;color:#e6ecf7;font-weight:500}
   input{
-    width:100%;font:inherit;font-size:1rem;color:#eff3fa;background:rgba(255,255,255,.05);
-    border:1.5px solid #5a6b93;border-radius:.6rem;padding:.7rem .9rem;margin-bottom:1rem;
+    width:100%;font:inherit;font-size:1rem;color:#12233f;background:#f5f8fc;
+    border:1.5px solid #cdd8ec;border-radius:.6rem;padding:.72rem .9rem;margin-bottom:1rem;
   }
-  input:focus-visible{outline:none;border-color:#2ff0e6;box-shadow:0 0 0 3px rgba(47,240,230,.25)}
+  input::placeholder{color:#8492ac}
+  input:focus-visible{outline:none;border-color:#0a5766;background:#fff;box-shadow:0 0 0 3px rgba(47,240,230,.4)}
   button{
     width:100%;font:inherit;font-weight:600;font-size:1.02rem;cursor:pointer;
     background:#2ff0e6;color:#04121a;border:0;border-radius:.65rem;padding:.85rem;
@@ -38,12 +40,39 @@
   .msg{margin-top:.9rem;font-size:.9rem;text-align:center;min-height:1.4em}
   .msg.err{color:#ffb3a4}
   .msg.ok{color:#8dfff4}
-  .links{margin-top:1.1rem;text-align:center;font-size:.85rem;color:#9aa8c4}
+  .links{margin-top:1.1rem;text-align:center;font-size:.85rem;color:#b9c5dd}
   .links a{color:#8dfff4;cursor:pointer;text-decoration:underline;text-underline-offset:.22em}
+  textarea{
+    width:100%;font:inherit;font-size:1rem;color:#12233f;background:#f5f8fc;
+    border:1.5px solid #cdd8ec;border-radius:.6rem;padding:.7rem .9rem;margin-bottom:1rem;
+    resize:vertical;min-height:3.2rem;
+  }
+  textarea::placeholder{color:#8492ac}
+  textarea:focus-visible{outline:none;border-color:#0a5766;background:#fff;box-shadow:0 0 0 3px rgba(47,240,230,.4)}
+  .opt{font-weight:400;color:#9fb0cc;font-size:.82rem}
+  .hp{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  /* פוטר כמו באתר */
+  footer{
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem .85rem;
+    padding:1.25rem;font-size:.8rem;color:#8ea3c7;border-top:1px solid #21324f;
+  }
+  footer a{color:#8ea3c7;text-decoration:underline;text-underline-offset:.2em}
+  footer a:hover,footer a:focus-visible{color:#8dfff4}
+  footer .sep{width:3px;height:3px;border-radius:50%;background:#3a4a66;display:block}
+  footer .mono{font-variant-numeric:tabular-nums}
+  .flogo{display:inline-flex;align-items:baseline;gap:.04em;direction:ltr;font-size:1.05rem;line-height:1}
+  .flogo .my,.flogo .sc{
+    background:linear-gradient(122deg,#0a5766 0%,#13a8bd 44%,#2ff0e6 80%,#8dfff4 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;
+  }
+  .flogo .o{display:block;width:.72em;height:.826em;align-self:center;flex:none}
+  .flogo .o svg{width:100%;height:100%;display:block;overflow:visible}
+  .flogo .ring{fill:#eff3fa} .flogo .stem{fill:#2ff0e6}
   .hidden{display:none}
 </style>
 </head>
 <body>
+<div class="wrap">
 <main class="card">
   <div class="logo" aria-label="MyOS"><b>My</b><svg viewBox="6 -7 88 101" aria-hidden="true"><path fill="#eff3fa" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path fill="#2ff0e6" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg><b>S</b></div>
 
@@ -58,8 +87,24 @@
     <p class="msg" id="msg" role="status"></p>
     <p class="links">
       <a id="forgot">שכחתי סיסמה</a> ·
-      עדיין אין חשבון? <a href="mailto:team@myos.co.il?subject=הצטרפות ל-MyOS עסקאות">כתבו לנו</a>
+      עדיין אין חשבון? <a id="openContact">צרו קשר</a>
     </p>
+  </form>
+
+  <!-- ---------- יצירת קשר (במקום פתיחת תוכנת מייל) ---------- -->
+  <form id="contactForm" class="hidden">
+    <h1>נשמח ליצור קשר</h1>
+    <label class="hp" for="cBot">אל תמלאו שדה זה</label>
+    <input class="hp" type="checkbox" id="cBot" tabindex="-1" autocomplete="off">
+    <label for="cName">שם מלא</label>
+    <input id="cName" type="text" autocomplete="name" required>
+    <label for="cPhone">טלפון</label>
+    <input id="cPhone" type="tel" inputmode="tel" autocomplete="tel" required>
+    <label for="cMsg">הודעה <span class="opt">(אופציונלי)</span></label>
+    <textarea id="cMsg" rows="2" placeholder="נשמח לשמוע איך נוכל לעזור"></textarea>
+    <button id="cSubmit" type="submit">שליחה</button>
+    <p class="msg" id="cStatus" role="status"></p>
+    <p class="links"><a id="cBack">חזרה להתחברות</a></p>
   </form>
 
   <!-- ---------- קביעת סיסמה חדשה (אחרי קישור איפוס) ---------- -->
@@ -71,6 +116,23 @@
     <p class="msg" id="resetMsg" role="status"></p>
   </form>
 </main>
+</div>
+
+<footer>
+  <span class="flogo" dir="ltr" role="img" aria-label="MyOS">
+    <span class="my" aria-hidden="true">My</span>
+    <span class="o" aria-hidden="true"><svg viewBox="6 -7 88 101" focusable="false"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg></span>
+    <span class="sc" aria-hidden="true">S</span>
+  </span>
+  <span class="sep" aria-hidden="true"></span>
+  <a href="tel:+97235333630" class="mono" dir="ltr">03-5333630</a>
+  <span class="sep" aria-hidden="true"></span>
+  <a href="mailto:team@myos.co.il">team@myos.co.il</a>
+  <span class="sep" aria-hidden="true"></span>
+  <a href="https://myos.co.il/#accessibility">הצהרת נגישות</a>
+  <span class="sep" aria-hidden="true"></span>
+  <span dir="ltr">© 2026 MyOS</span>
+</footer>
 
 <script src="js/supabase.umd.js"></script>
 <script>
@@ -117,6 +179,47 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     if (r.error) { say('resetMsg', 'לא הצלחנו לעדכן: ' + r.error.message, 'err'); return; }
     say('resetMsg', 'הסיסמה עודכנה. אפשר לחזור לתוסף ולהתחבר.', 'ok');
     setTimeout(function () { location.hash = ''; location.reload(); }, 1800);
+  });
+
+  /* ---------- יצירת קשר: מעבר בין הטפסים ---------- */
+  var W3F_KEY = 'cf8458e1-fbd7-4677-8032-8ec685184dc6';
+  $('openContact').addEventListener('click', function () {
+    $('loginForm').classList.add('hidden');
+    $('contactForm').classList.remove('hidden');
+    $('cName').focus();
+  });
+  $('cBack').addEventListener('click', function () {
+    $('contactForm').classList.add('hidden');
+    $('loginForm').classList.remove('hidden');
+  });
+
+  $('contactForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    if ($('cBot').checked) return;                 /* מלכודת בוטים */
+    var name = $('cName').value.trim(), phone = $('cPhone').value.trim();
+    if (!name || !phone) { say('cStatus', 'נא למלא שם וטלפון', 'err'); return; }
+    $('cSubmit').disabled = true;
+    say('cStatus', 'שולח…');
+    try {
+      var fd = new FormData();
+      fd.append('access_key', W3F_KEY);
+      fd.append('subject', 'פנייה חדשה — התחברות MyOS עסקאות');
+      fd.append('from_name', 'myos.co.il/login');
+      fd.append('שם מלא', name);
+      fd.append('טלפון', phone);
+      fd.append('הודעה', $('cMsg').value.trim());
+      var res = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd });
+      var j = await res.json();
+      if (j && j.success) {
+        say('cStatus', 'תודה! נחזור אליכם בהקדם ✓', 'ok');
+        $('contactForm').reset();
+      } else {
+        say('cStatus', 'השליחה נכשלה — נסו שוב או טלפנו 03-5333630', 'err');
+      }
+    } catch (err) {
+      say('cStatus', 'שגיאת רשת — נסו שוב או טלפנו 03-5333630', 'err');
+    }
+    $('cSubmit').disabled = false;
   });
 
   /* ---------- שכחתי סיסמה ---------- */
