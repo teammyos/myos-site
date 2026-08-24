@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>התחברות | MyOS</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='6 -9 88 103'%3E%3Crect x='6' y='-9' width='88' height='103' fill='%230E1A33'/%3E%3Cpath d='M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 24 L76 38 L76 62 L62 76 L38 76 L24 62 L24 38 L38 24 Z' fill='%23eff3fa'/%3E%3Cpath d='M46 -9 L54 -9 L58 -5 L58 30 L50 38 L42 30 L42 -5 Z' fill='%232ff0e6'/%3E%3C/svg%3E">
+<style>
+  *{box-sizing:border-box;margin:0}
+  body{
+    min-height:100svh;display:grid;place-items:center;padding:1.25rem;
+    background:#0E1A33;color:#cfd8ea;
+    font-family:'Heebo',system-ui,'Segoe UI',Arial,sans-serif;line-height:1.7;
+  }
+  .card{
+    width:min(24rem,100%);background:#16264a;border:1px solid #26375c;border-radius:1.1rem;
+    padding:2rem 1.75rem;
+  }
+  .logo{display:flex;align-items:baseline;gap:.055em;justify-content:center;direction:ltr;
+    font-size:2.1rem;line-height:1.38;padding-bottom:.6rem}
+  .logo b{background:linear-gradient(122deg,#0a5766 0%,#13a8bd 44%,#2ff0e6 80%,#8dfff4 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    font-weight:700}
+  .logo svg{width:.72em;height:.826em;align-self:center;overflow:visible}
+  h1{font-size:1.15rem;font-weight:600;color:#eef3fb;text-align:center;margin-bottom:1.25rem}
+  label{display:block;font-size:.9rem;margin:0 0 .3rem;color:#cbd6ea}
+  input{
+    width:100%;font:inherit;font-size:1rem;color:#eff3fa;background:rgba(255,255,255,.05);
+    border:1.5px solid #5a6b93;border-radius:.6rem;padding:.7rem .9rem;margin-bottom:1rem;
+  }
+  input:focus-visible{outline:none;border-color:#2ff0e6;box-shadow:0 0 0 3px rgba(47,240,230,.25)}
+  button{
+    width:100%;font:inherit;font-weight:600;font-size:1.02rem;cursor:pointer;
+    background:#2ff0e6;color:#04121a;border:0;border-radius:.65rem;padding:.85rem;
+  }
+  button:disabled{opacity:.6;cursor:progress}
+  .msg{margin-top:.9rem;font-size:.9rem;text-align:center;min-height:1.4em}
+  .msg.err{color:#ffb3a4}
+  .msg.ok{color:#8dfff4}
+  .links{margin-top:1.1rem;text-align:center;font-size:.85rem;color:#9aa8c4}
+  .links a{color:#8dfff4;cursor:pointer;text-decoration:underline;text-underline-offset:.22em}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="logo" aria-label="MyOS"><b>My</b><svg viewBox="6 -7 88 101" aria-hidden="true"><path fill="#eff3fa" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path fill="#2ff0e6" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg><b>S</b></div>
+
+  <!-- ---------- התחברות ---------- -->
+  <form id="loginForm">
+    <h1 id="title">התחברות לחשבון MyOS</h1>
+    <label for="email">דוא״ל</label>
+    <input id="email" type="email" autocomplete="username" required>
+    <label for="password">סיסמה</label>
+    <input id="password" type="password" autocomplete="current-password" required>
+    <button id="submit" type="submit">התחברות</button>
+    <p class="msg" id="msg" role="status"></p>
+    <p class="links">
+      <a id="forgot">שכחתי סיסמה</a> ·
+      עדיין אין חשבון? <a href="mailto:team@myos.co.il?subject=הצטרפות ל-MyOS עסקאות">כתבו לנו</a>
+    </p>
+  </form>
+
+  <!-- ---------- קביעת סיסמה חדשה (אחרי קישור איפוס) ---------- -->
+  <form id="resetForm" class="hidden">
+    <h1>קביעת סיסמה חדשה</h1>
+    <label for="newPassword">סיסמה חדשה</label>
+    <input id="newPassword" type="password" autocomplete="new-password" required minlength="8">
+    <button id="resetSubmit" type="submit">שמירה</button>
+    <p class="msg" id="resetMsg" role="status"></p>
+  </form>
+</main>
+
+<script src="js/supabase.umd.js"></script>
+<script>
+/* ============================================================
+   מלאו אחרי הקמת הפרויקט (Supabase → Settings → API):
+   ============================================================ */
+var SUPABASE_URL = '';
+var SUPABASE_ANON_KEY = '';
+
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    $('msg').className = 'msg err';
+    $('msg').textContent = 'הדף עוד לא הוגדר (חסרים פרטי שרת)';
+    $('submit').disabled = true;
+    return;
+  }
+  var client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  /* התוסף פותח את הדף עם ‎#ext=<redirect>‎ — לשם מחזירים את הטוקנים */
+  function extRedirect() {
+    var m = location.hash.match(/ext=([^&]+)/);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
+  function say(id, text, tone) {
+    $(id).className = 'msg ' + (tone || '');
+    $(id).textContent = text;
+  }
+
+  /* ---------- קישור איפוס סיסמה מחזיר לכאן עם type=recovery ---------- */
+  if (/type=recovery/.test(location.hash)) {
+    $('loginForm').classList.add('hidden');
+    $('resetForm').classList.remove('hidden');
+  }
+
+  $('resetForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    $('resetSubmit').disabled = true;
+    var r = await client.auth.updateUser({ password: $('newPassword').value });
+    $('resetSubmit').disabled = false;
+    if (r.error) { say('resetMsg', 'לא הצלחנו לעדכן: ' + r.error.message, 'err'); return; }
+    say('resetMsg', 'הסיסמה עודכנה. אפשר לחזור לתוסף ולהתחבר.', 'ok');
+    setTimeout(function () { location.hash = ''; location.reload(); }, 1800);
+  });
+
+  /* ---------- שכחתי סיסמה ---------- */
+  $('forgot').addEventListener('click', async function () {
+    var email = $('email').value.trim();
+    if (!email) { say('msg', 'מלאו דוא״ל ולחצו שוב על "שכחתי סיסמה"', 'err'); return; }
+    var r = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: location.origin + location.pathname
+    });
+    say('msg', r.error ? 'שגיאה: ' + r.error.message : 'נשלח קישור איפוס למייל', r.error ? 'err' : 'ok');
+  });
+
+  /* ---------- התחברות ---------- */
+  $('loginForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    $('submit').disabled = true;
+    say('msg', 'מתחבר…');
+    var r = await client.auth.signInWithPassword({
+      email: $('email').value.trim(),
+      password: $('password').value
+    });
+    $('submit').disabled = false;
+    if (r.error) {
+      say('msg', 'ההתחברות נכשלה — בדקו דוא״ל וסיסמה', 'err');
+      return;
+    }
+    var s = r.data.session;
+    var back = extRedirect();
+    if (back) {
+      /* חזרה לתוסף עם הטוקנים ב-fragment (לא נשלח לשום שרת) */
+      location.replace(back + '#access_token=' + encodeURIComponent(s.access_token) +
+                       '&refresh_token=' + encodeURIComponent(s.refresh_token) +
+                       '&expires_in=' + encodeURIComponent(s.expires_in));
+    } else {
+      say('msg', 'מחוברים ✓ אפשר לחזור לתוסף', 'ok');
+    }
+  });
+})();
+</script>
+</body>
+</html>
