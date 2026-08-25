@@ -825,15 +825,18 @@ body.no-motion .f2-dot{display:none;}
 .step p{font-size:.95rem;color:var(--text-dim);}
 
 /* סקשן 6 */
+/* "איך זה עובד" ו"יצירת קשר" מאוחדים לגוש כהה אחד רציף:
+   מקצצים את הריווח התחתון של process ואת העליון של cta כדי שאין תפר. */
+#process{padding-bottom:clamp(1.5rem,3.5vw,2.5rem);}
 .cta{
-  background:#0E1A33;border-radius:0;padding:clamp(2rem,5vw,3.25rem) 1.25rem;
+  background:#0E1A33;border-radius:0;padding:clamp(.4rem,1.4vw,1rem) 1.25rem clamp(1.9rem,4vw,2.6rem);
   position:relative;z-index:1;overflow:hidden;
 }
 .cta::before{
   content:"";position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(70% 120% at 50% -10%, rgba(47,240,230,.14) 0%, rgba(47,240,230,0) 62%);
 }
-.cta .inner{position:relative;z-index:1;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1.1rem;}
+.cta .inner{position:relative;z-index:1;text-align:center;display:flex;flex-direction:column;align-items:center;gap:.8rem;}
 /* חותמת מים — הסמל בלבד, דקורטיבי. אופסיטי מקסימלי ‎.06, מעבר לזה מתחרה בטקסט */
 .cta-watermark{
   position:absolute;inset-inline-start:-6%;top:50%;
