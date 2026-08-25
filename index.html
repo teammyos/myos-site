@@ -824,21 +824,16 @@ body.no-motion .f2-dot{display:none;}
 @media (max-width:819px){.step::after{display:none;}}
 .step p{font-size:.95rem;color:var(--text-dim);}
 
-/* סקשן 6 */
-/* "איך זה עובד" ו"יצירת קשר" מאוחדים לגוש כהה אחד רציף:
-   מקצצים את הריווח התחתון של process ואת העליון של cta כדי שאין תפר. */
-#process{padding-top:12rem;padding-bottom:12rem;}
-#process .steps{margin-top:4rem;}
-@media (max-width:819px){#process{padding-top:3.5rem;padding-bottom:3.5rem;}#process .steps{margin-top:2.5rem;gap:1.25rem;}}
+/* סקשן 6 · הנעה לפעולה (עומד בפני עצמו) */
 .cta{
-  background:#0E1A33;border-radius:0;padding:clamp(.4rem,1.4vw,1rem) 1.25rem clamp(1.3rem,3vw,1.9rem);
+  background:#0E1A33;border-radius:0;padding:clamp(2.5rem,5vw,3.5rem) 1.25rem clamp(2.2rem,4vw,3rem);
   position:relative;z-index:1;overflow:hidden;
 }
 .cta::before{
   content:"";position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(70% 120% at 50% -10%, rgba(47,240,230,.14) 0%, rgba(47,240,230,0) 62%);
 }
-.cta .inner{position:relative;z-index:1;text-align:center;display:flex;flex-direction:column;align-items:center;gap:.7rem;}
+.cta .inner{position:relative;z-index:1;text-align:center;display:flex;flex-direction:column;align-items:center;gap:.8rem;}
 /* חותמת מים — הסמל בלבד, דקורטיבי. אופסיטי מקסימלי ‎.06, מעבר לזה מתחרה בטקסט */
 .cta-watermark{
   position:absolute;inset-inline-start:-6%;top:50%;
@@ -869,7 +864,7 @@ body.high-contrast .cta-watermark{display:none;}
 /* ---- טופס יצירת קשר ---- */
 .cta-form{
   width:100%;max-width:34rem;margin:0 auto;text-align:start;
-  display:flex;flex-direction:column;gap:.65rem;
+  display:flex;flex-direction:column;gap:.8rem;
 }
 .cta-form[hidden]{display:none;}
 .cta-form .fld{display:flex;flex-direction:column;gap:.4rem;min-width:0;}
@@ -1220,7 +1215,6 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
     <ul class="nav-links" id="navLinks">
       <li><a href="#hook">מה אנחנו עושים</a></li>
       <li><a href="#cases">פתרונות</a></li>
-      <li><a href="#process">איך זה עובד</a></li>
       <li><a href="#contact">יצירת קשר</a></li>
     </ul>
   </nav>
@@ -1296,7 +1290,6 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
         <p class="eyebrow">מה אנחנו עושים</p>
         <h2 id="hookTitle">אוטומציה טובה מתחילה <span class="hl">באנשים</span>, לא בתוכנה.</h2>
         <p class="lead">אנחנו מחברים בין המערכות, המידע והאנשים — ויוצרים סביבם סביבת עבודה אחת שפשוט עובדת.</p>
-        <p class="lead">השוק מוצף בפתרונות שמבטיחים לייעל את העבודה, אבל בפועל, עסקים מגלים שפתרונות ״מדף״ פשוט לא מספיקים כדי לפתור להם את הבעיות האמיתיות.</p>
         <p class="lead">ב־MyOS אנחנו לא מסתפקים בחיבור טכני בין תוכנות. אנחנו לומדים את התהליך, מפצחים את המורכבות ובונים סביבת עבודה שלמה המותאמת לעסק שלכם.</p>
       </div>
 
@@ -1383,7 +1376,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
     <div class="inner">
       <p class="eyebrow">פתרונות מהשטח</p>
       <h2 id="casesTitle">ככה נראית אוטומציה אנושית בשטח</h2>
-      <p class="lead">כדי להבין מה אנחנו באמת יודעים לעשות, הנה דוגמאות לפתרונות מורכבים שבנינו:</p>
+      <p class="lead">להלן דוגמאות לפתרונות שבנינו:</p>
 
       <div class="cases-wrap">
       <button type="button" class="case-nav case-prev" id="casePrev" aria-controls="casesTrack" aria-label="מקרה הבוחן הקודם">
@@ -1395,7 +1388,6 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
       <div class="cases" id="casesTrack" tabindex="0" role="group" aria-roledescription="קרוסלה" aria-label="ארבעה מקרי בוחן — גללו הצידה למעבר ביניהם">
         <article class="case">
           <div class="case-main">
-          <span class="case-tag">public sector</span>
           <h3>המגזר הציבורי — עירייה</h3>
           <dl>
             <div>
@@ -1435,7 +1427,6 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
 
         <article class="case">
           <div class="case-main">
-          <span class="case-tag">fintech</span>
           <h3>המגזר הפיננסי — ייעוץ משכנתאות ופיננסים</h3>
           <dl>
             <div>
@@ -1475,7 +1466,6 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
 
         <article class="case">
           <div class="case-main">
-          <span class="case-tag">real estate</span>
           <h3>עולם הנדל״ן והיזמות — אוטומציית נתונים ממשלתיים</h3>
           <dl>
             <div>
@@ -1502,17 +1492,19 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
           </dl>
           </div>
           <div class="case-media">
-            <div class="soon">
-              <svg class="soon-mark" viewBox="6 -7 88 101" aria-hidden="true" focusable="false"><path d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg>
-              <span class="soon-badge">בקרוב</span>
-              <p>התנסות חיה בתוסף — ממש כאן</p>
-            </div>
+          <figure class="case-shot wide">
+            <picture>
+              <source srcset="img/case-nadlan.webp" type="image/webp">
+              <img src="img/case-nadlan.jpg" width="1400" height="560" loading="lazy" decoding="async"
+                   alt="MyOS עסקאות — התוסף שמושך עסקאות נדל״ן ממאגר רשות המיסים ומייצא אותן לקובץ Excel מעוצב בלחיצה אחת">
+            </picture>
+            <figcaption>המוצר שלנו: תוסף שליפת עסקאות הנדל״ן — לקובץ Excel בלחיצה אחת</figcaption>
+          </figure>
           </div>
         </article>
 
         <article class="case">
           <div class="case-main">
-          <span class="case-tag">nonprofit</span>
           <h3>המגזר השלישי — עמותה בפריסה ארצית</h3>
           <dl>
             <div>
@@ -1554,30 +1546,6 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
       </div>
     </div>
   </section>
-
-  <!-- ============ 5 · התהליך ============ -->
-  <section class="section" id="process" aria-labelledby="processTitle">
-    <div class="inner">
-      <p class="eyebrow">איך זה עובד</p>
-      <h2 id="processTitle">מתחילים להפעיל את העסק ב־3 צעדים</h2>
-
-      <ol class="steps">
-        <li class="step">
-          <h3>פגישת אבחון</h3>
-          <p>יושבים יחד, שותים קפה (או נפגשים בזום), ומבינים איפה הצוות שלכם מבזבז הכי הרבה זמן.</p>
-        </li>
-        <li class="step">
-          <h3>אפיון ועיצוב פתרון</h3>
-          <p>ממפים את התהליך הקיים ומתכננים את המערכת האידיאלית עבורכם.</p>
-        </li>
-        <li class="step">
-          <h3>פיתוח והטמעה</h3>
-          <p>בונים את המערכת, מחברים אותה למאגרי המידע והתוכנות שלכם, ומטמיעים אותה בשטח בצורה חלקה.</p>
-        </li>
-      </ol>
-    </div>
-  </section>
-
 
   <!-- ============ 7 · הנעה לפעולה ============ -->
   <section class="cta" id="contact" aria-labelledby="ctaTitle">
