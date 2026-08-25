@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>קנבס מנהל · MyOS משימות</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='6 -9 88 103'%3E%3Crect x='6' y='-9' width='88' height='103' fill='%230E1A33'/%3E%3Cpath d='M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 24 L76 38 L76 62 L62 76 L38 76 L24 62 L24 38 L38 24 Z' fill='%23eff3fa'/%3E%3Cpath d='M46 -9 L54 -9 L58 -5 L58 30 L50 38 L42 30 L42 -5 Z' fill='%232ff0e6'/%3E%3C/svg%3E">
+<style>
+  *{box-sizing:border-box;margin:0}
+  :root{
+    --navy:#0E1A33; --navy2:#0b1428; --card:#16264a; --line:#26375c;
+    --text:#cfd8ea; --dim:#9aa8c4; --heading:#eef3fb; --accent:#2ff0e6; --accent2:#8dfff4;
+  }
+  html,body{height:100%}
+  body{
+    background:radial-gradient(120% 70% at 50% -10%, #12233f 0%, var(--navy) 55%, var(--navy2) 100%);
+    color:var(--text);font-family:'Heebo',system-ui,'Segoe UI',Arial,sans-serif;line-height:1.5;
+    display:flex;flex-direction:column;min-height:100svh;
+  }
+  a{color:var(--accent)}
+  /* header */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.8rem 1.2rem;border-bottom:1px solid var(--line)}
+  .logo{display:inline-flex;align-items:baseline;gap:.04em;direction:ltr;font-size:1.35rem}
+  .logo .my,.logo .sc{background:linear-gradient(122deg,#13a8bd,#2ff0e6 60%,#8dfff4);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+  .logo .o{display:block;width:.72em;height:.826em;align-self:center;flex:none}
+  .logo .o svg{width:100%;height:100%;display:block;overflow:visible}
+  .logo .ring{fill:#eff3fa}.logo .stem{fill:#2ff0e6}
+  .logo .pt{font-size:.62em;color:#dbe4f5;font-weight:600;margin-inline-start:.4em;align-self:center}
+  .top .right{display:flex;align-items:center;gap:.8rem;font-size:.85rem;color:var(--dim)}
+  .top .right a,.top .right button{color:var(--dim);background:none;border:1px solid var(--line);border-radius:.5rem;padding:.35rem .75rem;text-decoration:none;cursor:pointer;font:inherit;font-size:.82rem}
+  .top .right a:hover,.top .right button:hover{border-color:var(--accent);color:var(--accent)}
+
+  .stage{flex:1;display:grid;grid-template-columns:1fr 15rem;gap:0;min-height:0}
+  @media (max-width:760px){.stage{grid-template-columns:1fr;}}
+
+  /* people panel */
+  .panel{border-inline-start:1px solid var(--line);padding:1rem;overflow:auto;background:rgba(11,20,40,.4)}
+  .panel h2{font-size:.95rem;color:var(--heading);margin-bottom:.2rem}
+  .panel .hint{font-size:.78rem;color:var(--dim);margin-bottom:.9rem}
+  .chip{display:flex;align-items:center;gap:.55rem;background:var(--card);border:1px solid var(--line);
+        border-radius:.7rem;padding:.55rem .7rem;margin-bottom:.55rem;cursor:grab;transition:border-color .15s,transform .15s}
+  .chip:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .chip:active{cursor:grabbing}
+  .chip .dot{width:.85rem;height:.85rem;border-radius:50%;flex:none}
+  .chip .nm{font-size:.9rem;color:var(--heading)}
+  .addp{display:flex;gap:.4rem;margin-top:.6rem}
+  .addp input[type=text]{flex:1;min-width:0;background:var(--navy);border:1px solid var(--line);color:var(--text);border-radius:.5rem;padding:.45rem .6rem;font:inherit;font-size:.85rem}
+  .addp input[type=color]{width:2.2rem;height:2.2rem;border:1px solid var(--line);border-radius:.5rem;background:var(--navy);padding:2px}
+  .addp button{background:var(--accent);color:#04121a;border:0;border-radius:.5rem;padding:0 .8rem;cursor:pointer;font:inherit;font-weight:600;font-size:.85rem}
+
+  /* work area */
+  .work{padding:1.2rem 1.4rem;overflow:auto;display:flex;flex-direction:column;gap:1rem}
+  .goalbar{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem}
+  .goalbar input.goal{flex:1;min-width:14rem;background:var(--card);border:1px solid var(--line);color:var(--heading);
+        border-radius:.7rem;padding:.7rem .9rem;font:inherit;font-size:1.05rem;font-weight:600}
+  .goalbar .save{background:var(--accent);color:#04121a;border:0;border-radius:.7rem;padding:.7rem 1.3rem;cursor:pointer;font:inherit;font-weight:700}
+  .goalbar .save:hover{background:var(--accent2)}
+  .goalbar .save:disabled{opacity:.5;cursor:default}
+
+  .lane-wrap{position:relative;background:rgba(22,38,74,.35);border:1px solid var(--line);border-radius:1rem;padding:1.4rem 1rem;min-height:12rem}
+  .lane-title{font-size:.8rem;color:var(--dim);margin-bottom:1rem}
+  .lane{position:relative;display:flex;align-items:stretch;gap:0;min-height:8rem}
+  .lane.drop{outline:2px dashed var(--accent);outline-offset:6px;border-radius:.8rem}
+  .endcap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;flex:none;align-self:center}
+  .endcap .bub{width:2.6rem;height:2.6rem;border-radius:50%;display:grid;place-items:center;background:var(--card);border:1px solid var(--line);color:var(--accent);font-size:1.1rem}
+  .endcap .lbl{font-size:.72rem;color:var(--dim)}
+  .conn{flex:1;min-width:1.5rem;align-self:center;height:2px;background:linear-gradient(90deg,var(--accent),rgba(47,240,230,.35));position:relative;margin:0 .1rem}
+  .station{flex:none;align-self:center;width:11rem;background:var(--card);border:1px solid var(--line);border-radius:.8rem;padding:.7rem .8rem;position:relative;box-shadow:0 8px 22px rgba(0,0,0,.28)}
+  .station .who{display:flex;align-items:center;gap:.45rem;margin-bottom:.4rem}
+  .station .who .dot{width:.8rem;height:.8rem;border-radius:50%;flex:none}
+  .station .who .nm{font-size:.85rem;color:var(--heading);font-weight:600}
+  .station .act{font-size:.9rem;color:var(--text);margin-bottom:.35rem;word-break:break-word}
+  .station .due{font-size:.76rem;color:var(--dim)}
+  .station .del{position:absolute;top:.35rem;inset-inline-start:.4rem;background:none;border:0;color:var(--dim);cursor:pointer;font-size:1rem;line-height:1}
+  .station .del:hover{color:#ffb4b4}
+  .station .stepno{position:absolute;top:-.7rem;inset-inline-end:-.7rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:#04121a;font-size:.78rem;font-weight:700;display:grid;place-items:center}
+  .empty-lane{color:var(--dim);font-size:.9rem;text-align:center;width:100%;align-self:center;padding:1rem}
+
+  /* modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(4,8,18,.6);display:none;align-items:center;justify-content:center;z-index:20;padding:1rem}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--navy);border:1px solid var(--line);border-radius:1rem;padding:1.4rem;width:min(26rem,100%)}
+  .modal h3{color:var(--heading);font-size:1.1rem;margin-bottom:.2rem}
+  .modal .msub{color:var(--dim);font-size:.85rem;margin-bottom:1rem}
+  .modal label{display:block;font-size:.85rem;color:var(--dim);margin:.7rem 0 .3rem}
+  .modal input,.modal textarea{width:100%;background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:.55rem;padding:.6rem .7rem;font:inherit}
+  .modal textarea{resize:vertical;min-height:3.5rem}
+  .modal .row{display:flex;gap:.6rem;justify-content:flex-start;margin-top:1.2rem}
+  .modal .row button{border:0;border-radius:.6rem;padding:.6rem 1.2rem;cursor:pointer;font:inherit;font-weight:600}
+  .modal .ok{background:var(--accent);color:#04121a}
+  .modal .cancel{background:none;border:1px solid var(--line);color:var(--dim)}
+  .toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--accent);
+         color:var(--heading);padding:.7rem 1.2rem;border-radius:.7rem;font-size:.9rem;z-index:30;display:none;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+  <div class="top">
+    <span class="logo" dir="ltr" aria-label="MyOS משימות">
+      <span class="my">My</span>
+      <span class="o"><svg viewBox="6 -7 88 101"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg></span>
+      <span class="sc">S</span><span class="pt">משימות · קנבס מנהל</span>
+    </span>
+    <span class="right">
+      <a href="./">← חזרה</a>
+      <button id="logoutBtn" type="button">התנתקות</button>
+    </span>
+  </div>
+
+  <div class="stage">
+    <div class="work">
+      <div class="goalbar">
+        <input class="goal" id="goalName" type="text" placeholder="שם המשימה / המטרה — למשל: הפקת דוח שמאות לתיק 2571">
+        <button class="save" id="saveBtn" type="button">שמור משימה</button>
+      </div>
+
+      <div class="lane-wrap">
+        <p class="lane-title">גררו דמות מהפאנל אל הציר כדי להוסיף תחנה. הזמן זורם מ<b>התחלה</b> (ימין) ל<b>סיום</b> (שמאל).</p>
+        <div class="lane" id="lane">
+          <div class="endcap"><div class="bub">▶</div><div class="lbl">התחלה</div></div>
+          <div class="conn" id="firstConn"></div>
+          <div class="empty-lane" id="emptyLane">גררו לכאן את הדמות הראשונה…</div>
+          <div class="endcap" id="endCap"><div class="bub">🏁</div><div class="lbl">סיום</div></div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="panel">
+      <h2>אנשים</h2>
+      <p class="hint">גררו אל הציר כדי לשבץ אחראי לתחנה.</p>
+      <div id="peopleList"></div>
+      <div class="addp">
+        <input type="text" id="newName" placeholder="שם חדש…">
+        <input type="color" id="newColor" value="#2ff0e6" title="צבע">
+        <button id="addPerson" type="button">+</button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- modal -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal">
+      <h3>תחנה חדשה</h3>
+      <p class="msub">אחראי: <span id="mPerson"></span></p>
+      <label for="mAction">מהות הפעולה</label>
+      <textarea id="mAction" placeholder="מה צריך לעשות בתחנה הזו?"></textarea>
+      <label for="mDue">זמן לביצוע (דדליין)</label>
+      <input type="date" id="mDue">
+      <div class="row">
+        <button class="ok" id="mOk" type="button">הוסף תחנה</button>
+        <button class="cancel" id="mCancel" type="button">ביטול</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script src="../js/supabase.umd.js"></script>
+<script src="config.js"></script>
+<script>
+(function(){
+  var cfg = window.MYOS_TASKS || {};
+  var sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON);
+  var me = null;                 // task_user row
+  var people = [];               // roster
+  var stations = [];             // {personId, personName, color, action, due}
+  var pendingPerson = null;      // person being added via modal
+
+  function toast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show')},2600); }
+
+  // ---------- auth gate: admin only ----------
+  async function guard(){
+    var s = (await sb.auth.getSession()).data.session;
+    if(!s){ location.href='./'; return false; }
+    var q = await sb.from('task_users').select('id,role,approved,full_name').eq('id', s.user.id).maybeSingle();
+    if(q.error || !q.data || !q.data.approved || q.data.role!=='admin'){ location.href='./'; return false; }
+    me = q.data;
+    return true;
+  }
+
+  // ---------- people ----------
+  async function loadPeople(){
+    var q = await sb.from('people').select('id,name,color,active').eq('active',true).order('name');
+    people = (q.error? [] : q.data) || [];
+    renderPeople();
+  }
+  function renderPeople(){
+    var box = document.getElementById('peopleList'); box.innerHTML='';
+    if(!people.length){ box.innerHTML='<p class="hint">אין עדיין אנשים. הוסיפו למטה 👇</p>'; return; }
+    people.forEach(function(p){
+      var el=document.createElement('div'); el.className='chip'; el.draggable=true; el.dataset.id=p.id;
+      el.innerHTML='<span class="dot" style="background:'+(p.color||'#2ff0e6')+'"></span><span class="nm">'+esc(p.name)+'</span>';
+      el.addEventListener('dragstart', function(e){ e.dataTransfer.setData('text/plain', p.id); e.dataTransfer.effectAllowed='copy'; });
+      box.appendChild(el);
+    });
+  }
+  document.getElementById('addPerson').addEventListener('click', async function(){
+    var name=document.getElementById('newName').value.trim();
+    var color=document.getElementById('newColor').value||'#2ff0e6';
+    if(!name) return;
+    var q=await sb.from('people').insert({name:name,color:color,is_login:false,active:true}).select().single();
+    if(q.error){ toast('שגיאה: '+q.error.message); return; }
+    document.getElementById('newName').value='';
+    people.push(q.data); renderPeople();
+  });
+
+  // ---------- drag & drop onto lane ----------
+  var lane=document.getElementById('lane');
+  lane.addEventListener('dragover', function(e){ e.preventDefault(); lane.classList.add('drop'); e.dataTransfer.dropEffect='copy'; });
+  lane.addEventListener('dragleave', function(e){ if(e.target===lane) lane.classList.remove('drop'); });
+  lane.addEventListener('drop', function(e){
+    e.preventDefault(); lane.classList.remove('drop');
+    var id=e.dataTransfer.getData('text/plain');
+    var p=people.find(function(x){return x.id===id}); if(!p) return;
+    openModal(p);
+  });
+
+  // ---------- modal ----------
+  function openModal(p){
+    pendingPerson=p;
+    document.getElementById('mPerson').textContent=p.name;
+    document.getElementById('mAction').value='';
+    document.getElementById('mDue').value='';
+    document.getElementById('modalBg').classList.add('open');
+    setTimeout(function(){document.getElementById('mAction').focus()},50);
+  }
+  function closeModal(){ document.getElementById('modalBg').classList.remove('open'); pendingPerson=null; }
+  document.getElementById('mCancel').addEventListener('click', closeModal);
+  document.getElementById('modalBg').addEventListener('click', function(e){ if(e.target.id==='modalBg') closeModal(); });
+  document.getElementById('mOk').addEventListener('click', function(){
+    var act=document.getElementById('mAction').value.trim();
+    var due=document.getElementById('mDue').value||null;
+    if(!act){ document.getElementById('mAction').focus(); return; }
+    stations.push({personId:pendingPerson.id, personName:pendingPerson.name, color:pendingPerson.color, action:act, due:due});
+    closeModal(); renderLane();
+  });
+
+  // ---------- render timeline ----------
+  function renderLane(){
+    // remove existing stations/conns except the start cap + endCap
+    Array.prototype.slice.call(lane.querySelectorAll('.station,.conn,.empty-lane')).forEach(function(n){n.remove()});
+    var endCap=document.getElementById('endCap');
+    // first connector after start
+    lane.insertBefore(mkConn(), endCap);
+    if(!stations.length){
+      var empt=document.createElement('div'); empt.className='empty-lane'; empt.textContent='גררו לכאן את הדמות הראשונה…';
+      lane.insertBefore(empt, endCap); return;
+    }
+    stations.forEach(function(s,i){
+      lane.insertBefore(mkStation(s,i), endCap);
+      lane.insertBefore(mkConn(), endCap);
+    });
+  }
+  function mkConn(){ var c=document.createElement('div'); c.className='conn'; return c; }
+  function mkStation(s,i){
+    var el=document.createElement('div'); el.className='station';
+    el.innerHTML=
+      '<span class="stepno">'+(i+1)+'</span>'+
+      '<button class="del" title="הסר">×</button>'+
+      '<div class="who"><span class="dot" style="background:'+(s.color||'#2ff0e6')+'"></span><span class="nm">'+esc(s.personName)+'</span></div>'+
+      '<div class="act">'+esc(s.action)+'</div>'+
+      (s.due?'<div class="due">📅 '+esc(s.due)+'</div>':'');
+    el.querySelector('.del').addEventListener('click', function(){ stations.splice(i,1); renderLane(); });
+    return el;
+  }
+
+  // ---------- save ----------
+  document.getElementById('saveBtn').addEventListener('click', async function(){
+    var name=document.getElementById('goalName').value.trim();
+    if(!name){ toast('תנו שם למשימה'); document.getElementById('goalName').focus(); return; }
+    if(!stations.length){ toast('הוסיפו לפחות תחנה אחת'); return; }
+    var btn=this; btn.disabled=true; btn.textContent='שומר…';
+    try{
+      var code='M-'+String(Date.now()).slice(-6);
+      var t=await sb.from('tasks').insert({
+        code:code, name:name, priority:'רגילה', dependency_type:'ללא תלות',
+        status:'בטיפול', current_step_no:1, current_owner_id:stations[0].personId,
+        availability:'זמין לביצוע', created_by:me.id
+      }).select().single();
+      if(t.error) throw t.error;
+      var rows=stations.map(function(s,i){
+        return {
+          task_id:t.data.id, step_no:i+1, action:s.action, owner_id:s.personId, priority:'רגילה',
+          status:'לא התחיל',
+          dependency_type: i===0?'ללא תלות':'שלב קודם באותה משימה',
+          due_date:s.due,
+          availability: i===0?'זמין לביצוע':'ממתין לשלב'
+        };
+      });
+      var st=await sb.from('task_steps').insert(rows);
+      if(st.error) throw st.error;
+      toast('נשמר! ('+code+') — '+rows.length+' תחנות');
+      stations=[]; document.getElementById('goalName').value=''; renderLane();
+    }catch(err){ toast('שגיאה בשמירה: '+(err.message||err)); }
+    finally{ btn.disabled=false; btn.textContent='שמור משימה'; }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async function(){ await sb.auth.signOut(); location.href='./'; });
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+  (async function init(){
+    if(!(await guard())) return;
+    await loadPeople();
+    renderLane();
+  })();
+})();
+</script>
+</body>
+</html>
