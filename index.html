@@ -178,7 +178,18 @@ img,svg{max-width:100%;}
   display:flex;align-items:center;justify-content:space-between;gap:1rem;
   padding:1.1rem 1.4rem .25rem;
 }
-.topbar .topnav{order:2;}   /* הלוגו בצד ההתחלה (ימין ב-RTL), הניווט בצד השני */
+.topbar .topnav{order:2;display:flex;align-items:center;gap:1.2rem;}   /* הלוגו בצד ההתחלה (ימין ב-RTL), הניווט בצד השני */
+/* כפתור הכניסה ל-MyOS משימות — בקצה השמאלי, מול הלוגו */
+.tasks-login{
+  display:inline-flex;align-items:center;gap:.45rem;white-space:nowrap;
+  background:#2ff0e6;color:#04121a;font-weight:600;font-size:.86rem;
+  padding:.5rem 1rem;border:1px solid #2ff0e6;border-radius:.6rem;text-decoration:none;
+  transition:background-color .18s ease,transform .18s ease,box-shadow .18s ease;
+}
+.tasks-login:hover{background:#8dfff4;border-color:#8dfff4;transform:translateY(-1px);}
+.tasks-login:focus-visible{outline:none;box-shadow:0 0 0 3px #0E1A33,0 0 0 6px #2ff0e6;}
+.tasks-login svg{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+@media (max-width:560px){.tasks-login{font-size:.78rem;padding:.44rem .75rem;}}
 /* הניווט יושב תמיד מעל ההירו הכהה, ולכן הצבעים קבועים ולא של הערכה */
 .nav-links{
   list-style:none;margin:0;padding:0;
@@ -1311,6 +1322,10 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
       <li><a href="#cases">פתרונות</a></li>
       <li><a href="#contact">יצירת קשר</a></li>
     </ul>
+    <a class="tasks-login" href="/tasks/">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/></svg>
+      כניסה ל-MyOS משימות
+    </a>
   </nav>
   <a class="wordmark" href="#top" dir="ltr" aria-label="MyOS — לראש הדף">
     <span class="my" aria-hidden="true">My</span>
