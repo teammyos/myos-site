@@ -827,16 +827,18 @@ body.no-motion .f2-dot{display:none;}
 /* סקשן 6 */
 /* "איך זה עובד" ו"יצירת קשר" מאוחדים לגוש כהה אחד רציף:
    מקצצים את הריווח התחתון של process ואת העליון של cta כדי שאין תפר. */
-#process{padding-bottom:clamp(1.5rem,3.5vw,2.5rem);}
+#process{padding-top:12rem;padding-bottom:12rem;}
+#process .steps{margin-top:4rem;}
+@media (max-width:819px){#process{padding-top:3.5rem;padding-bottom:3.5rem;}#process .steps{margin-top:2.5rem;gap:1.25rem;}}
 .cta{
-  background:#0E1A33;border-radius:0;padding:clamp(.4rem,1.4vw,1rem) 1.25rem clamp(1.9rem,4vw,2.6rem);
+  background:#0E1A33;border-radius:0;padding:clamp(.4rem,1.4vw,1rem) 1.25rem clamp(1.3rem,3vw,1.9rem);
   position:relative;z-index:1;overflow:hidden;
 }
 .cta::before{
   content:"";position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(70% 120% at 50% -10%, rgba(47,240,230,.14) 0%, rgba(47,240,230,0) 62%);
 }
-.cta .inner{position:relative;z-index:1;text-align:center;display:flex;flex-direction:column;align-items:center;gap:.8rem;}
+.cta .inner{position:relative;z-index:1;text-align:center;display:flex;flex-direction:column;align-items:center;gap:.7rem;}
 /* חותמת מים — הסמל בלבד, דקורטיבי. אופסיטי מקסימלי ‎.06, מעבר לזה מתחרה בטקסט */
 .cta-watermark{
   position:absolute;inset-inline-start:-6%;top:50%;
@@ -867,7 +869,7 @@ body.high-contrast .cta-watermark{display:none;}
 /* ---- טופס יצירת קשר ---- */
 .cta-form{
   width:100%;max-width:34rem;margin:0 auto;text-align:start;
-  display:flex;flex-direction:column;gap:.8rem;
+  display:flex;flex-direction:column;gap:.65rem;
 }
 .cta-form[hidden]{display:none;}
 .cta-form .fld{display:flex;flex-direction:column;gap:.4rem;min-width:0;}
@@ -1035,7 +1037,7 @@ body.readable-font .h2-logo .my,body.readable-font .h2-logo .s{
 /* ‎--amb ו-‎--b1..--b6 נכתבים מ-JS לפי מיקום הגלילה. הבהירות עולה ברציפות
    ואף פעם לא יורדת עד להחלפת ערכת הצבעים, ולכן אין כאן הבהוב. */
 /* "תצוגה בהירה" מהתפריט מסירה את הכפייה הכהה */
-body.force-light .hero-dark,body.force-light #advantage,body.force-light #process{
+body.force-light .hero-dark,body.force-light #advantage{
   --bg:#efece5;--hero-text:#16181a;--mark:#0E1A33;--text:#3d434e;--text-dim:#55617d;
   --heading:#16181a;--punch:#3d434e;--accent:#0a5766;--accent-soft:#0d6c7e;--cue-dot:#0a5766;
   --surface:#ffffff;--surface-2:#f6f4ef;--line:#d5d0c6;--pill:#e7f4f5;
@@ -1555,14 +1557,6 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
 
   <!-- ============ 5 · התהליך ============ -->
   <section class="section" id="process" aria-labelledby="processTitle">
-    <div class="termlog" id="termlog2" aria-hidden="true">
-      <div class="termlog-inner">
-        <div class="termcol"></div><div class="termcol"></div>
-        <div class="termcol"></div><div class="termcol"></div>
-        <div class="termcol"></div>
-      </div>
-    </div>
-
     <div class="inner">
       <p class="eyebrow">איך זה עובד</p>
       <h2 id="processTitle">מתחילים להפעיל את העסק ב־3 צעדים</h2>
