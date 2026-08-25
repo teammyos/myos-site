@@ -676,18 +676,16 @@ body.no-motion .f2-dot{display:none;}
   stroke-linecap:round;stroke-linejoin:round;}
 .card p{font-size:.95rem;color:var(--text-dim);}
 
-/* ---- היתרונות: תרשים "מרכז השליטה" מימין, התוכן (כותרת + כרטיסים) משמאל ----
-   מובייל/טאבלט: עמודה אחת — קודם התוכן ואז התרשים. רחב (≥1000px): שתי עמודות. */
-#advantage .adv-grid{display:flex;flex-direction:column;gap:clamp(1.75rem,4vw,2.5rem);}
-#advantage .adv-content{order:1;min-width:0;}
-#advantage .adv-content .cards{margin-top:1.5rem;}
-#advantage .aside-mark{order:2;}
+/* ---- היתרונות: התרשים יושב כ"תא רביעי" בשורת הכרטיסים ----
+   מובייל: עמודה אחת, התרשים אחרון. טאבלט (≥760): 2 עמודות.
+   דסקטופ (≥1000): 4 עמודות — התרשים הכי ימני, מיושר לכרטיסים (אותו קו עליון וגובה). */
+#advantage .adv-slot{order:2;display:grid;place-items:center;min-width:0;padding:.5rem;}
+@media (min-width:760px){
+  #advantage .adv-cards{grid-template-columns:1fr 1fr;}
+}
 @media (min-width:1000px){
-  #advantage .adv-grid{
-    display:grid;grid-template-columns:minmax(0,16.5rem) minmax(0,1fr);
-    gap:clamp(2rem,4vw,3.75rem);align-items:center;
-  }
-  #advantage .adv-content,#advantage .aside-mark{order:0;}
+  #advantage .adv-cards{grid-template-columns:repeat(4,1fr);align-items:stretch;}
+  #advantage .adv-slot{order:0;}
 }
 /* אחרי שהתרשים עבר להיתרונות — הטקסט של "מה אנחנו עושים" בעמודה קריאה */
 #hook .inner>div:not(.hook-cta){max-width:52rem;}
@@ -1385,48 +1383,47 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
 
   <!-- ============ 3 · היתרונות ============ -->
   <section class="section alt" id="advantage" aria-labelledby="advTitle">
-    <div class="inner adv-grid">
-      <div class="aside-mark" aria-hidden="true">
-        <div class="flow2">
-          <div class="f2-sources">
-            <div class="f2-box">מערכת קיימת א׳</div>
-            <div class="f2-box">מערכת קיימת ב׳</div>
-          </div>
-          <svg class="f2-lines" viewBox="0 0 384 38" preserveAspectRatio="none" focusable="false">
-            <path id="f2pA" class="f2-wire" d="M96 0 C96 22 192 14 192 38"/>
-            <path id="f2pB" class="f2-wire" d="M288 0 C288 22 192 14 192 38"/>
-            <circle class="f2-dot" r="3.5" opacity="0">
-              <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1;1" keyTimes="0;0.4;1"><mpath href="#f2pA"/></animateMotion>
-              <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.05;0.36;0.42;1"/>
-            </circle>
-            <circle class="f2-dot" r="3.5" opacity="0">
-              <animateMotion dur="4.8s" begin="0.35s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1;1" keyTimes="0;0.4;1"><mpath href="#f2pB"/></animateMotion>
-              <animate attributeName="opacity" dur="4.8s" begin="0.35s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.05;0.36;0.42;1"/>
-            </circle>
-          </svg>
-          <div class="f2-core">
-            <span class="f2-core-title" dir="ltr">
-              <svg class="mark" viewBox="6 -7 88 101" focusable="false"><path class="f2-ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="f2-stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg>
-              <span>MyOS</span>
-            </span>
-            <span class="f2-core-sub">שכבת החיבור החכמה</span>
-            <span class="f2-ops">מתרגמת · מסנכרנת · מפעילה</span>
-          </div>
-          <svg class="f2-lines" viewBox="0 0 384 38" preserveAspectRatio="none" focusable="false">
-            <path id="f2pC" class="f2-wire" d="M192 0 L192 38"/>
-            <circle class="f2-dot" r="3.5" opacity="0">
-              <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.52;0.8;1"><mpath href="#f2pC"/></animateMotion>
-              <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.52;0.56;0.76;0.82;1"/>
-            </circle>
-          </svg>
-          <div class="f2-result"><strong>סביבת עבודה אחת</strong><span>האנשים, המידע והמערכות עובדים יחד</span></div>
-        </div>
-      </div>
-      <div class="adv-content">
+    <div class="inner">
       <p class="eyebrow">היתרונות</p>
       <h2 id="advTitle">היתרון של <span class="h2-logo" dir="ltr" role="img" aria-label="MyOS"><span class="my" aria-hidden="true">My</span><span class="o" aria-hidden="true"><svg class="mark" viewBox="6 -7 88 101" focusable="false"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"></path><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"></path></svg></span><span class="s" aria-hidden="true">S</span></span></h2>
 
-      <div class="cards">
+      <div class="cards adv-cards">
+        <div class="aside-mark adv-slot" aria-hidden="true">
+          <div class="flow2">
+            <div class="f2-sources">
+              <div class="f2-box">מערכת קיימת א׳</div>
+              <div class="f2-box">מערכת קיימת ב׳</div>
+            </div>
+            <svg class="f2-lines" viewBox="0 0 384 38" preserveAspectRatio="none" focusable="false">
+              <path id="f2pA" class="f2-wire" d="M96 0 C96 22 192 14 192 38"/>
+              <path id="f2pB" class="f2-wire" d="M288 0 C288 22 192 14 192 38"/>
+              <circle class="f2-dot" r="3.5" opacity="0">
+                <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1;1" keyTimes="0;0.4;1"><mpath href="#f2pA"/></animateMotion>
+                <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.05;0.36;0.42;1"/>
+              </circle>
+              <circle class="f2-dot" r="3.5" opacity="0">
+                <animateMotion dur="4.8s" begin="0.35s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1;1" keyTimes="0;0.4;1"><mpath href="#f2pB"/></animateMotion>
+                <animate attributeName="opacity" dur="4.8s" begin="0.35s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.05;0.36;0.42;1"/>
+              </circle>
+            </svg>
+            <div class="f2-core">
+              <span class="f2-core-title" dir="ltr">
+                <svg class="mark" viewBox="6 -7 88 101" focusable="false"><path class="f2-ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="f2-stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg>
+                <span>MyOS</span>
+              </span>
+              <span class="f2-core-sub">שכבת החיבור החכמה</span>
+              <span class="f2-ops">מתרגמת · מסנכרנת · מפעילה</span>
+            </div>
+            <svg class="f2-lines" viewBox="0 0 384 38" preserveAspectRatio="none" focusable="false">
+              <path id="f2pC" class="f2-wire" d="M192 0 L192 38"/>
+              <circle class="f2-dot" r="3.5" opacity="0">
+                <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.52;0.8;1"><mpath href="#f2pC"/></animateMotion>
+                <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.52;0.56;0.76;0.82;1"/>
+              </circle>
+            </svg>
+            <div class="f2-result"><strong>סביבת עבודה אחת</strong><span>האנשים, המידע והמערכות עובדים יחד</span></div>
+          </div>
+        </div>
         <article class="card">
           <div class="ico" aria-hidden="true">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8 21 21"/><path d="M8.6 11h4.8M11 8.6v4.8"/></svg>
@@ -1450,7 +1447,6 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
           <h3>פיתוח מערכת מלאה</h3>
           <p>אנחנו לא מוגבלים לפעולות פשוטות. אנו בונים מערכות חכמות מקצה לקצה שמתממשקות למערכות ולמאגרי המידע שהעסק שלכם עובד איתם.</p>
         </article>
-      </div>
       </div>
     </div>
   </section>
