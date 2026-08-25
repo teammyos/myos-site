@@ -676,6 +676,41 @@ body.no-motion .f2-dot{display:none;}
   stroke-linecap:round;stroke-linejoin:round;}
 .card p{font-size:.95rem;color:var(--text-dim);}
 
+/* ---- היתרונות: תרשים "מרכז השליטה" מימין, התוכן (כותרת + כרטיסים) משמאל ----
+   מובייל/טאבלט: עמודה אחת — קודם התוכן ואז התרשים. רחב (≥1000px): שתי עמודות. */
+#advantage .adv-grid{display:flex;flex-direction:column;gap:clamp(1.75rem,4vw,2.5rem);}
+#advantage .adv-content{order:1;min-width:0;}
+#advantage .adv-content .cards{margin-top:1.5rem;}
+#advantage .aside-mark{order:2;}
+@media (min-width:1000px){
+  #advantage .adv-grid{
+    display:grid;grid-template-columns:minmax(0,16.5rem) minmax(0,1fr);
+    gap:clamp(2rem,4vw,3.75rem);align-items:center;
+  }
+  #advantage .adv-content,#advantage .aside-mark{order:0;}
+}
+/* אחרי שהתרשים עבר להיתרונות — הטקסט של "מה אנחנו עושים" בעמודה קריאה */
+#hook .inner>div:not(.hook-cta){max-width:52rem;}
+
+/* התרשים יושב ישירות על רקע הסקשן (בלי המסגרת הבהירה); הצבעים דרך המשתנים
+   כדי שיתאימו גם לרקע הכהה וגם ל"תצוגה בהירה". */
+#advantage .flow2{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0;}
+#advantage .f2-box{background:transparent;border-color:var(--line);color:var(--text-dim);}
+#advantage .f2-wire{stroke:var(--accent);stroke-opacity:.5;}
+#advantage .f2-dot{fill:var(--accent);}
+#advantage .f2-core{
+  background:var(--surface);
+  border-color:color-mix(in srgb, var(--accent) 34%, transparent);
+  box-shadow:0 6px 18px rgba(2,6,20,.28);
+}
+#advantage .f2-core-title{color:var(--heading);}
+#advantage .f2-core-title .f2-ring{fill:var(--heading);}
+#advantage .f2-core-title .f2-stem{fill:var(--accent);}
+#advantage .f2-core-sub{color:var(--text-dim);}
+#advantage .f2-ops{color:var(--accent);}
+#advantage .f2-result strong{color:var(--heading);}
+#advantage .f2-result span{color:var(--text-dim);}
+
 /* סקשן 4 — קרוסלה אופקית עם נעילת גלילה (scroll snap) */
 .cases-wrap{position:relative;margin-top:2rem;}
 .cases{
@@ -1333,7 +1368,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
       </div>
     </div>
 
-    <div class="inner split">
+    <div class="inner">
       <div>
         <p class="eyebrow">מה אנחנו עושים</p>
         <h2 id="hookTitle">אוטומציה טובה מתחילה <span class="hl">באנשים</span>, לא בתוכנה.</h2>
@@ -1341,6 +1376,16 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
         <p class="lead">ב־MyOS אנחנו לא מסתפקים בחיבור טכני בין תוכנות. אנחנו לומדים את התהליך, מפצחים את המורכבות ובונים סביבת עבודה שלמה המותאמת לעסק שלכם.</p>
       </div>
 
+      <div class="hook-cta">
+        <a class="btn" href="#contact">קובעים פגישת אבחון</a>
+        <a class="link-more" href="#cases">ראו פתרונות שבנינו</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3 · היתרונות ============ -->
+  <section class="section alt" id="advantage" aria-labelledby="advTitle">
+    <div class="inner adv-grid">
       <div class="aside-mark" aria-hidden="true">
         <div class="flow2">
           <div class="f2-sources">
@@ -1377,17 +1422,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
           <div class="f2-result"><strong>סביבת עבודה אחת</strong><span>האנשים, המידע והמערכות עובדים יחד</span></div>
         </div>
       </div>
-
-      <div class="hook-cta">
-        <a class="btn" href="#contact">קובעים פגישת אבחון</a>
-        <a class="link-more" href="#cases">ראו פתרונות שבנינו</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ 3 · היתרונות ============ -->
-  <section class="section alt" id="advantage" aria-labelledby="advTitle">
-    <div class="inner">
+      <div class="adv-content">
       <p class="eyebrow">היתרונות</p>
       <h2 id="advTitle">היתרון של <span class="h2-logo" dir="ltr" role="img" aria-label="MyOS"><span class="my" aria-hidden="true">My</span><span class="o" aria-hidden="true"><svg class="mark" viewBox="6 -7 88 101" focusable="false"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"></path><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"></path></svg></span><span class="s" aria-hidden="true">S</span></span></h2>
 
@@ -1415,6 +1450,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
           <h3>פיתוח מערכת מלאה</h3>
           <p>אנחנו לא מוגבלים לפעולות פשוטות. אנו בונים מערכות חכמות מקצה לקצה שמתממשקות למערכות ולמאגרי המידע שהעסק שלכם עובד איתם.</p>
         </article>
+      </div>
       </div>
     </div>
   </section>
