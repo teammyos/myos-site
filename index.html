@@ -687,6 +687,19 @@ body.no-motion .f2-dot{display:none;}
   #advantage .adv-cards{grid-template-columns:repeat(4,1fr);align-items:stretch;}
   #advantage .adv-slot{order:0;}
 }
+/* המסגרת "הדמיונית" סביב התרשים — בלתי־נראית, ושני עיגולים רצים סביבה כדי
+   לרמז עליה: יוצאים מאמצע־למעלה, כל אחד לצד אחר, ונפגשים באמצע־למטה.
+   מוצג רק בדסקטופ (שם התרשים הוא "התא הרביעי" בשורה). */
+#advantage .adv-slot{position:relative;}
+#advantage .adv-slot .flow2{position:relative;z-index:1;}
+#advantage .adv-frame{
+  position:absolute;inset:0;width:100%;height:100%;
+  pointer-events:none;z-index:0;display:none;overflow:visible;
+}
+#advantage .adv-frame path{fill:none;stroke:none;}
+@media (min-width:1000px){#advantage .adv-frame{display:block;}}
+body.no-motion #advantage .adv-frame{display:none;}
+
 /* אחרי שהתרשים עבר להיתרונות — הטקסט של "מה אנחנו עושים" בעמודה קריאה */
 #hook .inner>div:not(.hook-cta){max-width:52rem;}
 
@@ -1389,6 +1402,18 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
 
       <div class="cards adv-cards">
         <div class="aside-mark adv-slot" aria-hidden="true">
+          <svg class="adv-frame" viewBox="0 0 200 210" preserveAspectRatio="none" focusable="false">
+            <path id="advFrameR" d="M100 6 H180 A14 14 0 0 1 194 20 V190 A14 14 0 0 1 180 204 H100"/>
+            <path id="advFrameL" d="M100 6 H20 A14 14 0 0 0 6 20 V190 A14 14 0 0 0 20 204 H100"/>
+            <circle class="f2-dot" r="3.2" opacity="0">
+              <animateMotion dur="3.6s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1" keyTimes="0;1"><mpath href="#advFrameR"/></animateMotion>
+              <animate attributeName="opacity" dur="3.6s" repeatCount="indefinite" values="0;1;1;0" keyTimes="0;0.12;0.82;1"/>
+            </circle>
+            <circle class="f2-dot" r="3.2" opacity="0">
+              <animateMotion dur="3.6s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1" keyTimes="0;1"><mpath href="#advFrameL"/></animateMotion>
+              <animate attributeName="opacity" dur="3.6s" repeatCount="indefinite" values="0;1;1;0" keyTimes="0;0.12;0.82;1"/>
+            </circle>
+          </svg>
           <div class="flow2">
             <div class="f2-sources">
               <div class="f2-box">מערכת קיימת א׳</div>
