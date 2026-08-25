@@ -804,6 +804,54 @@ body.no-motion .f2-dot{display:none;}
   color:var(--accent);letter-spacing:-.01em;margin-bottom:.3rem;
 }
 
+/* ---- אקורדיון מקרי בוחן ----
+   דסקטופ: העטיפות שקופות (display:contents) → הפריסה זהה לחלוטין למקור.
+   נייד (עד 959px): הכרטיס מתקצר — כותרת, תמונה ותיבת תוצאה בלבד — והפירוט
+   (האתגר + הפתרון + טבלת לפני/אחרי) נחשף בלחיצה עם אנימציית Slide-down. */
+.case-detail,.case-detail-inner{display:contents;}
+.case-toggle{display:none;}
+
+@media (max-width:959px){
+  /* לא מותחים כרטיסים לגובה אחיד — כל כרטיס בגובה התוכן שלו */
+  .cases{align-items:flex-start;}
+
+  /* משטחים את ההיררכיה כדי לסדר מחדש: כותרת → תמונה → תוצאה → כפתור → פירוט */
+  .case-main{display:contents;}
+  .case dl{display:contents;}
+  .case h3{order:1;}
+  .case-media{order:2;margin:0;}
+  .case-shot{margin-top:0;}
+  .case .result{order:3;}
+  .case-toggle{order:4;}
+  .case-detail{order:5;}
+
+  /* תיבת "התוצאה" — קטנה, ברורה, תמיד גלויה */
+  .case .result{
+    border-top:0;background:var(--pill);border:1px solid var(--line);
+    border-radius:.75rem;padding:.85rem .95rem;margin-top:.1rem;
+  }
+
+  /* כפתור החשיפה */
+  .case-toggle{
+    display:inline-flex;align-items:center;gap:.4rem;align-self:flex-start;
+    background:none;border:0;padding:.5rem .15rem;margin:.1rem 0 0;cursor:pointer;
+    font:inherit;font-weight:600;font-size:.95rem;color:var(--accent);
+  }
+  .case-toggle .ct-ico{font-size:1.15em;line-height:1;transition:transform .3s ease;}
+  .case.open .case-toggle .ct-ico{transform:rotate(180deg);}
+
+  /* פאנל האקורדיון — Slide-down חלק דרך grid-template-rows */
+  .case-detail{
+    display:grid;grid-template-rows:0fr;
+    transition:grid-template-rows .38s ease;
+  }
+  .case-detail-inner{
+    display:flex;flex-direction:column;gap:.7rem;
+    overflow:hidden;min-height:0;
+  }
+  .case.open .case-detail{grid-template-rows:1fr;}
+}
+
 /* סקשן 5 */
 .steps{display:grid;grid-template-columns:1fr;gap:1.75rem;margin:2.25rem 0 0;padding:0;list-style:none;counter-reset:step;}
 @media (min-width:820px){.steps{grid-template-columns:repeat(3,1fr);}}
@@ -1390,6 +1438,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
           <div class="case-main">
           <h3>המגזר הציבורי — עירייה</h3>
           <dl>
+            <div class="case-detail"><div class="case-detail-inner">
             <div>
               <dt>האתגר</dt>
               <dd>שתי מערכות מיושנות שלא ״מדברות״ זו עם זו — שעות של עבודה ידנית והקלדות כפולות.</dd>
@@ -1407,11 +1456,13 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
                 </table>
               </dd>
             </div>
+            </div></div>
             <div class="result">
               <dt>התוצאה</dt>
               <dd><span class="big-stat">חיסכון של שעות עבודה</span>קיצור משמעותי בזמן העבודה של פקידי העירייה, צמצום טעויות אנוש והתייעלות בשירות לאזרח.</dd>
             </div>
           </dl>
+          <button type="button" class="case-toggle" aria-expanded="false">איך עשינו את זה? <span class="ct-ico" aria-hidden="true">⌄</span></button>
           </div>
           <div class="case-media">
           <figure class="case-shot">
@@ -1429,6 +1480,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
           <div class="case-main">
           <h3>המגזר הפיננסי — ייעוץ משכנתאות ופיננסים</h3>
           <dl>
+            <div class="case-detail"><div class="case-detail-inner">
             <div>
               <dt>האתגר</dt>
               <dd>איסוף נתונים ממקורות שונים — דוחות אשראי, תדפיסי עו״ש ומסמכי PDF — והקלדתם הידנית לתיקי לקוח, אקסלים ומסמכי הגשה לבנקים.</dd>
@@ -1446,11 +1498,13 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
                 </table>
               </dd>
             </div>
+            </div></div>
             <div class="result">
               <dt>התוצאה</dt>
               <dd><span class="big-stat">מפקידות — לייעוץ</span>תהליך איטי, רפטטיבי ומועד לטעויות הפך למהיר, מובנה ורווחי. היועצים מתמקדים בבניית תמהיל מנצח ובמשא ומתן מול הבנקים, במקום לטבוע בעבודת פקידות שוחקת.</dd>
             </div>
           </dl>
+          <button type="button" class="case-toggle" aria-expanded="false">איך עשינו את זה? <span class="ct-ico" aria-hidden="true">⌄</span></button>
           </div>
           <div class="case-media">
           <figure class="case-shot wide">
@@ -1468,6 +1522,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
           <div class="case-main">
           <h3>עולם הנדל״ן והיזמות — אוטומציית נתונים ממשלתיים</h3>
           <dl>
+            <div class="case-detail"><div class="case-detail-inner">
             <div>
               <dt>האתגר</dt>
               <dd>אנשי מקצוע בנדל״ן זקוקים באופן קבוע לנתוני עסקאות מאתר רשות המיסים — תהליך ידני, איטי ומועד לטעויות, עסקה־עסקה.</dd>
@@ -1485,11 +1540,13 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
                 </table>
               </dd>
             </div>
+            </div></div>
             <div class="result">
               <dt>התוצאה</dt>
               <dd><span class="big-stat">לחיצה אחת במקום שעות</span>חיסכון של שעות עבודה שבועיות, הפחתה ניכרת של טעויות העתקה, וסידור אוטומטי של המידע הגולמי בפורמט נקי וקריא שמוכן מיד לעבודה ולניתוח.</dd>
             </div>
           </dl>
+          <button type="button" class="case-toggle" aria-expanded="false">איך עשינו את זה? <span class="ct-ico" aria-hidden="true">⌄</span></button>
           </div>
           <div class="case-media">
           <figure class="case-shot wide">
@@ -1507,6 +1564,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
           <div class="case-main">
           <h3>המגזר השלישי — עמותה בפריסה ארצית</h3>
           <dl>
+            <div class="case-detail"><div class="case-detail-inner">
             <div>
               <dt>האתגר</dt>
               <dd>ניהול רכזי שטח בפריסה ארצית גזל שעות של עבודת מזכירות יומיומית לחלוקת יעדים, ועיכב את איסוף הנתונים לתורמים.</dd>
@@ -1524,11 +1582,13 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
                 </table>
               </dd>
             </div>
+            </div></div>
             <div class="result">
               <dt>התוצאה</dt>
               <dd><span class="big-stat">פחות תלות בעבודת מזכירות</span>צוואר הבקבוק הצטמצם משמעותית: הרכזים פנויים לעשייה בשטח, והעמותה מפיקה דוחות מורכבים ושקופים לתורמים כמעט ללא עבודה ידנית.</dd>
             </div>
           </dl>
+          <button type="button" class="case-toggle" aria-expanded="false">איך עשינו את זה? <span class="ct-ico" aria-hidden="true">⌄</span></button>
           </div>
           <div class="case-media">
           <figure class="case-shot wide">
@@ -2010,6 +2070,19 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
     });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && list.classList.contains('open')) { setNav(false); tgl.focus(); }
+    });
+  })();
+
+  /* ---------- אקורדיון מקרי בוחן (נייד) — חשיפה/כיווץ של הפירוט ----------
+     האזנה בהאצלה (delegation) כדי שגם העתקי הלולאה של הקרוסלה יגיבו. */
+  (function () {
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.case-toggle') : null;
+      if (!btn) return;
+      var card = btn.closest('.case');
+      if (!card) return;
+      var open = card.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
     });
   })();
 
