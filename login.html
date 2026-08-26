@@ -68,6 +68,11 @@
   .flogo .o{display:block;width:.72em;height:.826em;align-self:center;flex:none}
   .flogo .o svg{width:100%;height:100%;display:block;overflow:visible}
   .flogo .ring{fill:#eff3fa} .flogo .stem{fill:#2ff0e6}
+  .pw{position:relative;margin-bottom:1rem}
+  .pw>input{margin-bottom:0;padding-left:3rem}
+  .pw .eye{position:absolute;left:.5rem;top:0;bottom:0;margin:auto;height:1.7rem;display:flex;align-items:center;
+    background:none;border:0;padding:0 .35rem;cursor:pointer;color:#5b6b86;font-size:.78rem;font-weight:600}
+  .pw .eye:hover{color:#0a5766}
   .hidden{display:none}
 </style>
 </head>
@@ -82,13 +87,28 @@
     <label for="email">דוא״ל</label>
     <input id="email" type="email" autocomplete="username" required>
     <label for="password">סיסמה</label>
-    <input id="password" type="password" autocomplete="current-password" required>
+    <div class="pw"><input id="password" type="password" autocomplete="current-password" required><button type="button" class="eye" id="pwEye">הצג</button></div>
     <button id="submit" type="submit">התחברות</button>
     <p class="msg" id="msg" role="status"></p>
     <p class="links">
       <a id="forgot">שכחתי סיסמה</a> ·
-      עדיין אין חשבון? <a id="openContact">צרו קשר</a>
+      עדיין אין חשבון? <a id="openRegister">הרשמה לניסיון</a>
     </p>
+    <p class="links" style="margin-top:.45rem"><a id="openContact">או צרו קשר</a></p>
+  </form>
+
+  <!-- ---------- הרשמה לניסיון ---------- -->
+  <form id="registerForm" class="hidden">
+    <h1>הרשמה — ניסיון MyOS עסקאות</h1>
+    <label for="rName">שם מלא</label>
+    <input id="rName" type="text" autocomplete="name" required>
+    <label for="rEmail">דוא״ל</label>
+    <input id="rEmail" type="email" autocomplete="username" required>
+    <label for="rPassword">סיסמה <span class="opt">(לפחות 8 תווים)</span></label>
+    <div class="pw"><input id="rPassword" type="password" autocomplete="new-password" required minlength="8"><button type="button" class="eye" id="rEye">הצג</button></div>
+    <button id="rSubmit" type="submit">הרשמה</button>
+    <p class="msg" id="rStatus" role="status"></p>
+    <p class="links"><a id="rBack">חזרה להתחברות</a></p>
   </form>
 
   <!-- ---------- יצירת קשר (במקום פתיחת תוכנת מייל) ---------- -->
@@ -230,6 +250,52 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
       redirectTo: location.origin + location.pathname
     });
     say('msg', r.error ? 'שגיאה: ' + r.error.message : 'נשלח קישור איפוס למייל', r.error ? 'err' : 'ok');
+  });
+
+  /* ---------- הצג/הסתר סיסמה ---------- */
+  function attachEye(inputId, btnId) {
+    var inp = $(inputId), btn = $(btnId);
+    if (!inp || !btn) return;
+    btn.addEventListener('click', function () {
+      var toText = inp.type === 'password';
+      inp.type = toText ? 'text' : 'password';
+      btn.textContent = toText ? 'הסתר' : 'הצג';
+    });
+  }
+  attachEye('password', 'pwEye');
+  attachEye('rPassword', 'rEye');
+
+  /* ---------- הרשמה לניסיון ---------- */
+  $('openRegister').addEventListener('click', function () {
+    $('loginForm').classList.add('hidden');
+    $('registerForm').classList.remove('hidden');
+    $('rName').focus();
+  });
+  $('rBack').addEventListener('click', function () {
+    $('registerForm').classList.add('hidden');
+    $('loginForm').classList.remove('hidden');
+  });
+  $('registerForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var name = $('rName').value.trim(), email = $('rEmail').value.trim(), pw = $('rPassword').value;
+    if (!name || !email || pw.length < 8) { say('rStatus', 'מלאו שם, דוא״ל וסיסמה בת 8 תווים לפחות', 'err'); return; }
+    $('rSubmit').disabled = true; say('rStatus', 'נרשם…');
+    var r = await client.auth.signUp({ email: email, password: pw, options: { data: { full_name: name } } });
+    if (r.error) { $('rSubmit').disabled = false; say('rStatus', 'ההרשמה נכשלה: ' + r.error.message, 'err'); return; }
+    /* התרעה אלינו על נרשם חדש (Web3Forms) */
+    try {
+      var fd = new FormData();
+      fd.append('access_key', W3F_KEY);
+      fd.append('subject', 'הרשמה חדשה לניסיון — MyOS עסקאות');
+      fd.append('from_name', 'myos.co.il/login');
+      fd.append('שם', name);
+      fd.append('דוא״ל', email);
+      fd.append('הודעה', 'משתמש חדש נרשם וממתין לאישור ניסיון 7 ימים.');
+      await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd });
+    } catch (err) { /* לא חוסם את ההרשמה אם ההתרעה נכשלה */ }
+    $('rSubmit').disabled = false;
+    say('rStatus', 'נרשמת בהצלחה! החשבון ממתין לאישור ניסיון — נאשר אותו בהקדם ונעדכן אותך.', 'ok');
+    $('registerForm').reset();
   });
 
   /* ---------- התחברות ---------- */
