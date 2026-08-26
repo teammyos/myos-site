@@ -47,6 +47,25 @@
   .pill{font-size:.74rem;padding:.2rem .6rem;border-radius:999px;border:1px solid;white-space:nowrap;flex:none}
   .pill.active{color:var(--done);border-color:rgba(102,230,168,.4);background:rgba(102,230,168,.08)}
   .empty{color:var(--dim);font-size:.9rem;padding:.6rem 0}
+  /* device management */
+  .ucard{background:var(--card);border:1px solid var(--line);border-radius:.75rem;padding:.75rem .95rem;display:flex;flex-direction:column;gap:.6rem}
+  .ucard .head{display:flex;align-items:center;justify-content:space-between;gap:.8rem}
+  .devbox{border-top:1px dashed var(--line);padding-top:.55rem}
+  .devsum{display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap}
+  .devsum .cnt{color:var(--dim);font-size:.85rem}
+  .devsum .cnt b{color:var(--heading)}
+  .devsum .cnt.full b{color:var(--wait)}
+  .miniadd{background:none;border:1px solid var(--line);color:var(--dim);border-radius:.5rem;padding:.35rem .7rem;cursor:pointer;font:inherit;font-size:.8rem;flex:none}
+  .miniadd:hover{border-color:var(--accent);color:var(--accent)}
+  .devlist{display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem}
+  .devline{display:flex;align-items:center;justify-content:space-between;gap:.6rem;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:.5rem;padding:.4rem .6rem}
+  .devline .dinfo{min-width:0}
+  .devline .dname{color:var(--heading);font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .devline .did{color:var(--dim);font-size:.72rem;direction:ltr;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .devline .dmeta{color:var(--dim);font-size:.72rem}
+  .relbtn{background:none;border:1px solid rgba(255,179,164,.35);color:#ffb3a4;border-radius:.45rem;padding:.32rem .65rem;cursor:pointer;font:inherit;font-size:.78rem;flex:none}
+  .relbtn:hover{background:rgba(255,179,164,.1)}
+  .devnone{color:var(--dim);font-size:.8rem;padding:.2rem 0}
   .pw{position:relative;margin-bottom:1rem}
   .pw>input{margin-bottom:0;padding-left:2.9rem}
   .pw .eye{position:absolute;left:.4rem;top:0;bottom:0;margin:auto;width:2.1rem;height:2rem;display:flex;align-items:center;justify-content:center;background:none;border:0;padding:0;cursor:pointer;color:#5b6b86}
@@ -169,21 +188,61 @@
     if(!list.length){ box.innerHTML='<p class="empty">אין מנויים פעילים.</p>'; return; }
     box.innerHTML='';
     list.forEach(function(u){
-      var el=document.createElement('div'); el.className='row';
-      el.innerHTML='<div class="info"><div class="em">'+esc(u.email||u.user_id)+'</div><div class="meta">בתוקף עד: '+esc(fmtDate(u.valid_until))+'</div></div>'+
-                   '<span class="pill active">פעיל</span>'+
-                   '<button class="grant ext">חדש 7 ימים</button>';
-      el.querySelector('.grant').addEventListener('click',function(){ grant(u.user_id, this); });
+      var max=u.max_devices==null?1:u.max_devices, cnt=u.device_count||0, full=cnt>=max;
+      var devs=u.devices||[];
+      var devRows = devs.length
+        ? '<div class="devlist">'+devs.map(function(d){
+            return '<div class="devline"><div class="dinfo"><div class="dname">'+esc(d.device_name||'מחשב')+'</div>'+
+                   '<div class="did">'+esc(d.device_id||'')+'</div>'+
+                   (d.last_seen?'<div class="dmeta">נראה לאחרונה: '+esc(fmtDate(d.last_seen))+'</div>':'')+'</div>'+
+                   '<button class="relbtn" data-rel="'+esc(d.id)+'">שחרר</button></div>';
+          }).join('')+'</div>'
+        : '<div class="devnone">אין מחשבים מחוברים עדיין.</div>';
+
+      var el=document.createElement('div'); el.className='ucard';
+      el.innerHTML=
+        '<div class="head">'+
+          '<div class="info"><div class="em">'+esc(u.email||u.user_id)+'</div><div class="meta">בתוקף עד: '+esc(fmtDate(u.valid_until))+'</div></div>'+
+          '<span class="pill active">פעיל</span>'+
+          '<button class="grant ext" data-renew="1">חדש 7 ימים</button>'+
+        '</div>'+
+        '<div class="devbox">'+
+          '<div class="devsum"><span class="cnt'+(full?' full':'')+'">מחשבים: <b>'+cnt+' / '+max+'</b></span>'+
+          '<button class="miniadd" data-add="1">+ הוסף מחשב</button></div>'+
+          devRows+
+        '</div>';
+      el.querySelector('[data-renew]').addEventListener('click',function(){ grant(u.user_id, this); });
+      el.querySelector('[data-add]').addEventListener('click',function(){ addDevice(u.user_id, this); });
+      el.querySelectorAll('[data-rel]').forEach(function(b){
+        b.addEventListener('click',function(){ releaseDevice(b.getAttribute('data-rel'), b, u.email); });
+      });
       box.appendChild(el);
     });
+  }
+
+  async function addDevice(uid, btn){
+    btn.disabled=true; var o=btn.textContent; btn.textContent='מוסיף…';
+    var r=await fn('add_device',{user_id:uid});
+    if(!r.j.ok){ btn.disabled=false; btn.textContent=o; $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status); return; }
+    var nm=r.j.max_devices;
+    await load();
+    $('boardMsg').className='msg ok'; $('boardMsg').textContent='מכסת המחשבים עודכנה ל-'+nm+' ✓';
+  }
+
+  async function releaseDevice(rowId, btn, email){
+    btn.disabled=true; var o=btn.textContent; btn.textContent='משחרר…';
+    var r=await fn('release_device',{device_row_id:rowId});
+    if(!r.j.ok){ btn.disabled=false; btn.textContent=o; $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status); return; }
+    await load();
+    $('boardMsg').className='msg ok'; $('boardMsg').textContent='המחשב שוחרר — המקום התפנה ✓';
   }
 
   async function grant(uid, btn){
     btn.disabled=true; var o=btn.textContent; btn.textContent='מאשר…';
     var r=await fn('grant',{user_id:uid, days:7});
     if(!r.j.ok){ btn.disabled=false; btn.textContent=o; $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status); return; }
-    $('boardMsg').className='msg ok'; $('boardMsg').textContent='אושר ניסיון 7 ימים ✓';
     await load();
+    $('boardMsg').className='msg ok'; $('boardMsg').textContent='אושר ניסיון 7 ימים ✓';
   }
 
   /* ---------- הצג/הסתר סיסמה (אייקון עין) ---------- */
