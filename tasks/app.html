@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מטרות ומשימות · MyOS</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='6 -9 88 103'%3E%3Crect x='6' y='-9' width='88' height='103' fill='%230E1A33'/%3E%3Cpath d='M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 24 L76 38 L76 62 L62 76 L38 76 L24 62 L24 38 L38 24 Z' fill='%23eff3fa'/%3E%3Cpath d='M46 -9 L54 -9 L58 -5 L58 30 L50 38 L42 30 L42 -5 Z' fill='%232ff0e6'/%3E%3C/svg%3E">
+<style>
+  *{box-sizing:border-box;margin:0}
+  :root{
+    --navy:#0E1A33; --navy2:#0b1428; --card:#16264a; --line:#26375c; --line2:#1e2f52;
+    --text:#cfd8ea; --dim:#9aa8c4; --heading:#eef3fb; --accent:#2ff0e6; --accent2:#8dfff4;
+    --open:#7cc4ff; --wait:#ffcf6b; --done:#66e6a8;
+  }
+  html,body{height:100%}
+  body{background:radial-gradient(120% 60% at 50% -10%, #12233f 0%, var(--navy) 55%, var(--navy2) 100%);
+    color:var(--text);font-family:'Heebo',system-ui,'Segoe UI',Arial,sans-serif;line-height:1.5;min-height:100svh}
+  a{color:var(--accent)}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.8rem 1.2rem;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .logo{display:inline-flex;align-items:baseline;gap:.04em;direction:ltr;font-size:1.35rem}
+  .logo .my,.logo .sc{background:linear-gradient(122deg,#13a8bd,#2ff0e6 60%,#8dfff4);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+  .logo .o{display:block;width:.72em;height:.826em;align-self:center;flex:none}
+  .logo .o svg{width:100%;height:100%;display:block;overflow:visible}
+  .logo .ring{fill:#eff3fa}.logo .stem{fill:#2ff0e6}
+  .logo .pt{font-size:.62em;color:#dbe4f5;font-weight:600;margin-inline-start:.4em;align-self:center}
+  .top .right{display:flex;align-items:center;gap:.6rem;font-size:.85rem;color:var(--dim);flex-wrap:wrap}
+  .top .right button{color:var(--dim);background:none;border:1px solid var(--line);border-radius:.5rem;padding:.35rem .75rem;cursor:pointer;font:inherit;font-size:.82rem}
+  .top .right button:hover{border-color:var(--accent);color:var(--accent)}
+
+  .wrap{max-width:70rem;margin:0 auto;padding:1.4rem 1.2rem 4rem}
+  .head{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+  .head h1{color:var(--heading);font-size:1.5rem}
+  .addbtn{background:var(--accent);color:#04121a;border:0;border-radius:.7rem;padding:.7rem 1.3rem;cursor:pointer;font:inherit;font-weight:700;font-size:1rem}
+  .addbtn:hover{background:var(--accent2)}
+
+  .filters{display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem}
+  .filters .f{display:flex;flex-direction:column;gap:.25rem}
+  .filters label{font-size:.72rem;color:var(--dim)}
+  .filters select{background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:.5rem;padding:.4rem .6rem;font:inherit;font-size:.88rem;min-width:8rem}
+
+  .table{width:100%;border-collapse:collapse;background:rgba(22,38,74,.35);border:1px solid var(--line);border-radius:.9rem;overflow:hidden}
+  .table thead th{background:rgba(11,20,40,.5);color:var(--dim);font-size:.75rem;font-weight:600;text-align:right;padding:.7rem .9rem;letter-spacing:.03em}
+  .table td{padding:.75rem .9rem;border-top:1px solid var(--line2);font-size:.92rem;vertical-align:middle}
+  .table tbody tr{cursor:pointer;transition:background .12s}
+  .table tbody tr:hover{background:rgba(47,240,230,.05)}
+  .ttl{color:var(--heading);font-weight:600}
+  .muted{color:var(--dim)}
+  .pill{display:inline-block;font-size:.74rem;padding:.2rem .6rem;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+  .typ-מטרה{color:#8dfff4;border-color:rgba(141,255,244,.35);background:rgba(141,255,244,.08)}
+  .typ-משימה{color:var(--text);border-color:var(--line);background:rgba(255,255,255,.03)}
+  .typ-פרויקט{color:#c9b3ff;border-color:rgba(201,179,255,.35);background:rgba(201,179,255,.08)}
+  .st{display:inline-flex;align-items:center;gap:.35rem;font-size:.82rem}
+  .st .d{width:.6rem;height:.6rem;border-radius:50%}
+  .st-פתוח .d{background:var(--open)} .st-ממתין .d{background:var(--wait)} .st-הושלם .d{background:var(--done)}
+  .empty{padding:2.5rem 1rem;text-align:center;color:var(--dim)}
+  .count{color:var(--dim);font-size:.82rem;margin:.6rem .2rem 0}
+
+  /* modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(4,8,18,.62);display:none;align-items:flex-start;justify-content:center;z-index:20;padding:1.5rem 1rem;overflow:auto}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--navy);border:1px solid var(--line);border-radius:1rem;padding:1.4rem;width:min(34rem,100%);margin:auto}
+  .modal h3{color:var(--heading);font-size:1.15rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
+  .modal h3 .x{background:none;border:0;color:var(--dim);cursor:pointer;font-size:1.3rem;line-height:1}
+  .modal h3 .x:hover{color:#ffb4b4}
+  .fld{margin-bottom:.8rem}
+  .fld label{display:block;font-size:.82rem;color:var(--dim);margin-bottom:.3rem}
+  .fld input,.fld select,.fld textarea{width:100%;background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:.55rem;padding:.6rem .7rem;font:inherit}
+  .fld textarea{resize:vertical;min-height:3.2rem}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+  @media(max-width:520px){.grid2{grid-template-columns:1fr}}
+  .seg{display:flex;gap:.4rem;flex-wrap:wrap}
+  .seg button{flex:1;min-width:5rem;background:var(--card);border:1px solid var(--line);color:var(--dim);border-radius:.55rem;padding:.5rem;cursor:pointer;font:inherit;font-size:.9rem}
+  .seg button.on{background:var(--accent);color:#04121a;border-color:var(--accent);font-weight:700}
+  .mrow{display:flex;gap:.6rem;margin-top:1.1rem;align-items:center}
+  .mrow .save{background:var(--accent);color:#04121a;border:0;border-radius:.6rem;padding:.65rem 1.4rem;cursor:pointer;font:inherit;font-weight:700}
+  .mrow .save:hover{background:var(--accent2)}
+  .mrow .del{margin-inline-start:auto;background:none;border:1px solid var(--line);color:var(--dim);border-radius:.6rem;padding:.55rem .9rem;cursor:pointer;font:inherit;font-size:.85rem}
+  .mrow .del:hover{border-color:#ffb4b4;color:#ffb4b4}
+
+  .related{margin-top:1.2rem;border-top:1px solid var(--line);padding-top:1rem}
+  .related h4{color:var(--heading);font-size:.95rem;margin-bottom:.6rem}
+  .rel-item{display:flex;align-items:center;justify-content:space-between;gap:.6rem;background:var(--card);border:1px solid var(--line);border-radius:.6rem;padding:.5rem .7rem;margin-bottom:.45rem;cursor:pointer}
+  .rel-item:hover{border-color:var(--accent)}
+  .rel-item .rt{color:var(--heading);font-size:.9rem}
+  .addsub{background:none;border:1px dashed var(--line);color:var(--accent);border-radius:.6rem;padding:.55rem .9rem;cursor:pointer;font:inherit;font-size:.88rem;width:100%;margin-top:.3rem}
+  .addsub:hover{border-color:var(--accent)}
+  .rel-empty{color:var(--dim);font-size:.85rem;margin-bottom:.5rem}
+
+  .list-rows{display:flex;flex-direction:column;gap:.5rem}
+  .u-row{display:flex;align-items:center;justify-content:space-between;gap:.6rem;background:var(--card);border:1px solid var(--line);border-radius:.6rem;padding:.55rem .75rem}
+  .u-row .approve{background:var(--accent);color:#04121a;border:0;border-radius:.5rem;padding:.4rem .8rem;cursor:pointer;font:inherit;font-weight:600;font-size:.82rem}
+  .u-row label{font-size:.78rem;color:var(--dim);display:flex;align-items:center;gap:.25rem}
+  .addp{display:flex;gap:.4rem;margin-top:.7rem}
+  .addp input[type=text]{flex:1;background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:.5rem;padding:.5rem .6rem;font:inherit}
+  .addp input[type=color]{width:2.4rem;height:2.4rem;border:1px solid var(--line);border-radius:.5rem;background:var(--card)}
+  .addp button{background:var(--accent);color:#04121a;border:0;border-radius:.5rem;padding:0 1rem;cursor:pointer;font:inherit;font-weight:700}
+  .p-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem;background:var(--card);border:1px solid var(--line);border-radius:.6rem;padding:.45rem .7rem;margin-bottom:.4rem}
+  .p-row .nm{display:flex;align-items:center;gap:.5rem;color:var(--heading)}
+  .p-row .dot{width:.85rem;height:.85rem;border-radius:50%}
+  .p-row .rm{background:none;border:0;color:var(--dim);cursor:pointer;font-size:1rem}
+  .p-row .rm:hover{color:#ffb4b4}
+
+  .toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--accent);color:var(--heading);padding:.7rem 1.2rem;border-radius:.7rem;font-size:.9rem;z-index:40;display:none;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .toast.show{display:block}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+  <div class="top">
+    <span class="logo" dir="ltr" aria-label="MyOS משימות">
+      <span class="my">My</span>
+      <span class="o"><svg viewBox="6 -7 88 101"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg></span>
+      <span class="sc">S</span><span class="pt">משימות</span>
+    </span>
+    <span class="right">
+      <button id="peopleBtn" class="hidden" type="button">אנשים</button>
+      <button id="usersBtn" class="hidden" type="button">ניהול משתמשים</button>
+      <span id="whoName"></span>
+      <button id="logoutBtn" type="button">התנתקות</button>
+    </span>
+  </div>
+
+  <div class="wrap">
+    <div class="head">
+      <h1>מטרות ומשימות</h1>
+      <button class="addbtn" id="addBtn" type="button">+ הוספת פריט</button>
+    </div>
+
+    <div class="filters">
+      <div class="f"><label>סוג</label>
+        <select id="fType"><option value="">הכול</option><option value="מטרה">מטרות</option><option value="משימה">משימות</option><option value="פרויקט">פרויקטים</option></select>
+      </div>
+      <div class="f"><label>סטטוס</label>
+        <select id="fStatus"><option value="פעיל">פעיל (פתוח + ממתין)</option><option value="">הכול</option><option value="פתוח">פתוח</option><option value="ממתין">ממתין</option><option value="הושלם">הושלם</option></select>
+      </div>
+      <div class="f"><label>אחראי</label>
+        <select id="fOwner"><option value="">הכול</option></select>
+      </div>
+    </div>
+
+    <table class="table">
+      <thead><tr><th>סוג</th><th>כותרת</th><th>שייך ל</th><th>אחראי</th><th>סטטוס</th><th>תאריך יעד</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="6" class="empty">טוען…</td></tr></tbody>
+    </table>
+    <p class="count" id="count"></p>
+  </div>
+
+  <!-- item modal -->
+  <div class="modal-bg" id="itemBg">
+    <div class="modal">
+      <h3><span id="itemTitle">פריט חדש</span><button class="x" id="itemX" type="button">×</button></h3>
+      <div class="fld"><label>סוג</label>
+        <div class="seg" id="typeSeg">
+          <button data-v="מטרה" type="button">מטרה</button>
+          <button data-v="משימה" type="button">משימה</button>
+          <button data-v="פרויקט" type="button">פרויקט</button>
+        </div>
+      </div>
+      <div class="fld"><label>כותרת *</label><input id="iTitle" type="text" placeholder="שם קצר וברור"></div>
+      <div class="grid2">
+        <div class="fld"><label>שייך ל</label><select id="iParent"><option value="">— ללא —</option></select></div>
+        <div class="fld"><label>אחראי</label><select id="iOwner"><option value="">— ללא —</option></select></div>
+      </div>
+      <div class="grid2">
+        <div class="fld"><label>סטטוס</label><select id="iStatus"><option value="פתוח">פתוח</option><option value="ממתין">ממתין</option><option value="הושלם">הושלם</option></select></div>
+        <div class="fld"><label>תאריך יעד</label><input id="iDue" type="date"></div>
+      </div>
+      <div class="fld"><label>תיאור</label><textarea id="iDesc" placeholder="לא חובה"></textarea></div>
+
+      <div class="mrow">
+        <button class="save" id="iSave" type="button">שמירה</button>
+        <button class="del hidden" id="iDel" type="button">מחיקה</button>
+      </div>
+
+      <div class="related hidden" id="relatedBox">
+        <h4>פריטים קשורים</h4>
+        <div id="relatedList"></div>
+        <button class="addsub" id="addSubBtn" type="button">+ הוספת משימה לפריט זה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- users modal (admin) -->
+  <div class="modal-bg" id="usersBg">
+    <div class="modal">
+      <h3>ניהול משתמשים<button class="x" data-close="usersBg" type="button">×</button></h3>
+      <div class="list-rows" id="usersList"></div>
+    </div>
+  </div>
+
+  <!-- people modal (admin) -->
+  <div class="modal-bg" id="peopleBg">
+    <div class="modal">
+      <h3>אנשים (אחראים)<button class="x" data-close="peopleBg" type="button">×</button></h3>
+      <div id="peopleMgr"></div>
+      <div class="addp">
+        <input type="text" id="npName" placeholder="שם…">
+        <input type="color" id="npColor" value="#2ff0e6">
+        <button id="npAdd" type="button">הוסף</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script src="../js/supabase.umd.js"></script>
+<script src="config.js"></script>
+<script>
+(function(){
+  var cfg=window.MYOS_TASKS||{};
+  var sb=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON);
+  var me=null, people=[], peopleById={}, items=[], itemsById={};
+  var editingId=null, curType='משימה';
+
+  function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2600);}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+  async function guard(){
+    var s=(await sb.auth.getSession()).data.session;
+    if(!s){ location.href='./'; return false; }
+    var q=await sb.from('task_users').select('id,role,approved,full_name').eq('id',s.user.id).maybeSingle();
+    if(q.error||!q.data||!q.data.approved){ location.href='./'; return false; }
+    me=q.data;
+    document.getElementById('whoName').textContent=me.full_name||'';
+    if(me.role==='admin'){ document.getElementById('usersBtn').classList.remove('hidden'); document.getElementById('peopleBtn').classList.remove('hidden'); }
+    return true;
+  }
+
+  async function loadPeople(){
+    var q=await sb.from('people').select('id,name,color,active').order('name');
+    people=(q.error?[]:q.data)||[]; peopleById={}; people.forEach(function(p){peopleById[p.id]=p;});
+    // owner filter + owner select
+    var act=people.filter(function(p){return p.active!==false;});
+    var opts='<option value="">— ללא —</option>'+act.map(function(p){return '<option value="'+p.id+'">'+esc(p.name)+'</option>';}).join('');
+    document.getElementById('iOwner').innerHTML=opts;
+    document.getElementById('fOwner').innerHTML='<option value="">הכול</option>'+act.map(function(p){return '<option value="'+p.id+'">'+esc(p.name)+'</option>';}).join('');
+  }
+
+  async function loadItems(){
+    var q=await sb.from('items').select('id,type,title,description,parent_item_id,owner_id,status,due_date').order('created_at',{ascending:false});
+    items=(q.error?[]:q.data)||[]; itemsById={}; items.forEach(function(i){itemsById[i.id]=i;});
+    // parent select options (מטרות + פרויקטים)
+    var parents=items.filter(function(i){return i.type==='מטרה'||i.type==='פרויקט';});
+    document.getElementById('iParent').dataset.opts=JSON.stringify(parents.map(function(p){return {id:p.id,title:p.title};}));
+    renderRows();
+  }
+
+  function passFilter(it){
+    var ty=document.getElementById('fType').value;
+    var stf=document.getElementById('fStatus').value;
+    var ow=document.getElementById('fOwner').value;
+    if(ty && it.type!==ty) return false;
+    if(ow && it.owner_id!==ow) return false;
+    if(stf==='פעיל'){ if(it.status==='הושלם') return false; }
+    else if(stf){ if(it.status!==stf) return false; }
+    return true;
+  }
+  function renderRows(){
+    var body=document.getElementById('rows'); var list=items.filter(passFilter);
+    if(!list.length){ body.innerHTML='<tr><td colspan="6" class="empty">אין פריטים להצגה. לחצו "+ הוספת פריט".</td></tr>'; document.getElementById('count').textContent=''; return; }
+    body.innerHTML='';
+    list.forEach(function(it){
+      var parent=it.parent_item_id?itemsById[it.parent_item_id]:null;
+      var owner=it.owner_id?peopleById[it.owner_id]:null;
+      var tr=document.createElement('tr');
+      tr.innerHTML=
+        '<td><span class="pill typ-'+it.type+'">'+it.type+'</span></td>'+
+        '<td class="ttl">'+esc(it.title)+'</td>'+
+        '<td class="muted">'+(parent?esc(parent.title):'—')+'</td>'+
+        '<td>'+(owner?('<span class="st"><span class="d" style="background:'+(owner.color||'#2ff0e6')+'"></span>'+esc(owner.name)+'</span>'):'<span class="muted">—</span>')+'</td>'+
+        '<td><span class="st st-'+it.status+'"><span class="d"></span>'+it.status+'</span></td>'+
+        '<td class="muted">'+(it.due_date?esc(it.due_date):'—')+'</td>';
+      tr.addEventListener('click',function(){ openItem(it.id); });
+      body.appendChild(tr);
+    });
+    document.getElementById('count').textContent=list.length+' פריטים';
+  }
+  ['fType','fStatus','fOwner'].forEach(function(id){ document.getElementById(id).addEventListener('change',renderRows); });
+
+  // ---------- item modal ----------
+  function setType(v){ curType=v; Array.prototype.forEach.call(document.querySelectorAll('#typeSeg button'),function(b){ b.classList.toggle('on', b.dataset.v===v); }); }
+  Array.prototype.forEach.call(document.querySelectorAll('#typeSeg button'),function(b){ b.addEventListener('click',function(){ setType(b.dataset.v); }); });
+
+  function fillParentOptions(excludeId){
+    var opts=JSON.parse(document.getElementById('iParent').dataset.opts||'[]');
+    var html='<option value="">— ללא —</option>';
+    opts.forEach(function(o){ if(o.id!==excludeId) html+='<option value="'+o.id+'">'+esc(o.title)+'</option>'; });
+    document.getElementById('iParent').innerHTML=html;
+  }
+
+  function openItem(id, presetParent){
+    editingId=id||null;
+    fillParentOptions(id||null);
+    if(id){
+      var it=itemsById[id];
+      document.getElementById('itemTitle').textContent='עריכת פריט';
+      setType(it.type);
+      document.getElementById('iTitle').value=it.title||'';
+      document.getElementById('iParent').value=it.parent_item_id||'';
+      document.getElementById('iOwner').value=it.owner_id||'';
+      document.getElementById('iStatus').value=it.status||'פתוח';
+      document.getElementById('iDue').value=it.due_date||'';
+      document.getElementById('iDesc').value=it.description||'';
+      document.getElementById('iDel').classList.toggle('hidden', me.role!=='admin');
+      renderRelated(id);
+      document.getElementById('relatedBox').classList.remove('hidden');
+    } else {
+      document.getElementById('itemTitle').textContent='פריט חדש';
+      setType('משימה');
+      document.getElementById('iTitle').value='';
+      document.getElementById('iParent').value=presetParent||'';
+      document.getElementById('iOwner').value='';
+      document.getElementById('iStatus').value='פתוח';
+      document.getElementById('iDue').value='';
+      document.getElementById('iDesc').value='';
+      document.getElementById('iDel').classList.add('hidden');
+      document.getElementById('relatedBox').classList.add('hidden');
+    }
+    document.getElementById('itemBg').classList.add('open');
+    setTimeout(function(){document.getElementById('iTitle').focus();},50);
+  }
+  function closeItem(){ document.getElementById('itemBg').classList.remove('open'); editingId=null; }
+  document.getElementById('itemX').addEventListener('click',closeItem);
+  document.getElementById('itemBg').addEventListener('click',function(e){ if(e.target.id==='itemBg') closeItem(); });
+  document.getElementById('addBtn').addEventListener('click',function(){ openItem(null,null); });
+
+  function renderRelated(id){
+    var box=document.getElementById('relatedList');
+    var kids=items.filter(function(i){return i.parent_item_id===id;});
+    if(!kids.length){ box.innerHTML='<p class="rel-empty">אין עדיין פריטים ששייכים לזה.</p>'; return; }
+    box.innerHTML='';
+    kids.forEach(function(k){
+      var el=document.createElement('div'); el.className='rel-item';
+      el.innerHTML='<span class="rt">'+esc(k.title)+'</span><span class="st st-'+k.status+'"><span class="d"></span>'+k.status+'</span>';
+      el.addEventListener('click',function(){ openItem(k.id); });
+      box.appendChild(el);
+    });
+  }
+  document.getElementById('addSubBtn').addEventListener('click',function(){ var pid=editingId; openItem(null,pid); });
+
+  document.getElementById('iSave').addEventListener('click',async function(){
+    var title=document.getElementById('iTitle').value.trim();
+    if(!title){ toast('כותרת היא שדה חובה'); document.getElementById('iTitle').focus(); return; }
+    var rec={
+      type:curType, title:title,
+      parent_item_id:document.getElementById('iParent').value||null,
+      owner_id:document.getElementById('iOwner').value||null,
+      status:document.getElementById('iStatus').value,
+      due_date:document.getElementById('iDue').value||null,
+      description:document.getElementById('iDesc').value.trim()||null
+    };
+    var btn=this; btn.disabled=true; var o=btn.textContent; btn.textContent='שומר…';
+    try{
+      if(editingId){ var u=await sb.from('items').update(rec).eq('id',editingId); if(u.error) throw u.error; }
+      else { rec.created_by=me.id; var ins=await sb.from('items').insert(rec); if(ins.error) throw ins.error; }
+      await loadItems(); closeItem(); toast('נשמר');
+    }catch(err){ toast('שגיאה: '+(err.message||err)); }
+    finally{ btn.disabled=false; btn.textContent=o; }
+  });
+  document.getElementById('iDel').addEventListener('click',async function(){
+    if(!editingId) return;
+    if(!confirm('למחוק פריט זה? (פריטים ששייכים אליו לא יימחקו, אך יתנתקו ממנו)')) return;
+    var q=await sb.from('items').delete().eq('id',editingId);
+    if(q.error){ toast('שגיאה: '+q.error.message); return; }
+    await loadItems(); closeItem(); toast('נמחק');
+  });
+
+  // ---------- admin: users ----------
+  document.getElementById('usersBtn').addEventListener('click',async function(){
+    document.getElementById('usersBg').classList.add('open'); loadUsers();
+  });
+  async function loadUsers(){
+    var box=document.getElementById('usersList');
+    var q=await sb.from('task_users').select('id,email,full_name,approved,role').order('created_at',{ascending:true});
+    if(q.error){ box.innerHTML='<p class="rel-empty">שגיאה: '+q.error.message+'</p>'; return; }
+    var rows=q.data||[]; box.innerHTML='';
+    var pend=rows.filter(function(r){return !r.approved;});
+    if(!pend.length){ box.innerHTML='<p class="rel-empty">אין בקשות ממתינות.</p>'; }
+    pend.forEach(function(r){
+      var el=document.createElement('div'); el.className='u-row';
+      el.innerHTML='<div style="min-width:0"><div style="color:var(--heading);font-weight:600">'+esc(r.full_name||'—')+'</div><div class="muted" style="font-size:.8rem">'+esc(r.email||'')+'</div></div>'+
+                   '<div style="display:flex;gap:.6rem;align-items:center"><label><input type="checkbox" class="asadmin"> מנהל</label><button class="approve">אשר</button></div>';
+      el.querySelector('.approve').addEventListener('click',async function(){
+        var patch={approved:true}; if(el.querySelector('.asadmin').checked) patch.role='admin';
+        var u=await sb.from('task_users').update(patch).eq('id',r.id);
+        if(u.error){ toast('שגיאה: '+u.error.message); return; }
+        el.remove(); if(!document.getElementById('usersList').children.length) document.getElementById('usersList').innerHTML='<p class="rel-empty">אין בקשות ממתינות.</p>';
+      });
+      box.appendChild(el);
+    });
+  }
+
+  // ---------- admin: people ----------
+  document.getElementById('peopleBtn').addEventListener('click',function(){ document.getElementById('peopleBg').classList.add('open'); renderPeopleMgr(); });
+  function renderPeopleMgr(){
+    var box=document.getElementById('peopleMgr'); var act=people.filter(function(p){return p.active!==false;});
+    box.innerHTML= act.length? '' : '<p class="rel-empty">אין עדיין אנשים.</p>';
+    act.forEach(function(p){
+      var el=document.createElement('div'); el.className='p-row';
+      el.innerHTML='<span class="nm"><span class="dot" style="background:'+(p.color||'#2ff0e6')+'"></span>'+esc(p.name)+'</span><button class="rm" title="הסר">✕</button>';
+      el.querySelector('.rm').addEventListener('click',async function(){
+        if(!confirm('להסיר את "'+p.name+'"?')) return;
+        var q=await sb.from('people').update({active:false}).eq('id',p.id);
+        if(q.error){ toast('שגיאה: '+q.error.message); return; }
+        p.active=false; renderPeopleMgr(); await loadPeople();
+      });
+      box.appendChild(el);
+    });
+  }
+  document.getElementById('npAdd').addEventListener('click',async function(){
+    var name=document.getElementById('npName').value.trim(); var color=document.getElementById('npColor').value||'#2ff0e6';
+    if(!name) return;
+    var q=await sb.from('people').insert({name:name,color:color,is_login:false,active:true}).select().single();
+    if(q.error){ toast('שגיאה: '+q.error.message); return; }
+    document.getElementById('npName').value=''; people.push(q.data); peopleById[q.data.id]=q.data;
+    renderPeopleMgr(); await loadPeople();
+  });
+
+  // close buttons
+  Array.prototype.forEach.call(document.querySelectorAll('[data-close]'),function(b){ b.addEventListener('click',function(){ document.getElementById(b.dataset.close).classList.remove('open'); }); });
+  ['usersBg','peopleBg'].forEach(function(id){ document.getElementById(id).addEventListener('click',function(e){ if(e.target.id===id) document.getElementById(id).classList.remove('open'); }); });
+
+  document.getElementById('logoutBtn').addEventListener('click',async function(){ await sb.auth.signOut(); location.href='./'; });
+
+  (async function init(){
+    if(!(await guard())) return;
+    await loadPeople();
+    await loadItems();
+  })();
+})();
+</script>
+</body>
+</html>
