@@ -305,17 +305,8 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     $('rSubmit').disabled = true; say('rStatus', 'נרשם…');
     var r = await client.auth.signUp({ email: email, password: pw, options: { data: { full_name: name } } });
     if (r.error) { $('rSubmit').disabled = false; say('rStatus', 'ההרשמה נכשלה: ' + r.error.message, 'err'); return; }
-    /* התרעה אלינו על נרשם חדש (Web3Forms) */
-    try {
-      var fd = new FormData();
-      fd.append('access_key', W3F_KEY);
-      fd.append('subject', 'הרשמה חדשה לניסיון — MyOS עסקאות');
-      fd.append('from_name', 'myos.co.il/login');
-      fd.append('שם', name);
-      fd.append('דוא״ל', email);
-      fd.append('הודעה', 'משתמש חדש נרשם וממתין לאישור ניסיון 7 ימים.');
-      await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd });
-    } catch (err) { /* לא חוסם את ההרשמה אם ההתרעה נכשלה */ }
+    /* ההתרעה על נרשם חדש נשלחת אוטומטית בצד השרת (טריגר DB → notify-signup),
+       אמין ב-100% וגם עבור הרשמות Google — אין צורך בשליחה מהדפדפן. */
     $('rSubmit').disabled = false;
     say('rStatus', 'נרשמת בהצלחה! החשבון ממתין לאישור ניסיון — נאשר אותו בהקדם ונעדכן אותך.', 'ok');
     $('registerForm').reset();
