@@ -181,14 +181,8 @@
       show('pending', {name:name});
       return;
     }
-    if(u.role === 'admin'){
-      document.getElementById('adminName').textContent = name;
-      show('admin', {name:name});
-      loadPending();
-    } else {
-      document.getElementById('workerName').textContent = name;
-      show('worker', {name:name});
-    }
+    // מאושר — עוברים למסך העבודה הראשי "מטרות ומשימות"
+    location.href = 'app.html';
   }
 
   async function loadPending(){
