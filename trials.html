@@ -114,13 +114,17 @@
 
   async function fn(action, extra){
     var body=Object.assign({action:action}, extra||{});
-    var res=await fetch(SUPABASE_URL+'/functions/v1/admin-trials',{
-      method:'POST',
-      headers:{ 'Authorization':'Bearer '+token, 'apikey':ANON, 'Content-Type':'application/json' },
-      body:JSON.stringify(body)
-    });
-    var j=await res.json().catch(function(){return {ok:false,error:'bad response'};});
-    return { status:res.status, j:j };
+    try{
+      var res=await fetch(SUPABASE_URL+'/functions/v1/admin-trials',{
+        method:'POST',
+        headers:{ 'Authorization':'Bearer '+token, 'apikey':ANON, 'Content-Type':'application/json' },
+        body:JSON.stringify(body)
+      });
+      var j=await res.json().catch(function(){return {ok:false,error:'תשובה לא תקינה מהשרת (status '+res.status+')'};});
+      return { status:res.status, j:j };
+    }catch(err){
+      return { status:0, j:{ ok:false, error:'לא הצלחנו להגיע לפונקציה admin-trials — ודא שהיא פרוסה ושה-Verify JWT כבוי. ('+(err&&err.message||err)+')' } };
+    }
   }
 
   function showBoard(email){
@@ -131,9 +135,17 @@
   }
 
   async function load(){
+    $('pending').innerHTML='<p class="empty">טוען…</p>';
+    $('active').innerHTML='<p class="empty">טוען…</p>';
     var r=await fn('list');
     if(r.status===403){ $('board').classList.add('hidden'); $('loginCard').classList.remove('hidden'); $('loginMsg').className='msg err'; $('loginMsg').textContent='החשבון הזה אינו מנהל.'; return; }
-    if(!r.j.ok){ $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status); return; }
+    if(!r.j.ok){
+      $('pending').innerHTML='<p class="empty">—</p>';
+      $('active').innerHTML='<p class="empty">—</p>';
+      $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status);
+      return;
+    }
+    $('boardMsg').textContent='';
     var users=r.j.users||[]; allUsers=users;
     var pending=users.filter(function(u){return !u.active;});
     var active=users.filter(function(u){return u.active;});
