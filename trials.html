@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ניהול ניסיונות | MyOS</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='6 -9 88 103'%3E%3Crect x='6' y='-9' width='88' height='103' fill='%230E1A33'/%3E%3Cpath d='M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 24 L76 38 L76 62 L62 76 L38 76 L24 62 L24 38 L38 24 Z' fill='%23eff3fa'/%3E%3Cpath d='M46 -9 L54 -9 L58 -5 L58 30 L50 38 L42 30 L42 -5 Z' fill='%232ff0e6'/%3E%3C/svg%3E">
+<style>
+  *{box-sizing:border-box;margin:0}
+  :root{--navy:#0E1A33;--navy2:#0b1428;--card:#16264a;--line:#26375c;--text:#cfd8ea;--dim:#9aa8c4;--heading:#eef3fb;--accent:#2ff0e6;--accent2:#8dfff4;--wait:#ffcf6b;--done:#66e6a8}
+  body{min-height:100svh;display:flex;flex-direction:column;background:radial-gradient(120% 60% at 50% -10%,#12233f,var(--navy) 55%,var(--navy2));color:var(--text);font-family:'Heebo',system-ui,'Segoe UI',Arial,sans-serif;line-height:1.6}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.8rem 1.2rem;border-bottom:1px solid var(--line)}
+  .logo{display:inline-flex;align-items:baseline;gap:.04em;direction:ltr;font-size:1.35rem}
+  .logo .my,.logo .sc{background:linear-gradient(122deg,#13a8bd,#2ff0e6 60%,#8dfff4);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+  .logo .o{display:block;width:.72em;height:.826em;align-self:center;flex:none}
+  .logo .o svg{width:100%;height:100%;display:block;overflow:visible}
+  .logo .ring{fill:#eff3fa}.logo .stem{fill:#2ff0e6}
+  .logo .pt{font-size:.62em;color:#dbe4f5;font-weight:600;margin-inline-start:.4em;align-self:center}
+  .top .right{display:flex;align-items:center;gap:.7rem;font-size:.85rem;color:var(--dim)}
+  .top .right button{color:var(--dim);background:none;border:1px solid var(--line);border-radius:.5rem;padding:.35rem .75rem;cursor:pointer;font:inherit;font-size:.82rem}
+  .top .right button:hover{border-color:var(--accent);color:var(--accent)}
+  .wrap{width:min(46rem,100%);margin:0 auto;padding:1.6rem 1.2rem 4rem;flex:1}
+  h1{color:var(--heading);font-size:1.4rem;margin-bottom:1.2rem}
+  h2{color:var(--heading);font-size:1.05rem;margin:1.6rem 0 .7rem}
+  /* login card */
+  .card{width:min(23rem,100%);margin:3rem auto;background:var(--card);border:1px solid var(--line);border-radius:1.1rem;padding:1.8rem 1.6rem}
+  .card h1{text-align:center;font-size:1.15rem}
+  label{display:block;font-size:.9rem;color:#e6ecf7;margin:.2rem 0 .35rem}
+  input{width:100%;font:inherit;font-size:1rem;color:#12233f;background:#f5f8fc;border:1.5px solid #cdd8ec;border-radius:.6rem;padding:.7rem .9rem;margin-bottom:1rem}
+  input:focus-visible{outline:none;border-color:#0a5766;background:#fff;box-shadow:0 0 0 3px rgba(47,240,230,.35)}
+  .btn{width:100%;font:inherit;font-weight:700;font-size:1rem;cursor:pointer;background:var(--accent);color:#04121a;border:0;border-radius:.65rem;padding:.8rem}
+  .btn:hover{background:var(--accent2)}
+  .btn:disabled{opacity:.6;cursor:progress}
+  .msg{margin-top:.8rem;font-size:.9rem;text-align:center;min-height:1.3em}
+  .msg.err{color:#ffb3a4}.msg.ok{color:#8dfff4}
+  /* rows */
+  .list{display:flex;flex-direction:column;gap:.6rem}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:.8rem;background:var(--card);border:1px solid var(--line);border-radius:.75rem;padding:.75rem .95rem}
+  .row .info{min-width:0}
+  .row .em{color:var(--heading);font-weight:600;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .meta{color:var(--dim);font-size:.8rem;margin-top:.1rem}
+  .grant{background:var(--accent);color:#04121a;border:0;border-radius:.55rem;padding:.5rem .9rem;cursor:pointer;font:inherit;font-weight:600;font-size:.85rem;flex:none}
+  .grant:hover{background:var(--accent2)}
+  .grant.ext{background:none;border:1px solid var(--line);color:var(--dim)}
+  .grant.ext:hover{border-color:var(--accent);color:var(--accent)}
+  .pill{font-size:.74rem;padding:.2rem .6rem;border-radius:999px;border:1px solid;white-space:nowrap;flex:none}
+  .pill.active{color:var(--done);border-color:rgba(102,230,168,.4);background:rgba(102,230,168,.08)}
+  .empty{color:var(--dim);font-size:.9rem;padding:.6rem 0}
+  .pw{position:relative;margin-bottom:1rem}
+  .pw>input{margin-bottom:0;padding-left:2.9rem}
+  .pw .eye{position:absolute;left:.4rem;top:0;bottom:0;margin:auto;width:2.1rem;height:2rem;display:flex;align-items:center;justify-content:center;background:none;border:0;padding:0;cursor:pointer;color:#5b6b86}
+  .pw .eye:hover{color:#0a5766}.pw .eye svg{width:1.3rem;height:1.3rem;display:block}
+  .or{display:flex;align-items:center;gap:.6rem;color:#7d8ca8;font-size:.82rem;margin:.55rem 0 .9rem}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:#2a3a58}
+  .gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:.6rem;font:inherit;font-weight:600;font-size:.95rem;cursor:pointer;background:#fff;color:#1f2430;border:0;border-radius:.65rem;padding:.72rem}
+  .gbtn:hover{background:#eef1f6}.gbtn svg{width:1.1rem;height:1.1rem;flex:none}
+  .csvbtn{background:none;border:1px solid var(--line);color:var(--dim);border-radius:.55rem;padding:.5rem .9rem;cursor:pointer;font:inherit;font-size:.85rem}
+  .csvbtn:hover{border-color:var(--accent);color:var(--accent)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+  <div class="top">
+    <span class="logo" dir="ltr" aria-label="MyOS">
+      <span class="my">My</span>
+      <span class="o"><svg viewBox="6 -7 88 101"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg></span>
+      <span class="sc">S</span><span class="pt">ניהול ניסיונות</span>
+    </span>
+    <span class="right hidden" id="who"><span id="whoEmail"></span><button id="logoutBtn" type="button">התנתקות</button></span>
+  </div>
+
+  <!-- התחברות מנהל -->
+  <main class="card" id="loginCard">
+    <h1>כניסת מנהל</h1>
+    <label for="email">דוא״ל</label>
+    <input id="email" type="email" autocomplete="username">
+    <label for="password">סיסמה</label>
+    <div class="pw"><input id="password" type="password" autocomplete="current-password"><button type="button" class="eye" id="pwEye" aria-label="הצג סיסמה"></button></div>
+    <button class="btn" id="loginBtn" type="button">התחברות</button>
+    <div class="or">או</div>
+    <button type="button" class="gbtn" id="googleLogin">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.7 1.2 9.2 3.6l6.9-6.9C35.9 2.4 30.5 0 24 0 14.6 0 6.5 5.4 2.6 13.2l8 6.2C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M47 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.9c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 7.2-10.4 7.2-17.7z"/><path fill="#FBBC05" d="M10.5 28.6A14.6 14.6 0 0 1 9.8 24c0-1.6.3-3.1.8-4.6l-8-6.2A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.1 1.4-4.9 2.3-8.2 2.3-6.3 0-11.6-4.2-13.5-9.9l-8 6.2C6.5 42.6 14.6 48 24 48z"/></svg>
+      התחברות עם Google
+    </button>
+    <p class="msg" id="loginMsg" role="status"></p>
+  </main>
+
+  <!-- לוח ניסיונות -->
+  <div class="wrap hidden" id="board">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.1rem">
+      <h1 style="margin:0">ניהול ניסיונות ומנויים</h1>
+      <button class="csvbtn" id="csvBtn" type="button">⬇ הורדת מאגר נרשמים (CSV)</button>
+    </div>
+    <h2 style="margin-top:0">ממתינים לאישור</h2>
+    <div class="list" id="pending"><p class="empty">טוען…</p></div>
+    <h2>מנויים פעילים</h2>
+    <div class="list" id="active"><p class="empty">טוען…</p></div>
+    <p class="msg" id="boardMsg" role="status"></p>
+  </div>
+
+<script src="js/supabase.umd.js"></script>
+<script>
+(function(){
+  'use strict';
+  var $=function(id){return document.getElementById(id);};
+  var SUPABASE_URL='https://oxofnuciofugcjlcwtqp.supabase.co';
+  var ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94b2ZudWNpb2Z1Z2NqbGN3dHFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1ODE4OTUsImV4cCI6MjEwMzE1Nzg5NX0.E255x5r5mfpiGUvM4O7n64SFJ_tynx96Tg6HK7EaQxA';
+  var client=supabase.createClient(SUPABASE_URL, ANON);
+  var token=null, allUsers=[];
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function fmtDate(s){ if(!s) return ''; try{ return new Date(s).toLocaleDateString('he-IL'); }catch(e){ return s; } }
+
+  async function fn(action, extra){
+    var body=Object.assign({action:action}, extra||{});
+    var res=await fetch(SUPABASE_URL+'/functions/v1/admin-trials',{
+      method:'POST',
+      headers:{ 'Authorization':'Bearer '+token, 'apikey':ANON, 'Content-Type':'application/json' },
+      body:JSON.stringify(body)
+    });
+    var j=await res.json().catch(function(){return {ok:false,error:'bad response'};});
+    return { status:res.status, j:j };
+  }
+
+  function showBoard(email){
+    $('loginCard').classList.add('hidden');
+    $('board').classList.remove('hidden');
+    $('who').classList.remove('hidden');
+    $('whoEmail').textContent=email||'';
+  }
+
+  async function load(){
+    var r=await fn('list');
+    if(r.status===403){ $('board').classList.add('hidden'); $('loginCard').classList.remove('hidden'); $('loginMsg').className='msg err'; $('loginMsg').textContent='החשבון הזה אינו מנהל.'; return; }
+    if(!r.j.ok){ $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status); return; }
+    var users=r.j.users||[]; allUsers=users;
+    var pending=users.filter(function(u){return !u.active;});
+    var active=users.filter(function(u){return u.active;});
+    renderPending(pending); renderActive(active);
+  }
+
+  function renderPending(list){
+    var box=$('pending');
+    if(!list.length){ box.innerHTML='<p class="empty">אין נרשמים ממתינים.</p>'; return; }
+    box.innerHTML='';
+    list.forEach(function(u){
+      var el=document.createElement('div'); el.className='row';
+      el.innerHTML='<div class="info"><div class="em">'+esc(u.email||u.user_id)+'</div><div class="meta">נרשם: '+esc(fmtDate(u.created_at))+(u.license_status?(' · רישיון: '+esc(u.license_status)):'')+'</div></div>'+
+                   '<button class="grant">אשר ניסיון 7 ימים</button>';
+      el.querySelector('.grant').addEventListener('click',function(){ grant(u.user_id, this); });
+      box.appendChild(el);
+    });
+  }
+  function renderActive(list){
+    var box=$('active');
+    if(!list.length){ box.innerHTML='<p class="empty">אין מנויים פעילים.</p>'; return; }
+    box.innerHTML='';
+    list.forEach(function(u){
+      var el=document.createElement('div'); el.className='row';
+      el.innerHTML='<div class="info"><div class="em">'+esc(u.email||u.user_id)+'</div><div class="meta">בתוקף עד: '+esc(fmtDate(u.valid_until))+'</div></div>'+
+                   '<span class="pill active">פעיל</span>'+
+                   '<button class="grant ext">חדש 7 ימים</button>';
+      el.querySelector('.grant').addEventListener('click',function(){ grant(u.user_id, this); });
+      box.appendChild(el);
+    });
+  }
+
+  async function grant(uid, btn){
+    btn.disabled=true; var o=btn.textContent; btn.textContent='מאשר…';
+    var r=await fn('grant',{user_id:uid, days:7});
+    if(!r.j.ok){ btn.disabled=false; btn.textContent=o; $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status); return; }
+    $('boardMsg').className='msg ok'; $('boardMsg').textContent='אושר ניסיון 7 ימים ✓';
+    await load();
+  }
+
+  /* ---------- הצג/הסתר סיסמה (אייקון עין) ---------- */
+  var EYE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 12S5.4 5.5 12 5.5 22.2 12 22.2 12 18.6 18.5 12 18.5 1.8 12 1.8 12Z"/><circle cx="12" cy="12" r="3.2"/></svg>';
+  var EYEOFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 6.1A10 10 0 0 1 12 6c6.6 0 10.2 6 10.2 6a16 16 0 0 1-3.2 3.8M6.2 7.5A16 16 0 0 0 1.8 12S5.4 18 12 18a10 10 0 0 0 3.3-.6"/><path d="M9.9 9.9a3.2 3.2 0 0 0 4.3 4.3"/></svg>';
+  (function(){ var inp=$('password'), btn=$('pwEye'); if(inp&&btn){ btn.innerHTML=EYE; btn.addEventListener('click',function(){ var t=inp.type==='password'; inp.type=t?'text':'password'; btn.innerHTML=t?EYEOFF:EYE; }); } })();
+
+  /* ---------- התחברות עם Google ---------- */
+  $('googleLogin').addEventListener('click', function(){
+    client.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin + location.pathname } });
+  });
+
+  /* ---------- ייצוא מאגר נרשמים ל-CSV ---------- */
+  function csvCell(v){ v=String(v==null?'':v); return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+  $('csvBtn').addEventListener('click', function(){
+    if(!allUsers.length){ $('boardMsg').className='msg'; $('boardMsg').textContent='אין נתונים לייצוא'; return; }
+    var head=['אימייל','תאריך הרשמה','סטטוס רישיון','בתוקף עד','פעיל'];
+    var lines=[head.map(csvCell).join(',')];
+    allUsers.forEach(function(u){
+      lines.push([u.email||'', fmtDate(u.created_at), u.license_status||'', fmtDate(u.valid_until), u.active?'כן':'לא'].map(csvCell).join(','));
+    });
+    var csv='\uFEFF'+lines.join('\r\n');
+    var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='myos-registrants.csv';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+
+  $('loginBtn').addEventListener('click', async function(){
+    var email=$('email').value.trim(), pw=$('password').value;
+    if(!email||!pw){ $('loginMsg').className='msg err'; $('loginMsg').textContent='מלאו דוא״ל וסיסמה'; return; }
+    $('loginBtn').disabled=true; $('loginMsg').className='msg'; $('loginMsg').textContent='מתחבר…';
+    var r=await client.auth.signInWithPassword({email:email,password:pw});
+    $('loginBtn').disabled=false;
+    if(r.error){ $('loginMsg').className='msg err'; $('loginMsg').textContent='ההתחברות נכשלה — בדקו דוא״ל וסיסמה'; return; }
+    token=r.data.session.access_token;
+    showBoard(email); load();
+  });
+  $('password').addEventListener('keydown',function(e){ if(e.key==='Enter') $('loginBtn').click(); });
+
+  $('logoutBtn').addEventListener('click', async function(){ await client.auth.signOut(); location.reload(); });
+
+  (async function init(){
+    var s=(await client.auth.getSession()).data.session;
+    if(s){ token=s.access_token; showBoard(s.user.email); load(); }
+  })();
+})();
+</script>
+</body>
+</html>
