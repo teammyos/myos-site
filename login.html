@@ -353,7 +353,16 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     var back = extRedirect();
     if (!back) return;
     var sess = (await client.auth.getSession()).data.session;
-    if (sess) forwardToExt(sess, back);
+    if (!sess) return;                       // אין session — יוצג טופס התחברות/הרשמה
+    // מאמתים מול השרת שהמשתמש עדיין קיים לפני שמעבירים אותו לתוסף.
+    // אם החשבון נמחק/בוטל — ה-session ה"מת" מנותק ומוצג טופס במקום "מחובר" מדומה.
+    var chk = await client.auth.getUser();
+    if (chk && chk.data && chk.data.user && !chk.error) {
+      forwardToExt(sess, back);              // session תקין — ממשיכים כרגיל
+    } else {
+      await client.auth.signOut();
+      say('msg', 'החיבור הקודם כבר לא פעיל — התחברו או הירשמו מחדש', '');
+    }
   })();
 })();
 </script>
