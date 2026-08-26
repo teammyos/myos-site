@@ -779,21 +779,21 @@ body.no-motion #advantage .adv-frame{display:none;}
   .case-main:only-child{grid-column:1 / -1;}
   .case-media{display:flex;align-items:center;justify-content:center;}
   /* צילום לגובה (התוסף) — נגבל בגובה; צילום לרוחב (דשבורד) — ממלא את העמודה */
-  .case-media .case-shot img{width:auto;max-width:100%;max-height:400px;}
-  .case-media .case-shot.wide img{width:100%;height:auto;max-height:none;}
+  .case-media .case-shot img,.case-media .case-shot video{width:auto;max-width:100%;max-height:400px;}
+  .case-media .case-shot.wide img,.case-media .case-shot.wide video{width:100%;height:auto;max-height:none;}
   .case-media .soon{min-height:260px;}
 }
 /* צילום מסך מתוך המערכת — הוכחה חזותית בתוך הכרטיס */
 .case-shot{
   margin:.35rem auto 0;text-align:center;
 }
-.case-shot img{
+.case-shot img,.case-shot video{
   width:min(230px,72%);height:auto;display:inline-block;
   border:1px solid var(--line);border-radius:.9rem;
   box-shadow:0 10px 28px rgba(14,26,51,.16);
 }
 /* צילום לרוחב (דשבורד) — ממלא את רוחב הכרטיס */
-.case-shot.wide img{width:100%;max-width:34rem;}
+.case-shot.wide img,.case-shot.wide video{width:100%;max-width:34rem;background:#0E1A33;}
 .case-shot figcaption{
   margin-top:.55rem;font-size:.78rem;color:var(--text-dim);
 }
@@ -1645,12 +1645,10 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
           </div>
           <div class="case-media">
           <figure class="case-shot wide">
-            <picture>
-              <source srcset="img/case-nadlan.webp" type="image/webp">
-              <img src="img/case-nadlan.jpg" width="1400" height="560" loading="lazy" decoding="async"
-                   alt="MyOS עסקאות — התוסף שמושך עסקאות נדל״ן ממאגר רשות המיסים ומייצא אותן לקובץ Excel מעוצב בלחיצה אחת">
-            </picture>
-            <figcaption>המוצר שלנו: תוסף שליפת עסקאות הנדל״ן — לקובץ Excel בלחיצה אחת</figcaption>
+            <video src="MyOS-RET.mp4" controls preload="metadata" playsinline
+                   poster="img/case-nadlan.jpg" width="1400" height="560"
+                   aria-label="סרטון הדגמה: MyOS עסקאות — שליפת עסקאות נדל״ן מרשות המיסים לקובץ Excel בלחיצה אחת"></video>
+            <figcaption>המוצר שלנו — צפו בהדגמה: שליפת עסקאות הנדל״ן לקובץ Excel בלחיצה אחת</figcaption>
           </figure>
           </div>
         </article>
