@@ -66,6 +66,15 @@
   .relbtn{background:none;border:1px solid rgba(255,179,164,.35);color:#ffb3a4;border-radius:.45rem;padding:.32rem .65rem;cursor:pointer;font:inherit;font-size:.78rem;flex:none}
   .relbtn:hover{background:rgba(255,179,164,.1)}
   .devnone{color:var(--dim);font-size:.8rem;padding:.2rem 0}
+  .acts{display:flex;align-items:center;gap:.45rem;flex:none;flex-wrap:wrap;justify-content:flex-end}
+  .warnbtn{background:none;border:1px solid rgba(255,207,107,.4);color:var(--gold,#ffcf6b);border-radius:.55rem;padding:.5rem .8rem;cursor:pointer;font:inherit;font-weight:600;font-size:.82rem}
+  .warnbtn:hover{background:rgba(255,207,107,.1)}
+  .delbtn{background:none;border:1px solid rgba(255,120,100,.4);color:#ff8f7d;border-radius:.55rem;padding:.5rem .8rem;cursor:pointer;font:inherit;font-weight:600;font-size:.82rem}
+  .delbtn:hover{background:rgba(255,120,100,.1)}
+  .delbtn.armed,.warnbtn.armed{color:#fff}
+  .delbtn.armed{background:#c0392b;border-color:#c0392b}
+  .warnbtn.armed{background:#b8860b;border-color:#b8860b}
+  .pill.susp{color:var(--gold,#ffcf6b);border-color:rgba(255,207,107,.4);background:rgba(255,207,107,.08)}
   .pw{position:relative;margin-bottom:1rem}
   .pw>input{margin-bottom:0;padding-left:2.9rem}
   .pw .eye{position:absolute;left:.4rem;top:0;bottom:0;margin:auto;width:2.1rem;height:2rem;display:flex;align-items:center;justify-content:center;background:none;border:0;padding:0;cursor:pointer;color:#5b6b86}
@@ -176,10 +185,19 @@
     if(!list.length){ box.innerHTML='<p class="empty">אין נרשמים ממתינים.</p>'; return; }
     box.innerHTML='';
     list.forEach(function(u){
+      var blocked = u.license_status==='blocked';
       var el=document.createElement('div'); el.className='row';
       el.innerHTML='<div class="info"><div class="em">'+esc(u.email||u.user_id)+'</div><div class="meta">נרשם: '+esc(fmtDate(u.created_at))+(u.license_status?(' · רישיון: '+esc(u.license_status)):'')+'</div></div>'+
-                   '<button class="grant">אשר ניסיון 7 ימים</button>';
-      el.querySelector('.grant').addEventListener('click',function(){ grant(u.user_id, this); });
+                   (blocked?'<span class="pill susp">מושהה</span>':'')+
+                   '<div class="acts">'+
+                     (blocked
+                        ? '<button class="grant" data-react="1">הפעל מחדש</button>'
+                        : '<button class="grant" data-grant="1">אשר ניסיון 7 ימים</button>')+
+                     '<button class="delbtn" data-del="1">מחק</button>'+
+                   '</div>';
+      var g=el.querySelector('[data-grant]'); if(g) g.addEventListener('click',function(){ grant(u.user_id, this); });
+      var rc=el.querySelector('[data-react]'); if(rc) rc.addEventListener('click',function(){ reactivateUser(u.user_id, this); });
+      confirmClick(el.querySelector('[data-del]'),'בטוח? מחק',function(b){ deleteUser(u.user_id, b); });
       box.appendChild(el);
     });
   }
@@ -204,7 +222,11 @@
         '<div class="head">'+
           '<div class="info"><div class="em">'+esc(u.email||u.user_id)+'</div><div class="meta">בתוקף עד: '+esc(fmtDate(u.valid_until))+'</div></div>'+
           '<span class="pill active">פעיל</span>'+
-          '<button class="grant ext" data-renew="1">חדש 7 ימים</button>'+
+          '<div class="acts">'+
+            '<button class="grant ext" data-renew="1">חדש 7 ימים</button>'+
+            '<button class="warnbtn" data-suspend="1">השהה</button>'+
+            '<button class="delbtn" data-del="1">מחק</button>'+
+          '</div>'+
         '</div>'+
         '<div class="devbox">'+
           '<div class="devsum"><span class="cnt'+(full?' full':'')+'">מחשבים: <b>'+cnt+' / '+max+'</b></span>'+
@@ -212,12 +234,49 @@
           devRows+
         '</div>';
       el.querySelector('[data-renew]').addEventListener('click',function(){ grant(u.user_id, this); });
+      el.querySelector('[data-suspend]').addEventListener('click',function(){ suspendUser(u.user_id, this); });
+      confirmClick(el.querySelector('[data-del]'),'בטוח? מחק',function(b){ deleteUser(u.user_id, b); });
       el.querySelector('[data-add]').addEventListener('click',function(){ addDevice(u.user_id, this); });
       el.querySelectorAll('[data-rel]').forEach(function(b){
         b.addEventListener('click',function(){ releaseDevice(b.getAttribute('data-rel'), b, u.email); });
       });
       box.appendChild(el);
     });
+  }
+
+  /* לחיצה כפולה לאישור פעולה מסוכנת (מחיקה) */
+  function confirmClick(btn, armedLabel, run){
+    if(!btn) return;
+    var armed=false, timer=null, orig=btn.textContent;
+    btn.addEventListener('click', function(){
+      if(armed){ clearTimeout(timer); armed=false; btn.classList.remove('armed'); run(btn); return; }
+      armed=true; btn.textContent=armedLabel; btn.classList.add('armed');
+      timer=setTimeout(function(){ armed=false; btn.textContent=orig; btn.classList.remove('armed'); }, 4000);
+    });
+  }
+
+  async function suspendUser(uid, btn){
+    btn.disabled=true; var o=btn.textContent; btn.textContent='משהה…';
+    var r=await fn('suspend',{user_id:uid});
+    if(!r.j.ok){ btn.disabled=false; btn.textContent=o; $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status); return; }
+    await load();
+    $('boardMsg').className='msg ok'; $('boardMsg').textContent='המנוי הושהה (עבר ל״ממתינים לאישור״) ✓';
+  }
+
+  async function reactivateUser(uid, btn){
+    btn.disabled=true; var o=btn.textContent; btn.textContent='מפעיל…';
+    var r=await fn('reactivate',{user_id:uid});
+    if(!r.j.ok){ btn.disabled=false; btn.textContent=o; $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status); return; }
+    await load();
+    $('boardMsg').className='msg ok'; $('boardMsg').textContent='המנוי הופעל מחדש ✓';
+  }
+
+  async function deleteUser(uid, btn){
+    btn.disabled=true; btn.textContent='מוחק…';
+    var r=await fn('delete_user',{user_id:uid});
+    if(!r.j.ok){ btn.disabled=false; btn.textContent='מחק'; btn.classList.remove('armed'); $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status); return; }
+    await load();
+    $('boardMsg').className='msg ok'; $('boardMsg').textContent='המשתמש נמחק'+(r.j.deleted?(' ('+r.j.deleted+')'):'')+' — האימייל פנוי להרשמה חדשה ✓';
   }
 
   async function addDevice(uid, btn){
