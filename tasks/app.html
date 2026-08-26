@@ -283,9 +283,13 @@
   Array.prototype.forEach.call(document.querySelectorAll('#typeSeg button'),function(b){ b.addEventListener('click',function(){ setType(b.dataset.v); }); });
 
   function fillParentOptions(excludeId){
-    var opts=JSON.parse(document.getElementById('iParent').dataset.opts||'[]');
+    var opts=JSON.parse(document.getElementById('iParent').dataset.opts||'[]').filter(function(o){return o.id!==excludeId;});
     var html='<option value="">— ללא —</option>';
-    opts.forEach(function(o){ if(o.id!==excludeId) html+='<option value="'+o.id+'">'+esc(o.title)+'</option>'; });
+    if(!opts.length){
+      html+='<option value="" disabled>(אין עדיין מטרות/פרויקטים לשייך אליהם)</option>';
+    } else {
+      opts.forEach(function(o){ html+='<option value="'+o.id+'">'+esc(o.title)+'</option>'; });
+    }
     document.getElementById('iParent').innerHTML=html;
   }
 
