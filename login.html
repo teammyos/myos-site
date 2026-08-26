@@ -70,9 +70,16 @@
   .flogo .ring{fill:#eff3fa} .flogo .stem{fill:#2ff0e6}
   .pw{position:relative;margin-bottom:1rem}
   .pw>input{margin-bottom:0;padding-left:3rem}
-  .pw .eye{position:absolute;left:.5rem;top:0;bottom:0;margin:auto;height:1.7rem;display:flex;align-items:center;
-    background:none;border:0;padding:0 .35rem;cursor:pointer;color:#5b6b86;font-size:.78rem;font-weight:600}
+  .pw .eye{position:absolute;left:.4rem;top:0;bottom:0;margin:auto;width:2.1rem;height:2rem;display:flex;align-items:center;justify-content:center;
+    background:none;border:0;padding:0;cursor:pointer;color:#5b6b86}
   .pw .eye:hover{color:#0a5766}
+  .pw .eye svg{width:1.3rem;height:1.3rem;display:block}
+  .or{display:flex;align-items:center;gap:.6rem;color:#7d8ca8;font-size:.82rem;margin:.55rem 0 .9rem}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:#2a3a58}
+  .gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:.6rem;font:inherit;font-weight:600;font-size:.98rem;cursor:pointer;
+    background:#fff;color:#1f2430;border:0;border-radius:.65rem;padding:.75rem}
+  .gbtn:hover{background:#eef1f6}
+  .gbtn svg{width:1.15rem;height:1.15rem;flex:none}
   .hidden{display:none}
 </style>
 </head>
@@ -87,8 +94,13 @@
     <label for="email">דוא״ל</label>
     <input id="email" type="email" autocomplete="username" required>
     <label for="password">סיסמה</label>
-    <div class="pw"><input id="password" type="password" autocomplete="current-password" required><button type="button" class="eye" id="pwEye">הצג</button></div>
+    <div class="pw"><input id="password" type="password" autocomplete="current-password" required><button type="button" class="eye" id="pwEye" aria-label="הצג סיסמה"></button></div>
     <button id="submit" type="submit">התחברות</button>
+    <div class="or">או</div>
+    <button type="button" class="gbtn" id="googleLogin">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.7 1.2 9.2 3.6l6.9-6.9C35.9 2.4 30.5 0 24 0 14.6 0 6.5 5.4 2.6 13.2l8 6.2C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M47 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.9c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 7.2-10.4 7.2-17.7z"/><path fill="#FBBC05" d="M10.5 28.6A14.6 14.6 0 0 1 9.8 24c0-1.6.3-3.1.8-4.6l-8-6.2A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.1 1.4-4.9 2.3-8.2 2.3-6.3 0-11.6-4.2-13.5-9.9l-8 6.2C6.5 42.6 14.6 48 24 48z"/></svg>
+      התחברות / הרשמה עם Google
+    </button>
     <p class="msg" id="msg" role="status"></p>
     <p class="links">
       <a id="forgot">שכחתי סיסמה</a> ·
@@ -105,7 +117,7 @@
     <label for="rEmail">דוא״ל</label>
     <input id="rEmail" type="email" autocomplete="username" required>
     <label for="rPassword">סיסמה <span class="opt">(לפחות 8 תווים)</span></label>
-    <div class="pw"><input id="rPassword" type="password" autocomplete="new-password" required minlength="8"><button type="button" class="eye" id="rEye">הצג</button></div>
+    <div class="pw"><input id="rPassword" type="password" autocomplete="new-password" required minlength="8"><button type="button" class="eye" id="rEye" aria-label="הצג סיסמה"></button></div>
     <button id="rSubmit" type="submit">הרשמה</button>
     <p class="msg" id="rStatus" role="status"></p>
     <p class="links"><a id="rBack">חזרה להתחברות</a></p>
@@ -177,7 +189,14 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
   /* התוסף פותח את הדף עם ‎#ext=<redirect>‎ — לשם מחזירים את הטוקנים */
   function extRedirect() {
     var m = location.hash.match(/ext=([^&]+)/);
-    return m ? decodeURIComponent(m[1]) : null;
+    if (m) return decodeURIComponent(m[1]);
+    var q = new URLSearchParams(location.search).get('extfwd');
+    return q || null;
+  }
+  function forwardToExt(s, back) {
+    location.replace(back + '#access_token=' + encodeURIComponent(s.access_token) +
+      '&refresh_token=' + encodeURIComponent(s.refresh_token) +
+      '&expires_in=' + encodeURIComponent(s.expires_in));
   }
 
   function say(id, text, tone) {
@@ -252,14 +271,18 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     say('msg', r.error ? 'שגיאה: ' + r.error.message : 'נשלח קישור איפוס למייל', r.error ? 'err' : 'ok');
   });
 
-  /* ---------- הצג/הסתר סיסמה ---------- */
+  /* ---------- הצג/הסתר סיסמה (אייקון עין) ---------- */
+  var EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 12S5.4 5.5 12 5.5 22.2 12 22.2 12 18.6 18.5 12 18.5 1.8 12 1.8 12Z"/><circle cx="12" cy="12" r="3.2"/></svg>';
+  var EYEOFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 6.1A10 10 0 0 1 12 6c6.6 0 10.2 6 10.2 6a16 16 0 0 1-3.2 3.8M6.2 7.5A16 16 0 0 0 1.8 12S5.4 18 12 18a10 10 0 0 0 3.3-.6"/><path d="M9.9 9.9a3.2 3.2 0 0 0 4.3 4.3"/></svg>';
   function attachEye(inputId, btnId) {
     var inp = $(inputId), btn = $(btnId);
     if (!inp || !btn) return;
+    btn.innerHTML = EYE;
     btn.addEventListener('click', function () {
       var toText = inp.type === 'password';
       inp.type = toText ? 'text' : 'password';
-      btn.textContent = toText ? 'הסתר' : 'הצג';
+      btn.innerHTML = toText ? EYEOFF : EYE;
+      btn.setAttribute('aria-label', toText ? 'הסתר סיסמה' : 'הצג סיסמה');
     });
   }
   attachEye('password', 'pwEye');
@@ -314,15 +337,24 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     }
     var s = r.data.session;
     var back = extRedirect();
-    if (back) {
-      /* חזרה לתוסף עם הטוקנים ב-fragment (לא נשלח לשום שרת) */
-      location.replace(back + '#access_token=' + encodeURIComponent(s.access_token) +
-                       '&refresh_token=' + encodeURIComponent(s.refresh_token) +
-                       '&expires_in=' + encodeURIComponent(s.expires_in));
-    } else {
-      say('msg', 'מחוברים ✓ אפשר לחזור לתוסף', 'ok');
-    }
+    if (back) { forwardToExt(s, back); }
+    else { say('msg', 'מחוברים ✓ אפשר לחזור לתוסף', 'ok'); }
   });
+
+  /* ---------- התחברות/הרשמה עם Google ---------- */
+  $('googleLogin').addEventListener('click', function () {
+    var ext = extRedirect();
+    var redirectTo = location.origin + location.pathname + (ext ? ('?extfwd=' + encodeURIComponent(ext)) : '');
+    client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectTo } });
+  });
+
+  /* ---------- חזרה מ-OAuth / כבר מחובר: העברת טוקנים לתוסף אם צריך ---------- */
+  (async function () {
+    var back = extRedirect();
+    if (!back) return;
+    var sess = (await client.auth.getSession()).data.session;
+    if (sess) forwardToExt(sess, back);
+  })();
 })();
 </script>
 </body>
