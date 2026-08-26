@@ -300,8 +300,9 @@
     btn.disabled=true; var o=btn.textContent; btn.textContent='מאשר…';
     var r=await fn('grant',{user_id:uid, days:7});
     if(!r.j.ok){ btn.disabled=false; btn.textContent=o; $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status); return; }
+    var mailed=r.j.emailed;
     await load();
-    $('boardMsg').className='msg ok'; $('boardMsg').textContent='אושר ניסיון 7 ימים ✓';
+    $('boardMsg').className='msg ok'; $('boardMsg').textContent='אושר ניסיון 7 ימים ✓'+(mailed?' · מייל אישור נשלח למשתמש':'');
   }
 
   /* ---------- הצג/הסתר סיסמה (אייקון עין) ---------- */
