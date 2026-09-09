@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyOS עסקאות — עסקאות נדל״ן מרשות המיסים ישר לאקסל | MyOS</title>
+<meta name="description" content="תוסף Chrome לשמאי מקרקעין: ממלא את טופס החיפוש באתר רשות המיסים, שולף את כל העמודים ומוריד קובץ Excel מסודר עם מחיר למ״ר וממוצע. שבוע חינם, ואחר כך 30 ₪ לחודש.">
+<meta property="og:title" content="MyOS עסקאות — עסקאות נדל״ן מרשות המיסים ישר לאקסל">
+<meta property="og:description" content="שבוע ניסיון חינם לשמאים. אקסל מסודר עם מחיר למ״ר וממוצע, בלי הקלדה.">
+<meta property="og:image" content="https://myos.co.il/img/install/11-excel.webp">
+<meta property="og:url" content="https://myos.co.il/nadlan/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='6 -9 88 103'%3E%3Crect x='6' y='-9' width='88' height='103' fill='%230E1A33'/%3E%3Cpath d='M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 24 L76 38 L76 62 L62 76 L38 76 L24 62 L24 38 L38 24 Z' fill='%23eff3fa'/%3E%3Cpath d='M46 -9 L54 -9 L58 -5 L58 30 L50 38 L42 30 L42 -5 Z' fill='%232ff0e6'/%3E%3C/svg%3E">
+<style>
+  *{box-sizing:border-box;margin:0}
+  :root{--navy:#0E1A33;--navy2:#0b1428;--card:#16264a;--line:#26375c;--text:#cfd8ea;--dim:#9aa8c4;--heading:#eef3fb;--accent:#2ff0e6;--accent2:#8dfff4;--gold:#ffcf6b;--done:#66e6a8}
+  html{scroll-behavior:smooth}
+  body{min-height:100svh;display:flex;flex-direction:column;background:radial-gradient(120% 60% at 50% -10%,#12233f,var(--navy) 55%,var(--navy2));color:var(--text);font-family:'Heebo',system-ui,'Segoe UI',Arial,sans-serif;line-height:1.7}
+  a{color:var(--accent2)}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.8rem 1.2rem;border-bottom:1px solid var(--line)}
+  .logo{display:inline-flex;align-items:center;gap:.45em;direction:rtl;font-size:1.35rem;text-decoration:none}
+  .logo .mark{display:inline-flex;align-items:baseline;gap:.04em;direction:ltr}
+  .logo .my,.logo .sc{background:linear-gradient(122deg,#13a8bd,#2ff0e6 60%,#8dfff4);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+  .logo .o{display:block;width:.72em;height:.826em;align-self:center;flex:none}
+  .logo .o svg{width:100%;height:100%;display:block;overflow:visible}
+  .logo .ring{fill:#eff3fa}.logo .stem{fill:#2ff0e6}
+  .logo .pt{font-size:.62em;color:#dbe4f5;font-weight:600}
+  .top .lnk{font-size:.85rem;color:var(--dim);text-decoration:none;border:1px solid var(--line);border-radius:.5rem;padding:.35rem .8rem;white-space:nowrap}
+  .top .lnk:hover{border-color:var(--accent);color:var(--accent)}
+  .wrap{width:min(52rem,100%);margin:0 auto;padding:2rem 1.2rem 4rem;flex:1}
+
+  /* hero */
+  .hero{text-align:center;margin-bottom:2.4rem}
+  .hero .kicker{display:inline-block;background:rgba(47,240,230,.1);border:1px solid rgba(47,240,230,.35);color:var(--accent2);border-radius:2rem;padding:.2rem .9rem;font-size:.85rem;font-weight:600;margin-bottom:.9rem}
+  .hero h1{color:var(--heading);font-size:clamp(1.65rem,4.6vw,2.5rem);line-height:1.25;margin-bottom:.7rem}
+  .hero h1 em{font-style:normal;background:linear-gradient(122deg,#13a8bd,#2ff0e6 60%,#8dfff4);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{color:var(--dim);max-width:36rem;margin:0 auto;font-size:1.05rem}
+  .ctas{display:flex;flex-wrap:wrap;justify-content:center;gap:.7rem;margin-top:1.3rem}
+  .cta{display:inline-flex;align-items:center;gap:.6rem;background:var(--accent);color:#04121a;font-weight:700;text-decoration:none;padding:.85rem 1.6rem;border-radius:.7rem;font-size:1.05rem}
+  .cta:hover{background:var(--accent2)}
+  .cta.ghost{background:transparent;color:var(--heading);border:1px solid var(--line)}
+  .cta.ghost:hover{border-color:var(--accent);color:var(--accent);background:transparent}
+  .cta svg{width:1.15rem;height:1.15rem}
+  .hero .sub{color:var(--dim);font-size:.85rem;margin-top:.6rem}
+
+  /* hero shot */
+  .shot{background:#0b1428;border:1px solid var(--line);border-radius:.9rem;padding:.6rem;margin:1.6rem auto 0;max-width:46rem}
+  .shot img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:.5rem}
+  .shot figcaption{color:var(--dim);font-size:.8rem;text-align:center;margin-top:.5rem}
+
+  h2.sec{color:var(--heading);font-size:1.35rem;text-align:center;margin:2.6rem 0 1.1rem}
+  h2.sec small{display:block;color:var(--dim);font-size:.9rem;font-weight:400;margin-top:.2rem}
+
+  /* features */
+  .feats{display:grid;grid-template-columns:repeat(2,1fr);gap:.9rem}
+  @media (max-width:640px){.feats{grid-template-columns:1fr}}
+  .feat{background:var(--card);border:1px solid var(--line);border-radius:1rem;padding:1.1rem 1.2rem}
+  .feat .ic{width:2.2rem;height:2.2rem;border-radius:.6rem;background:rgba(47,240,230,.12);color:var(--accent);display:grid;place-items:center;margin-bottom:.6rem}
+  .feat .ic svg{width:1.3rem;height:1.3rem}
+  .feat h3{color:var(--heading);font-size:1.05rem;margin-bottom:.3rem}
+  .feat p{font-size:.93rem;color:var(--text)}
+
+  /* how */
+  .how{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem}
+  @media (max-width:640px){.how{grid-template-columns:1fr}}
+  .how div{background:var(--card);border:1px solid var(--line);border-radius:1rem;padding:1rem 1.1rem;display:flex;gap:.8rem;align-items:flex-start}
+  .how .n{flex:none;width:2rem;height:2rem;border-radius:50%;background:var(--accent);color:#04121a;font-weight:800;display:grid;place-items:center}
+  .how b{color:var(--heading);display:block}
+  .how span{font-size:.9rem}
+  .how img{display:block;width:100%;border-radius:.5rem;margin-top:.6rem}
+  .how .cell{display:block}
+  .who{text-align:center;color:var(--dim);font-size:.9rem;margin-top:.9rem}
+  .who b{color:var(--gold);font-weight:600}
+
+  /* pricing */
+  .plans{display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:stretch}
+  @media (max-width:640px){.plans{grid-template-columns:1fr}}
+  .plan{background:var(--card);border:1px solid var(--line);border-radius:1.2rem;padding:1.4rem 1.4rem 1.3rem;display:flex;flex-direction:column;position:relative}
+  .plan.trial{border-color:rgba(47,240,230,.55);box-shadow:0 0 0 1px rgba(47,240,230,.25),0 20px 50px -30px rgba(47,240,230,.5)}
+  .plan .badge{position:absolute;top:-.8rem;inset-inline-start:1.2rem;background:var(--accent);color:#04121a;font-weight:700;font-size:.78rem;border-radius:2rem;padding:.15rem .8rem}
+  .plan h3{color:var(--heading);font-size:1.15rem;margin-bottom:.2rem}
+  .plan .price{color:var(--heading);font-size:2.2rem;font-weight:800;line-height:1.1;margin:.5rem 0 .1rem}
+  .plan .price small{font-size:1rem;font-weight:500;color:var(--dim)}
+  .plan .vat{color:var(--dim);font-size:.8rem}
+  .plan ul{list-style:none;padding:0;margin:.9rem 0 1.1rem;display:grid;gap:.4rem;font-size:.93rem}
+  .plan li{display:flex;gap:.5rem;align-items:flex-start}
+  .plan li::before{content:'✓';color:var(--done);font-weight:800;flex:none}
+  .plan .row{display:flex;justify-content:space-between;gap:.8rem;border-top:1px solid var(--line);padding:.55rem 0;font-size:.95rem}
+  .plan .row + .row{border-top:1px solid var(--line)}
+  .plan .row b{color:var(--heading);white-space:nowrap}
+  .plan .row .p{color:var(--accent2);font-weight:700;white-space:nowrap}
+  .plan .cta{margin-top:auto;justify-content:center}
+  .plan .note{color:var(--dim);font-size:.82rem;margin-top:.6rem;text-align:center}
+  .ext{display:flex;gap:.6rem;align-items:flex-start;background:rgba(255,207,107,.08);border:1px solid rgba(255,207,107,.35);border-radius:.7rem;padding:.7rem .9rem;font-size:.92rem;margin-top:1rem}
+  .ext .i{flex:none;color:var(--gold);font-weight:800}
+  .ext b{color:var(--heading)}
+
+  /* trust */
+  .trust{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-top:2.4rem}
+  @media (max-width:640px){.trust{grid-template-columns:1fr}}
+  .trust div{border:1px dashed var(--line);border-radius:.8rem;padding:.7rem .9rem;font-size:.86rem;color:var(--dim);text-align:center}
+  .trust b{color:var(--text);display:block;font-weight:600}
+
+  .final{text-align:center;margin-top:2.8rem;background:var(--card);border:1px solid var(--line);border-radius:1.2rem;padding:1.6rem 1.2rem}
+  .final h2{color:var(--heading);font-size:1.4rem;margin-bottom:.4rem}
+  .final p{color:var(--dim);margin-bottom:1rem}
+  .contact{text-align:center;color:var(--dim);font-size:.9rem;margin-top:1.6rem}
+
+  footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem .85rem;padding:1.25rem;font-size:.8rem;color:#8ea3c7;border-top:1px solid #21324f}
+  footer a{color:#8ea3c7;text-decoration:underline;text-underline-offset:.2em}
+  footer a:hover{color:#8dfff4}
+  footer .sep{width:3px;height:3px;border-radius:50%;background:#3a4a66;display:block}
+  footer .mono{font-variant-numeric:tabular-nums}
+  .flogo{display:inline-flex;align-items:baseline;gap:.04em;direction:ltr;font-size:1.05rem;line-height:1}
+  .flogo .my,.flogo .sc{background:linear-gradient(122deg,#0a5766 0%,#13a8bd 44%,#2ff0e6 80%,#8dfff4 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+  .flogo .o{display:block;width:.72em;height:.826em;align-self:center;flex:none}
+  .flogo .o svg{width:100%;height:100%;display:block;overflow:visible}
+  .flogo .ring{fill:#eff3fa}.flogo .stem{fill:#2ff0e6}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+  <div class="top">
+    <a class="logo" href="https://myos.co.il/" aria-label="MyOS עסקאות. לדף הבית">
+      <span class="mark" dir="ltr">
+        <span class="my">My</span>
+        <span class="o"><svg viewBox="6 -7 88 101" aria-hidden="true"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg></span>
+        <span class="sc">S</span>
+      </span>
+      <span class="pt">עסקאות</span>
+    </a>
+    <a class="lnk" href="../login.html">התחברות לחשבון</a>
+  </div>
+
+  <main class="wrap">
+    <!-- ===== פתיח ===== -->
+    <section class="hero">
+      <span class="kicker">תוסף Chrome לשמאי מקרקעין</span>
+      <h1>עסקאות נדל״ן מרשות המיסים —<br><em>ישר לאקסל, בלי הקלדה</em></h1>
+      <p>MyOS עסקאות ממלא את טופס החיפוש באתר רשות המיסים, עובר על כל עמודי התוצאות ומוריד קובץ Excel מסודר — עם מחיר למ״ר וממוצע מוכנים. מה שלקח שעה, לוקח דקות.</p>
+      <div class="ctas">
+        <a class="cta" href="../login.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H4"/><path d="m10 6-6 6 6 6"/></svg>
+          שבוע חינם — מתחילים עכשיו
+        </a>
+        <a class="cta ghost" href="../install.html">הסבר והתקנה צעד אחר צעד</a>
+      </div>
+      <p class="sub">ההרשמה לוקחת דקה. בלי כרטיס אשראי, בלי התחייבות.</p>
+      <figure class="shot"><img src="../img/install/11-excel.webp" alt="קובץ האקסל שמתקבל: כל העסקאות בשורות מסודרות, עם מחיר למ״ר ברוטו ונטו" loading="eager"><figcaption>התוצאה: קובץ Excel מסודר — עמודה לכל נתון, מחיר למ״ר וממוצע, וגיליון נוסף עם כל הנתונים הגולמיים</figcaption></figure>
+    </section>
+
+    <!-- ===== מה מקבלים ===== -->
+    <h2 class="sec">מה התוסף עושה בשבילכם</h2>
+    <section class="feats">
+      <div class="feat">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/></svg></div>
+        <h3>ממלא את הטופס במקומכם</h3>
+        <p>גוש/חלקה או ישוב/רחוב, סוג נכס, מהות עסקה, טווח תאריכים — בוחרים בחלונית של התוסף, והטופס באתר רשות המיסים מתמלא לבד. נשאר רק להקליד את קוד האבטחה.</p>
+      </div>
+      <div class="feat">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/><path d="m17 16 3 3-3 3"/></svg></div>
+        <h3>שולף את כל העמודים ואת כל הפרטים</h3>
+        <p>לא רק את הטבלה הראשית — גם את הפירוט של כל עסקה (שטח, חדרים, קומה, שנת בנייה ועוד). עמוד אחרי עמוד, בלי ללחוץ "הבא" ובלי להעתיק.</p>
+      </div>
+      <div class="feat">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/></svg></div>
+        <h3>מחיר למ״ר וממוצע — מוכנים</h3>
+        <p>בקובץ מחושבים מחיר למ״ר ברוטו ונטו לכל עסקה, ושורת ממוצע לכל השליפה. פותחים ומתחילים לעבוד — ישר לחוות הדעת.</p>
+      </div>
+      <div class="feat">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+        <h3>אקסל מסודר, לא "הדבקה"</h3>
+        <p>עמודה לכל נתון, סינון מוכן, כותרות ברורות. גיליון ראשי עם העמודות החשובות, וגיליון "גולמי" עם כל מה שנשלף — למי שרוצה הכול.</p>
+      </div>
+    </section>
+
+    <!-- ===== איך זה עובד ===== -->
+    <h2 class="sec">איך זה עובד<small>שלושה צעדים, פעם אחת מתקינים ומאז זה תמיד שם</small></h2>
+    <section class="how">
+      <div><span class="n">1</span><span class="cell"><b>בוחרים מה לחפש</b><span>בחלונית התוסף: גוש, חלקה, סוג נכס, תאריכים.</span><img src="../img/install/07-form.webp" alt="חלונית התוסף עם טופס החיפוש" loading="lazy"></span></div>
+      <div><span class="n">2</span><span class="cell"><b>קוד אבטחה — ולוחצים חיפוש</b><span>באתר רשות המיסים הטופס כבר מלא. מקלידים את קוד האבטחה, כרגיל.</span><img src="../img/install/08-results.webp" alt="עמוד התוצאות באתר רשות המיסים עם כפתור הורד עסקאות" loading="lazy"></span></div>
+      <div><span class="n">3</span><span class="cell"><b>"הורד עסקאות"</b><span>התוסף עובר על כל העמודים ומוריד את האקסל. אפשר לעבור בינתיים ללשונית אחרת.</span><img src="../img/install/10-done.webp" alt="הודעת הסיום — הקובץ ירד" loading="lazy"></span></div>
+    </section>
+    <p class="who">עובד ב-Chrome וב-Edge · <b>קוד האבטחה נשאר תמיד אצלכם</b> — התוסף לא עוקף אותו ולא פועל בלי שמאי מאחורי המקלדת</p>
+
+    <!-- ===== מחירון ===== -->
+    <h2 class="sec" id="pricing">כמה זה עולה<small>מתחילים חינם. משלמים רק אם זה חוסך לכם זמן.</small></h2>
+    <section class="plans">
+      <div class="plan trial">
+        <span class="badge">מתחילים כאן</span>
+        <h3>ניסיון חינם</h3>
+        <div class="price">0 ₪ <small>לשבוע</small></div>
+        <div class="vat">במתנה, בלי כרטיס אשראי</div>
+        <ul>
+          <li>נרשמים — והתוסף פעיל מיד לשבוע מלא</li>
+          <li>כל היכולות, בלי הגבלת שליפות</li>
+          <li>נגמר השבוע וצריך עוד זמן? שולחים מייל — ומאריכים <b>עד 30 יום ללא עלות</b></li>
+        </ul>
+        <a class="cta" href="../login.html">להרשמה — שבוע חינם</a>
+        <p class="note">אחרי ההרשמה: <a href="../install.html">מתקינים ב-4 צעדים</a></p>
+      </div>
+      <div class="plan">
+        <h3>מנוי חודשי</h3>
+        <div class="price">30 ₪ <small>לחודש</small></div>
+        <div class="vat">+ מע״מ · למשתמש, למחשב אחד</div>
+        <div class="row"><b>משתמש · מחשב אחד</b><span class="p">30 ₪ + מע״מ / חודש</span></div>
+        <div class="row"><b>משתמש · 2 מחשבים</b><span class="p">50 ₪ + מע״מ / חודש</span></div>
+        <ul>
+          <li>שליפות ללא הגבלה</li>
+          <li>כל העדכונים והשיפורים כלולים</li>
+          <li>ביטול בכל חודש — בלי התחייבות</li>
+        </ul>
+        <a class="cta ghost" href="mailto:team@myos.co.il?subject=MyOS%20%D7%A2%D7%A1%D7%A7%D7%90%D7%95%D7%AA%20%E2%80%94%20%D7%9E%D7%A0%D7%95%D7%99%20%D7%97%D7%95%D7%93%D7%A9%D7%99">להצטרפות למנוי — team@myos.co.il</a>
+        <p class="note">משלמים רק כשמסיימים את הניסיון ורוצים להמשיך</p>
+      </div>
+    </section>
+    <div class="ext"><span class="i">!</span><span><b>הארכת ניסיון:</b> בתום השבוע שולחים מייל ל-<a href="mailto:team@myos.co.il?subject=%D7%94%D7%90%D7%A8%D7%9B%D7%AA%20%D7%A0%D7%99%D7%A1%D7%99%D7%95%D7%9F%20MyOS%20%D7%A2%D7%A1%D7%A7%D7%90%D7%95%D7%AA">team@myos.co.il</a> עם המייל שנרשמתם איתו — ומקבלים הארכה עד 30 יום, בלי עלות ובלי שאלות.</span></div>
+
+    <section class="trust">
+      <div><b>הנתונים מהמקור</b>נשלפים ישירות מאתר רשות המיסים, בזמן אמת — לא ממאגר צד שלישי</div>
+      <div><b>בלי הרשאות מיותרות</b>התוסף פועל רק באתר רשות המיסים ומול השרת של MyOS</div>
+      <div><b>תמיכה אנושית</b>נתקעתם? מייל או טלפון — ועונים</div>
+    </section>
+
+    <section class="final">
+      <h2>השליפה הבאה שלכם — בדקות</h2>
+      <p>שבוע חינם. הרשמה של דקה, התקנה של שתי דקות.</p>
+      <div class="ctas">
+        <a class="cta" href="../login.html">שבוע חינם — מתחילים עכשיו</a>
+        <a class="cta ghost" href="../install.html">הסבר והתקנה</a>
+      </div>
+    </section>
+
+    <p class="contact">שאלות? <a href="mailto:team@myos.co.il">team@myos.co.il</a> · <a href="tel:+97235333630" dir="ltr">03-5333630</a></p>
+  </main>
+
+  <footer>
+    <span class="flogo" dir="ltr" role="img" aria-label="MyOS">
+      <span class="my" aria-hidden="true">My</span>
+      <span class="o" aria-hidden="true"><svg viewBox="6 -7 88 101" focusable="false"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg></span>
+      <span class="sc" aria-hidden="true">S</span>
+    </span>
+    <span class="sep" aria-hidden="true"></span>
+    <a href="tel:+97235333630" class="mono" dir="ltr">03-5333630</a>
+    <span class="sep" aria-hidden="true"></span>
+    <a href="mailto:team@myos.co.il">team@myos.co.il</a>
+    <span class="sep" aria-hidden="true"></span>
+    <a href="https://myos.co.il/privacy.html">מדיניות פרטיות</a>
+    <span class="sep" aria-hidden="true"></span>
+    <a href="https://myos.co.il/#accessibility">הצהרת נגישות</a>
+    <span class="sep" aria-hidden="true"></span>
+    <span dir="ltr">© 2026 MyOS</span>
+  </footer>
+</body>
+</html>
