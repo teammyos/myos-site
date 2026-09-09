@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>התקנת MyOS עסקאות — מדריך צעד אחר צעד | MyOS</title>
+<meta name="description" content="איך מתקינים את התוסף MyOS עסקאות בכרום, מצמידים אותו לסרגל הכלים, מתחברים ומורידים עסקאות נדל״ן מרשות המיסים לאקסל — ב-4 צעדים.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='6 -9 88 103'%3E%3Crect x='6' y='-9' width='88' height='103' fill='%230E1A33'/%3E%3Cpath d='M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 24 L76 38 L76 62 L62 76 L38 76 L24 62 L24 38 L38 24 Z' fill='%23eff3fa'/%3E%3Cpath d='M46 -9 L54 -9 L58 -5 L58 30 L50 38 L42 30 L42 -5 Z' fill='%232ff0e6'/%3E%3C/svg%3E">
+<style>
+  *{box-sizing:border-box;margin:0}
+  :root{--navy:#0E1A33;--navy2:#0b1428;--card:#16264a;--line:#26375c;--text:#cfd8ea;--dim:#9aa8c4;--heading:#eef3fb;--accent:#2ff0e6;--accent2:#8dfff4;--gold:#ffcf6b;--done:#66e6a8}
+  html{scroll-behavior:smooth}
+  body{min-height:100svh;display:flex;flex-direction:column;background:radial-gradient(120% 60% at 50% -10%,#12233f,var(--navy) 55%,var(--navy2));color:var(--text);font-family:'Heebo',system-ui,'Segoe UI',Arial,sans-serif;line-height:1.7}
+  a{color:var(--accent2)}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.8rem 1.2rem;border-bottom:1px solid var(--line)}
+  .logo{display:inline-flex;align-items:baseline;gap:.04em;direction:ltr;font-size:1.35rem;text-decoration:none}
+  .logo .my,.logo .sc{background:linear-gradient(122deg,#13a8bd,#2ff0e6 60%,#8dfff4);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+  .logo .o{display:block;width:.72em;height:.826em;align-self:center;flex:none}
+  .logo .o svg{width:100%;height:100%;display:block;overflow:visible}
+  .logo .ring{fill:#eff3fa}.logo .stem{fill:#2ff0e6}
+  .logo .pt{font-size:.62em;color:#dbe4f5;font-weight:600;margin-inline-start:.4em;align-self:center}
+  .top .lnk{font-size:.85rem;color:var(--dim);text-decoration:none;border:1px solid var(--line);border-radius:.5rem;padding:.35rem .8rem}
+  .top .lnk:hover{border-color:var(--accent);color:var(--accent)}
+  .wrap{width:min(50rem,100%);margin:0 auto;padding:1.8rem 1.2rem 4rem;flex:1}
+  .hero{text-align:center;margin-bottom:2rem}
+  .hero h1{color:var(--heading);font-size:clamp(1.5rem,4vw,2.1rem);line-height:1.3;margin-bottom:.5rem}
+  .hero p{color:var(--dim);max-width:34rem;margin:0 auto}
+  .hero .cta{display:inline-flex;align-items:center;gap:.6rem;margin-top:1.1rem;background:var(--accent);color:#04121a;font-weight:700;text-decoration:none;padding:.8rem 1.5rem;border-radius:.7rem;font-size:1.05rem}
+  .hero .cta:hover{background:var(--accent2)}
+  .hero .cta svg{width:1.2rem;height:1.2rem}
+  /* ניווט צעדים */
+  .steps-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin:1.6rem 0 2rem}
+  .steps-nav a{display:flex;align-items:center;gap:.5rem;background:var(--card);border:1px solid var(--line);border-radius:.7rem;padding:.6rem .7rem;text-decoration:none;color:var(--text);font-size:.85rem}
+  .steps-nav a:hover{border-color:var(--accent)}
+  .steps-nav .n{flex:none;width:1.6rem;height:1.6rem;border-radius:50%;background:var(--accent);color:#04121a;font-weight:700;display:grid;place-items:center;font-size:.85rem}
+  @media (max-width:640px){.steps-nav{grid-template-columns:1fr 1fr}}
+  /* צעד */
+  .step{background:var(--card);border:1px solid var(--line);border-radius:1.1rem;padding:1.4rem 1.4rem 1.2rem;margin-bottom:1.3rem;scroll-margin-top:1rem}
+  .step h2{display:flex;align-items:center;gap:.7rem;color:var(--heading);font-size:1.2rem;margin-bottom:.6rem}
+  .step h2 .n{flex:none;width:2rem;height:2rem;border-radius:50%;background:var(--accent);color:#04121a;font-weight:800;display:grid;place-items:center;font-size:1rem}
+  .step ol{padding-inline-start:1.3rem;margin:.4rem 0 .8rem}
+  .step li{margin:.3rem 0}
+  .step b{color:var(--heading)}
+  kbd{display:inline-block;background:#0b1428;border:1px solid var(--line);border-bottom-width:2px;border-radius:.35rem;padding:0 .4rem;font:inherit;font-size:.85em;color:var(--heading)}
+  .btnlike{display:inline-block;background:#1a73e8;color:#fff;border-radius:.35rem;padding:0 .5rem;font-size:.9em;font-weight:600}
+  .btnlike.teal{background:var(--accent);color:#04121a}
+  .fig{background:#0b1428;border:1px solid var(--line);border-radius:.8rem;padding:.8rem;margin:.6rem 0 .4rem;overflow-x:auto}
+  .fig svg{direction:ltr;display:block;width:100%;height:auto;max-width:640px;margin:0 auto}
+  .fig figcaption{color:var(--dim);font-size:.8rem;text-align:center;margin-top:.5rem}
+  .tip{display:flex;gap:.6rem;align-items:flex-start;background:rgba(255,207,107,.08);border:1px solid rgba(255,207,107,.35);border-radius:.6rem;padding:.6rem .8rem;font-size:.9rem;margin-top:.6rem}
+  .tip .i{flex:none;color:var(--gold);font-weight:800}
+  .ok{display:flex;gap:.6rem;align-items:flex-start;background:rgba(102,230,168,.08);border:1px solid rgba(102,230,168,.35);border-radius:.6rem;padding:.6rem .8rem;font-size:.9rem;margin-top:.6rem}
+  .ok .i{flex:none;color:var(--done);font-weight:800}
+  /* שאלות */
+  details.q{border:1px solid var(--line);border-radius:.7rem;background:var(--card);padding:0 1rem;margin-bottom:.5rem}
+  details.q summary{cursor:pointer;color:var(--heading);font-weight:600;padding:.7rem 0;list-style:none;display:flex;justify-content:space-between;gap:.6rem}
+  details.q summary::-webkit-details-marker{display:none}
+  details.q summary::after{content:'+';color:var(--accent);font-weight:700}
+  details.q[open] summary::after{content:'−'}
+  details.q .a{padding:0 0 .8rem;color:var(--text);font-size:.93rem}
+  h3.sec{color:var(--heading);font-size:1.1rem;margin:2rem 0 .7rem}
+  .contact{text-align:center;color:var(--dim);font-size:.9rem;margin-top:1.6rem}
+  footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem .85rem;padding:1.25rem;font-size:.8rem;color:#8ea3c7;border-top:1px solid #21324f}
+  footer a{color:#8ea3c7;text-decoration:underline;text-underline-offset:.2em}
+  footer a:hover{color:#8dfff4}
+  footer .sep{width:3px;height:3px;border-radius:50%;background:#3a4a66;display:block}
+  footer .mono{font-variant-numeric:tabular-nums}
+  .flogo{display:inline-flex;align-items:baseline;gap:.04em;direction:ltr;font-size:1.05rem;line-height:1}
+  .flogo .my,.flogo .sc{background:linear-gradient(122deg,#0a5766 0%,#13a8bd 44%,#2ff0e6 80%,#8dfff4 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+  .flogo .o{display:block;width:.72em;height:.826em;align-self:center;flex:none}
+  .flogo .o svg{width:100%;height:100%;display:block;overflow:visible}
+  .flogo .ring{fill:#eff3fa}.flogo .stem{fill:#2ff0e6}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+  <div class="top">
+    <a class="logo" href="https://myos.co.il/" dir="ltr" aria-label="MyOS — לדף הבית">
+      <span class="my">My</span>
+      <span class="o"><svg viewBox="6 -7 88 101" aria-hidden="true"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg></span>
+      <span class="sc">S</span><span class="pt">עסקאות · התקנה</span>
+    </a>
+    <a class="lnk" href="login.html">התחברות לחשבון</a>
+  </div>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>התקנת MyOS עסקאות ב-4 צעדים</h1>
+      <p>תוסף לדפדפן Chrome שמושך עסקאות נדל״ן מאתר רשות המיסים ישירות לקובץ Excel מסודר. ההתקנה לוקחת כשתי דקות — פשוט עוברים צעד-צעד.</p>
+      <a class="cta" href="https://chromewebstore.google.com/detail/dhckckgcpgjoolkneobojaikigmimnaa" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        פתיחת התוסף בחנות Chrome
+      </a>
+    </section>
+
+    <nav class="steps-nav" aria-label="צעדי ההתקנה">
+      <a href="#s1"><span class="n">1</span>התקנה מהחנות</a>
+      <a href="#s2"><span class="n">2</span>הצמדה לסרגל</a>
+      <a href="#s3"><span class="n">3</span>התחברות</a>
+      <a href="#s4"><span class="n">4</span>שליפה ראשונה</a>
+    </nav>
+
+    <!-- ========== צעד 1 ========== -->
+    <section class="step" id="s1">
+      <h2><span class="n">1</span>מתקינים את התוסף מחנות Chrome</h2>
+      <ol>
+        <li>פותחים את הקישור בדפדפן <b>Chrome</b> (במחשב, לא בטלפון): <a href="https://chromewebstore.google.com/detail/dhckckgcpgjoolkneobojaikigmimnaa" target="_blank" rel="noopener">MyOS עסקאות בחנות Chrome</a>.</li>
+        <li>לוחצים על הכפתור הכחול <span class="btnlike">הוספה ל-Chrome</span> (Add to Chrome).</li>
+        <li>בחלון שקופץ לוחצים <span class="btnlike">הוספת תוסף</span> (Add extension). זהו — התוסף מותקן.</li>
+      </ol>
+      <figure class="fig">
+        <svg viewBox="0 0 640 230" role="img" aria-label="עמוד התוסף בחנות Chrome עם כפתור הוספה ל-Chrome, ואחריו חלון אישור עם כפתור הוספת תוסף">
+          <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2ff0e6"/></marker></defs>
+          <!-- חלון דפדפן -->
+          <rect x="10" y="10" width="380" height="210" rx="10" fill="#f6f7fb"/>
+          <rect x="10" y="10" width="380" height="30" rx="10" fill="#dfe3ec"/>
+          <circle cx="30" cy="25" r="5" fill="#ff5f57"/><circle cx="46" cy="25" r="5" fill="#febc2e"/><circle cx="62" cy="25" r="5" fill="#28c840"/>
+          <rect x="90" y="17" width="280" height="16" rx="8" fill="#fff"/>
+          <text x="360" y="29" font-size="9" fill="#6b7280" text-anchor="end" font-family="Arial">chromewebstore.google.com/…</text>
+          <!-- אייקון + שם -->
+          <rect x="300" y="60" width="52" height="52" rx="12" fill="#0E1A33"/>
+          <text x="326" y="93" font-size="20" fill="#2ff0e6" text-anchor="middle" font-family="Arial" font-weight="700">O</text>
+          <text x="285" y="78" font-size="14" fill="#1f2430" text-anchor="end" font-family="Arial" font-weight="700">MyOS עסקאות</text>
+          <text x="285" y="96" font-size="10" fill="#6b7280" text-anchor="end" font-family="Arial">שליפת עסקאות נדל״ן מרשות המיסים</text>
+          <!-- כפתור הוספה -->
+          <rect x="150" y="125" width="135" height="34" rx="17" fill="#1a73e8"/>
+          <text x="217" y="147" font-size="13" fill="#fff" text-anchor="middle" font-family="Arial" font-weight="700">הוספה ל-Chrome</text>
+          <!-- חץ 1 -->
+          <path d="M120 175 C 130 150, 140 145, 150 143" stroke="#2ff0e6" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+          <circle cx="110" cy="182" r="13" fill="#2ff0e6"/><text x="110" y="187" font-size="14" fill="#04121a" text-anchor="middle" font-family="Arial" font-weight="800">1</text>
+          <!-- חלון אישור -->
+          <rect x="420" y="55" width="210" height="120" rx="10" fill="#fff" stroke="#c9cfdb"/>
+          <text x="615" y="80" font-size="11" fill="#1f2430" text-anchor="end" font-family="Arial" font-weight="700">להוסיף את "MyOS עסקאות"?</text>
+          <text x="615" y="98" font-size="9" fill="#6b7280" text-anchor="end" font-family="Arial">התוסף יכול לקרוא נתונים באתר</text>
+          <text x="615" y="110" font-size="9" fill="#6b7280" text-anchor="end" font-family="Arial">nadlan.taxes.gov.il</text>
+          <rect x="530" y="130" width="90" height="28" rx="6" fill="#1a73e8"/>
+          <text x="575" y="148" font-size="11" fill="#fff" text-anchor="middle" font-family="Arial" font-weight="700">הוספת תוסף</text>
+          <rect x="435" y="130" width="80" height="28" rx="6" fill="#eef1f6"/>
+          <text x="475" y="148" font-size="11" fill="#1f2430" text-anchor="middle" font-family="Arial">ביטול</text>
+          <!-- חץ 2 -->
+          <path d="M470 205 C 500 200, 540 190, 570 162" stroke="#2ff0e6" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+          <circle cx="455" cy="207" r="13" fill="#2ff0e6"/><text x="455" y="212" font-size="14" fill="#04121a" text-anchor="middle" font-family="Arial" font-weight="800">2</text>
+        </svg>
+        <figcaption>בחנות: "הוספה ל-Chrome" (1) ואז "הוספת תוסף" בחלון האישור (2)</figcaption>
+      </figure>
+      <div class="tip"><span class="i">!</span><span>עובדים ב-<b>Microsoft Edge</b>? גם שם זה עובד: פותחים את אותו קישור, מאשרים "אפשר תוספים מחנויות אחרות" אם נשאלים, ואז "הוספה ל-Chrome".</span></div>
+    </section>
+
+    <!-- ========== צעד 2 ========== -->
+    <section class="step" id="s2">
+      <h2><span class="n">2</span>מצמידים את התוסף לסרגל הכלים</h2>
+      <p>אחרי ההתקנה התוסף <b>מוסתר</b> מאחורי אייקון הפאזל. כדי שיהיה תמיד בהישג יד — מצמידים אותו פעם אחת:</p>
+      <ol>
+        <li>לוחצים על אייקון <b>הפאזל</b> 🧩 בפינה העליונה של הדפדפן (ליד שורת הכתובת).</li>
+        <li>ברשימה שנפתחת מוצאים את <b>MyOS עסקאות</b> ולוחצים על <b>הסיכה</b> 📌 שלידו.</li>
+        <li>עכשיו אייקון ה-<b>O</b> של MyOS מופיע בסרגל הכלים באופן קבוע.</li>
+      </ol>
+      <figure class="fig">
+        <svg viewBox="0 0 640 220" role="img" aria-label="סרגל הכלים של כרום: אייקון הפאזל פותח רשימת תוספים, לוחצים על הסיכה ליד MyOS עסקאות, והאייקון מופיע בסרגל">
+          <!-- סרגל -->
+          <rect x="10" y="10" width="620" height="44" rx="10" fill="#dfe3ec"/>
+          <rect x="120" y="19" width="380" height="26" rx="13" fill="#fff"/>
+          <text x="490" y="36" font-size="10" fill="#6b7280" text-anchor="end" font-family="Arial">nadlan.taxes.gov.il</text>
+          <!-- כפתורי ניווט -->
+          <circle cx="40" cy="32" r="10" fill="#c9cfdb"/><circle cx="68" cy="32" r="10" fill="#c9cfdb"/><circle cx="96" cy="32" r="10" fill="#c9cfdb"/>
+          <!-- פאזל -->
+          <rect x="558" y="18" width="28" height="28" rx="6" fill="#c9cfdb"/>
+          <text x="572" y="38" font-size="17" text-anchor="middle">🧩</text>
+          <!-- תפריט שלוש נקודות -->
+          <circle cx="612" cy="26" r="2" fill="#3c4043"/><circle cx="612" cy="32" r="2" fill="#3c4043"/><circle cx="612" cy="38" r="2" fill="#3c4043"/>
+          <!-- חץ 1 אל הפאזל -->
+          <path d="M500 80 C 520 70, 545 60, 560 50" stroke="#2ff0e6" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+          <circle cx="486" cy="84" r="13" fill="#2ff0e6"/><text x="486" y="89" font-size="14" fill="#04121a" text-anchor="middle" font-family="Arial" font-weight="800">1</text>
+          <!-- תפריט תוספים -->
+          <rect x="330" y="95" width="300" height="118" rx="10" fill="#fff" stroke="#c9cfdb"/>
+          <text x="615" y="117" font-size="11" fill="#1f2430" text-anchor="end" font-family="Arial" font-weight="700">תוספים</text>
+          <line x1="340" y1="125" x2="620" y2="125" stroke="#e5e8ef"/>
+          <!-- שורת MyOS -->
+          <rect x="340" y="133" width="280" height="32" rx="6" fill="#eaf8f7"/>
+          <rect x="585" y="139" width="20" height="20" rx="5" fill="#0E1A33"/>
+          <text x="595" y="154" font-size="11" fill="#2ff0e6" text-anchor="middle" font-family="Arial" font-weight="700">O</text>
+          <text x="575" y="154" font-size="11" fill="#1f2430" text-anchor="end" font-family="Arial" font-weight="700">MyOS עסקאות</text>
+          <!-- סיכה -->
+          <circle cx="360" cy="149" r="13" fill="none" stroke="#2ff0e6" stroke-width="2.5"/>
+          <text x="360" y="155" font-size="15" text-anchor="middle">📌</text>
+          <!-- שורה נוספת -->
+          <rect x="340" y="173" width="280" height="30" rx="6" fill="#f6f7fb"/>
+          <rect x="585" y="178" width="20" height="20" rx="5" fill="#c9cfdb"/>
+          <text x="575" y="193" font-size="11" fill="#9aa3b5" text-anchor="end" font-family="Arial">תוסף אחר…</text>
+          <!-- חץ 2 אל הסיכה -->
+          <path d="M300 205 C 320 195, 340 175, 352 162" stroke="#2ff0e6" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+          <circle cx="290" cy="208" r="13" fill="#2ff0e6"/><text x="290" y="213" font-size="14" fill="#04121a" text-anchor="middle" font-family="Arial" font-weight="800">2</text>
+          <!-- התוצאה: אייקון בסרגל -->
+          <rect x="522" y="18" width="28" height="28" rx="6" fill="#0E1A33" stroke="#2ff0e6" stroke-width="2"/>
+          <text x="536" y="37" font-size="14" fill="#2ff0e6" text-anchor="middle" font-family="Arial" font-weight="700">O</text>
+          <path d="M150 120 C 250 118, 420 100, 520 40" stroke="#66e6a8" stroke-width="2.5" stroke-dasharray="6 5" fill="none" marker-end="url(#arr)"/>
+          <text x="140" y="140" font-size="11" fill="#66e6a8" text-anchor="middle" font-family="Arial" font-weight="700">✓ האייקון מופיע כאן</text>
+        </svg>
+        <figcaption>פאזל (1) → סיכה ליד MyOS עסקאות (2) → האייקון קבוע בסרגל</figcaption>
+      </figure>
+      <div class="tip"><span class="i">!</span><span>לא רואים את הפאזל? ייתכן שחלון הדפדפן צר — הרחיבו אותו, או לחצו על שלוש הנקודות ⋮ ← <b>תוספים</b> ← <b>ניהול תוספים</b> וודאו ש-MyOS עסקאות <b>מופעל</b>.</span></div>
+    </section>
+
+    <!-- ========== צעד 3 ========== -->
+    <section class="step" id="s3">
+      <h2><span class="n">3</span>מתחברים לחשבון MyOS</h2>
+      <ol>
+        <li>לוחצים על אייקון ה-<b>O</b> בסרגל — נפתחת חלונית התוסף.</li>
+        <li>בתחתית החלונית יש פס <b style="color:#ff8f7d">אדום</b> "לא מחובר". לוחצים <span class="btnlike teal">התחברות</span>.</li>
+        <li>נפתח חלון התחברות של MyOS — מזינים דוא״ל וסיסמה (או "התחברות עם Google") עם החשבון שנרשמתם איתו.</li>
+        <li>החלון נסגר לבד, והפס בחלונית הופך ל<b style="color:#66e6a8">ירוק</b>: "מחובר ✓". מתחברים <b>פעם אחת</b> — התוסף זוכר.</li>
+      </ol>
+      <figure class="fig">
+        <svg viewBox="0 0 640 170" role="img" aria-label="פס החשבון בתחתית חלונית התוסף: אדום לא מחובר עם כפתור התחברות, ואחרי ההתחברות ירוק מחובר">
+          <!-- לפני -->
+          <rect x="20" y="20" width="280" height="130" rx="12" fill="#f6f4ef" stroke="#d5d0c6"/>
+          <rect x="20" y="20" width="280" height="30" rx="12" fill="#0E1A33"/>
+          <text x="285" y="40" font-size="12" fill="#fff" text-anchor="end" font-family="Arial" font-weight="700">MyOS עסקאות</text>
+          <rect x="35" y="60" width="250" height="26" rx="8" fill="#0E1A33"/>
+          <text x="160" y="77" font-size="11" fill="#fff" text-anchor="middle" font-family="Arial" font-weight="700">פתח את אתר רשות המיסים ומלא</text>
+          <rect x="35" y="98" width="250" height="36" rx="9" fill="#3b1414" stroke="#ef4444"/>
+          <circle cx="268" cy="116" r="5" fill="#ef4444"/>
+          <text x="258" y="120" font-size="11" fill="#ffe1dc" text-anchor="end" font-family="Arial" font-weight="700">לא מחובר ✗</text>
+          <rect x="45" y="104" width="70" height="24" rx="6" fill="#2ff0e6"/>
+          <text x="80" y="120" font-size="11" fill="#0E1A33" text-anchor="middle" font-family="Arial" font-weight="700">התחברות</text>
+          <path d="M80 152 C 80 148, 80 144, 80 134" stroke="#2ff0e6" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+          <text x="185" y="166" font-size="11" fill="#9aa8c4" text-anchor="middle" font-family="Arial">לפני: אדום — לוחצים "התחברות"</text>
+          <!-- חץ מעבר -->
+          <path d="M315 85 L 345 85" stroke="#66e6a8" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+          <!-- אחרי -->
+          <rect x="360" y="20" width="260" height="130" rx="12" fill="#f6f4ef" stroke="#d5d0c6"/>
+          <rect x="360" y="20" width="260" height="30" rx="12" fill="#0E1A33"/>
+          <text x="605" y="40" font-size="12" fill="#fff" text-anchor="end" font-family="Arial" font-weight="700">MyOS עסקאות</text>
+          <rect x="375" y="60" width="230" height="26" rx="8" fill="#0E1A33"/>
+          <text x="490" y="77" font-size="11" fill="#fff" text-anchor="middle" font-family="Arial" font-weight="700">פתח את אתר רשות המיסים ומלא</text>
+          <rect x="375" y="98" width="230" height="36" rx="9" fill="#0f3d2e" stroke="#22c55e"/>
+          <circle cx="588" cy="116" r="5" fill="#22c55e"/>
+          <text x="578" y="120" font-size="11" fill="#d9fbe7" text-anchor="end" font-family="Arial" font-weight="700">מחובר ✓ you@office.co.il</text>
+          <text x="490" y="164" font-size="11" fill="#9aa8c4" text-anchor="middle" font-family="Arial">אחרי: ירוק — מוכנים לעבודה</text>
+        </svg>
+        <figcaption>הפס בתחתית החלונית אומר הכול: אדום = צריך להתחבר, ירוק = מחובר</figcaption>
+      </figure>
+      <div class="tip"><span class="i">!</span><span>עדיין אין חשבון? <a href="login.html">נרשמים כאן לניסיון</a> — הרשמה אחת, ואז חוזרים לחלונית ולוחצים "התחברות".</span></div>
+    </section>
+
+    <!-- ========== צעד 4 ========== -->
+    <section class="step" id="s4">
+      <h2><span class="n">4</span>השליפה הראשונה — מגוש לאקסל</h2>
+      <ol>
+        <li>בחלונית: ממלאים <b>גוש</b> (וחלקה אם רוצים) או ישוב/רחוב, ולוחצים <span class="btnlike" style="background:#0E1A33">פתח את אתר רשות המיסים ומלא</span>.</li>
+        <li>נפתחת לשונית עם אתר רשות המיסים והטופס <b>כבר מלא</b>. תראו הודעה טורקיזית למעלה: "הטופס מולא".</li>
+        <li>לוחצים על <b>חיפוש</b> באתר, מקלידים את <b>קוד האבטחה</b> (התמונה עם האותיות) ולוחצים <b>אישור</b>. את הקוד רק אתם יכולים להקליד — התוסף לא נוגע בו.</li>
+        <li>בעמוד התוצאות מופיע במרכז המסך כפתור גדול <span class="btnlike" style="background:#0E1A33;border:1px solid #2ff0e6">⬇ הורד עסקאות</span>. לוחצים — וכעבור כמה רגעים קובץ ה-Excel יורד לתיקיית ההורדות.</li>
+      </ol>
+      <figure class="fig">
+        <svg viewBox="0 0 640 200" role="img" aria-label="שלושת המסכים: הטופס מולא, חיפוש עם קוד אבטחה ואישור, וכפתור הורד עסקאות במרכז עמוד התוצאות">
+          <g transform="translate(424,0)">
+          <!-- מסך א: טופס -->
+          <rect x="10" y="20" width="195" height="150" rx="10" fill="#f6f7fb" stroke="#c9cfdb"/>
+          <rect x="20" y="28" width="175" height="22" rx="6" fill="#2ff0e6"/>
+          <text x="107" y="43" font-size="9.5" fill="#0E1A33" text-anchor="middle" font-family="Arial" font-weight="700">✓ הטופס מולא — גוש 4048</text>
+          <rect x="30" y="62" width="155" height="14" rx="3" fill="#fff" stroke="#c9cfdb"/><text x="180" y="72" font-size="8" fill="#1f2430" text-anchor="end" font-family="Arial">גוש: 4048</text>
+          <rect x="30" y="82" width="155" height="14" rx="3" fill="#fff" stroke="#c9cfdb"/><text x="180" y="92" font-size="8" fill="#1f2430" text-anchor="end" font-family="Arial">סוג נכס: דירת מגורים</text>
+          <rect x="30" y="102" width="155" height="14" rx="3" fill="#fff" stroke="#c9cfdb"/><text x="180" y="112" font-size="8" fill="#1f2430" text-anchor="end" font-family="Arial">תקופה: 36 חודשים</text>
+          <rect x="120" y="128" width="65" height="22" rx="5" fill="#1a73e8"/><text x="152" y="143" font-size="9.5" fill="#fff" text-anchor="middle" font-family="Arial" font-weight="700">חיפוש</text>
+          <path d="M90 165 C 100 158, 110 152, 122 148" stroke="#2ff0e6" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+          <circle cx="80" cy="168" r="11" fill="#2ff0e6"/><text x="80" y="172" font-size="12" fill="#04121a" text-anchor="middle" font-family="Arial" font-weight="800">1</text>
+          <text x="107" y="190" font-size="10" fill="#9aa8c4" text-anchor="middle" font-family="Arial">הטופס כבר מלא → חיפוש</text>
+          </g>
+          <!-- מסך ב: קוד אבטחה -->
+          <rect x="222" y="20" width="195" height="150" rx="10" fill="#f6f7fb" stroke="#c9cfdb"/>
+          <text x="405" y="45" font-size="10" fill="#1f2430" text-anchor="end" font-family="Arial" font-weight="700">קוד אבטחה</text>
+          <rect x="300" y="55" width="105" height="34" rx="4" fill="#fff" stroke="#c9cfdb"/>
+          <text x="352" y="78" font-size="16" fill="#5b6b86" text-anchor="middle" font-family="Georgia" font-style="italic" letter-spacing="3">7 k P 3 q</text>
+          <rect x="300" y="98" width="105" height="18" rx="3" fill="#fff" stroke="#2ff0e6" stroke-width="1.5"/>
+          <text x="400" y="111" font-size="9" fill="#1f2430" text-anchor="end" font-family="Arial">7kP3q|</text>
+          <rect x="340" y="126" width="65" height="22" rx="5" fill="#1a73e8"/><text x="372" y="141" font-size="9.5" fill="#fff" text-anchor="middle" font-family="Arial" font-weight="700">אישור</text>
+          <path d="M300 165 C 315 160, 330 155, 342 148" stroke="#2ff0e6" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+          <circle cx="290" cy="168" r="11" fill="#2ff0e6"/><text x="290" y="172" font-size="12" fill="#04121a" text-anchor="middle" font-family="Arial" font-weight="800">2</text>
+          <text x="319" y="190" font-size="10" fill="#9aa8c4" text-anchor="middle" font-family="Arial">מקלידים את הקוד → אישור</text>
+          <g transform="translate(-424,0)">
+          <!-- מסך ג: תוצאות + כפתור -->
+          <rect x="434" y="20" width="195" height="150" rx="10" fill="#f6f7fb" stroke="#c9cfdb"/>
+          <g fill="#e5e8ef">
+            <rect x="444" y="30" width="175" height="10" rx="2"/><rect x="444" y="45" width="175" height="10" rx="2"/><rect x="444" y="60" width="175" height="10" rx="2"/>
+            <rect x="444" y="120" width="175" height="10" rx="2"/><rect x="444" y="135" width="175" height="10" rx="2"/><rect x="444" y="150" width="175" height="10" rx="2"/>
+          </g>
+          <rect x="434" y="20" width="195" height="150" rx="10" fill="rgba(2,4,10,.45)"/>
+          <rect x="462" y="72" width="140" height="44" rx="10" fill="#0E1A33" stroke="#2ff0e6" stroke-width="2"/>
+          <text x="532" y="99" font-size="12" fill="#fff" text-anchor="middle" font-family="Arial" font-weight="700">⬇ הורד 32 עסקאות</text>
+          <path d="M520 160 C 525 145, 528 135, 530 118" stroke="#2ff0e6" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+          <circle cx="515" cy="165" r="11" fill="#2ff0e6"/><text x="515" y="169" font-size="12" fill="#04121a" text-anchor="middle" font-family="Arial" font-weight="800">3</text>
+          <text x="531" y="190" font-size="10" fill="#9aa8c4" text-anchor="middle" font-family="Arial">לוחצים על הכפתור במרכז</text>
+          </g>
+        </svg>
+        <figcaption>שלושה מסכים: הטופס מולא (1) → קוד אבטחה ואישור (2) → "הורד עסקאות" במרכז (3)</figcaption>
+      </figure>
+      <div class="ok"><span class="i">✓</span><span>הקובץ נשמר בתיקיית <b>ההורדות</b> בשם מספר הגוש (למשל <kbd dir="ltr">4048.xlsx</kbd>). רוצים לבחור מקום ושם? בחלונית, תחת "הקובץ — שם ושמירה", מסמנים "שאל אותי איפה לשמור".</span></div>
+    </section>
+
+    <!-- ========== שאלות ========== -->
+    <h3 class="sec">שאלות נפוצות</h3>
+    <details class="q"><summary>לחצתי "הורד עסקאות" וקיבלתי "נדרשת התחברות"</summary><div class="a">פותחים את חלונית התוסף (אייקון ה-O), מוודאים שהפס בתחתית ירוק. אם הוא אדום — לוחצים "התחברות", ואז חוזרים לעמוד התוצאות ולוחצים שוב על הכפתור.</div></details>
+    <details class="q"><summary>"המנוי מוגדר למחשב אחד"</summary><div class="a">כל מנוי קשור למחשב שממנו התחברתם לראשונה. עברתם למחשב חדש, או רוצים לעבוד משניים? כתבו לנו ל-<a href="mailto:team@myos.co.il">team@myos.co.il</a> ונשחרר/נוסיף מחשב.</div></details>
+    <details class="q"><summary>הטופס באתר רשות המיסים לא התמלא</summary><div class="a">לפעמים האתר איטי. סוגרים את הלשונית, חוזרים לחלונית התוסף ולוחצים שוב "פתח את אתר רשות המיסים ומלא". אם עדיין לא — אפשר תמיד למלא ידנית; הכפתור "הורד עסקאות" יופיע בעמוד התוצאות בכל מקרה.</div></details>
+    <details class="q"><summary>הכפתור "הורד עסקאות" מסתיר לי את הטבלה</summary><div class="a">לוחצים "לבדוק קודם את התוצאות" מתחת לכפתור — הרקע נעלם, והכפתור עובר לכפתור קטן במרכז-למעלה. כשמוכנים, לוחצים עליו.</div></details>
+    <details class="q"><summary>איך מעדכנים את התוסף לגרסה חדשה?</summary><div class="a">Chrome מעדכן תוספים לבד תוך כמה שעות. כדי להאיץ: שלוש נקודות ⋮ ← תוספים ← ניהול תוספים ← מפעילים "מצב מפתח" ← "עדכן".</div></details>
+    <details class="q"><summary>אני עובד/ת ב-Edge ולא ב-Chrome</summary><div class="a">Edge מריץ תוספי Chrome. פותחים את קישור החנות ב-Edge; אם מופיעה שורה "אפשר תוספים מחנויות אחרות" — מאשרים, ואז "הוספה ל-Chrome". שאר הצעדים זהים.</div></details>
+
+    <p class="contact">נתקעתם? אנחנו כאן: <a href="mailto:team@myos.co.il">team@myos.co.il</a> · <a href="tel:+97235333630" dir="ltr">03-5333630</a></p>
+  </main>
+
+  <footer>
+    <span class="flogo" dir="ltr" role="img" aria-label="MyOS">
+      <span class="my" aria-hidden="true">My</span>
+      <span class="o" aria-hidden="true"><svg viewBox="6 -7 88 101" focusable="false"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg></span>
+      <span class="sc" aria-hidden="true">S</span>
+    </span>
+    <span class="sep" aria-hidden="true"></span>
+    <a href="tel:+97235333630" class="mono" dir="ltr">03-5333630</a>
+    <span class="sep" aria-hidden="true"></span>
+    <a href="mailto:team@myos.co.il">team@myos.co.il</a>
+    <span class="sep" aria-hidden="true"></span>
+    <a href="https://myos.co.il/#accessibility">הצהרת נגישות</a>
+    <span class="sep" aria-hidden="true"></span>
+    <span dir="ltr">© 2026 MyOS</span>
+  </footer>
+</body>
+</html>
