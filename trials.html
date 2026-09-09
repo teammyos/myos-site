@@ -105,9 +105,15 @@
   .nm{color:var(--heading);font-weight:700;font-size:1rem}
   .nm+.em{font-weight:400;color:var(--text);font-size:.88rem}
   .hidden{display:none}
+  /* נגישות */
+  .skip{position:absolute;top:0;inset-inline-start:1rem;z-index:200;transform:translateY(-150%);background:#2ff0e6;color:#0E1A33;padding:.75rem 1.25rem;border-radius:0 0 .6rem .6rem;font-weight:700;text-decoration:none;transition:transform .15s ease}
+  .skip:focus{transform:translateY(0)}
+  a:focus-visible,button:focus-visible,select:focus-visible{outline:none;box-shadow:0 0 0 3px #0E1A33,0 0 0 6px #2ff0e6;border-radius:.5rem}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
+<a class="skip" href="#loginCard">דלג לתוכן הראשי</a>
   <div class="top">
     <span class="logo" aria-label="MyOS — ניהול ניסיונות">
       <span class="mark" dir="ltr">
