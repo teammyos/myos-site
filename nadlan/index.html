@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MyOS עסקאות — עסקאות נדל״ן מרשות המיסים ישר לאקסל | MyOS</title>
-<meta name="description" content="תוסף Chrome לשמאי מקרקעין: ממלא את טופס החיפוש באתר רשות המיסים, שולף את כל העמודים ומוריד קובץ Excel מסודר עם מחיר למ״ר וממוצע. שבוע חינם, ואחר כך 30 ₪ לחודש.">
+<link rel="canonical" href="https://myos.co.il/nadlan/">
+<meta name="description" content="תוסף Chrome לשמאי מקרקעין: ממלא את טופס החיפוש באתר רשות המיסים, שולף את כל העמודים ומוריד קובץ Excel מסודר עם מחיר למ״ר וממוצע. שבוע ניסיון חינם.">
 <meta property="og:title" content="MyOS עסקאות — עסקאות נדל״ן מרשות המיסים ישר לאקסל">
-<meta property="og:description" content="שבוע ניסיון חינם לשמאים. אקסל מסודר עם מחיר למ״ר וממוצע, בלי הקלדה.">
+<meta property="og:description" content="שבוע ניסיון חינם לשמאים. אקסל מסודר עם מחיר למ״ר וממוצע.">
 <meta property="og:image" content="https://myos.co.il/img/og-nadlan.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -118,9 +119,15 @@
   .flogo .o svg{width:100%;height:100%;display:block;overflow:visible}
   .flogo .ring{fill:#eff3fa}.flogo .stem{fill:#2ff0e6}
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  /* נגישות — כמו באתר הראשי */
+  .skip{position:absolute;top:0;inset-inline-start:1rem;z-index:200;transform:translateY(-150%);background:#2ff0e6;color:#0E1A33;padding:.75rem 1.25rem;border-radius:0 0 .6rem .6rem;font-weight:700;text-decoration:none;transition:transform .15s ease}
+  .skip:focus{transform:translateY(0)}
+  :focus-visible{outline:none;box-shadow:0 0 0 3px #0E1A33,0 0 0 6px #2ff0e6;border-radius:.5rem}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
+  <a class="skip" href="#main">דלג לתוכן הראשי</a>
   <div class="top">
     <a class="logo" href="https://myos.co.il/" aria-label="MyOS עסקאות. לדף הבית">
       <span class="mark" dir="ltr">
@@ -133,18 +140,18 @@
     <a class="lnk" href="../login.html">התחברות לחשבון</a>
   </div>
 
-  <main class="wrap">
+  <main class="wrap" id="main" tabindex="-1">
     <!-- ===== פתיח ===== -->
     <section class="hero">
       <span class="kicker">תוסף Chrome לשמאי מקרקעין</span>
-      <h1>עסקאות נדל״ן מרשות המיסים —<br><em>ישר לאקסל, בלי הקלדה</em></h1>
-      <p>MyOS עסקאות ממלא את טופס החיפוש באתר רשות המיסים, עובר על כל עמודי התוצאות ומוריד קובץ Excel מסודר — עם מחיר למ״ר וממוצע מוכנים. מה שלקח שעה, לוקח דקות.</p>
+      <h1>עסקאות נדל״ן מרשות המיסים —<br><em>ישר לאקסל</em></h1>
+      <p>MyOS עסקאות ממלא את טופס החיפוש באתר רשות המיסים, עובר על כל עמודי התוצאות ומוריד קובץ Excel מסודר — עם מחיר למ״ר וממוצע מוכנים.</p>
       <div class="ctas">
         <a class="cta" href="../login.html">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H4"/><path d="m10 6-6 6 6 6"/></svg>
           שבוע חינם — מתחילים עכשיו
         </a>
-        <a class="cta ghost" href="../install.html">הסבר והתקנה צעד אחר צעד</a>
+        <a class="cta ghost" href="../install/">הסבר והתקנה צעד אחר צעד</a>
       </div>
       <p class="sub">ההרשמה לוקחת דקה. בלי כרטיס אשראי, בלי התחייבות.</p>
       <figure class="shot"><img src="../img/install/11-excel.webp" alt="קובץ האקסל שמתקבל: כל העסקאות בשורות מסודרות, עם מחיר למ״ר ברוטו ונטו" loading="eager"><figcaption>התוצאה: קובץ Excel מסודר — עמודה לכל נתון, מחיר למ״ר וממוצע, וגיליון נוסף עם כל הנתונים הגולמיים</figcaption></figure>
@@ -170,7 +177,7 @@
       </div>
       <div class="feat">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
-        <h3>אקסל מסודר, לא "הדבקה"</h3>
+        <h3>אקסל מסודר</h3>
         <p>עמודה לכל נתון, סינון מוכן, כותרות ברורות. גיליון ראשי עם העמודות החשובות, וגיליון "גולמי" עם כל מה שנשלף — למי שרוצה הכול.</p>
       </div>
     </section>
@@ -197,7 +204,7 @@
           <li>נגמר השבוע וצריך עוד זמן? שולחים מייל — ומאריכים <b>עד 30 יום ללא עלות</b></li>
         </ul>
         <a class="cta" href="../login.html">להרשמה — שבוע חינם</a>
-        <p class="note">אחרי ההרשמה: <a href="../install.html">מתקינים ב-4 צעדים</a></p>
+        <p class="note">אחרי ההרשמה: <a href="../install/">מתקינים ב-4 צעדים</a></p>
       </div>
       <div class="plan">
         <h3>מנוי חודשי</h3>
@@ -227,7 +234,7 @@
       <p>שבוע חינם. הרשמה של דקה, התקנה של שתי דקות.</p>
       <div class="ctas">
         <a class="cta" href="../login.html">שבוע חינם — מתחילים עכשיו</a>
-        <a class="cta ghost" href="../install.html">הסבר והתקנה</a>
+        <a class="cta ghost" href="../install/">הסבר והתקנה</a>
       </div>
     </section>
 
