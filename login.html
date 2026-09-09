@@ -80,6 +80,10 @@
     background:#fff;color:#1f2430;border:0;border-radius:.65rem;padding:.75rem}
   .gbtn:hover{background:#eef1f6}
   .gbtn svg{width:1.15rem;height:1.15rem;flex:none}
+  #switchCard .who{display:flex;align-items:center;justify-content:center;gap:.6rem;background:#0f3d2e;border:1px solid #22c55e;color:#d9fbe7;border-radius:.65rem;padding:.7rem .9rem;margin-bottom:1.1rem;font-weight:600;word-break:break-all}
+  #switchCard .dot{flex:none;width:.65rem;height:.65rem;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.25)}
+  button.ghost{background:none;border:1px solid #2a3a58;color:#b9c5dd;margin-top:.6rem;font-weight:500}
+  button.ghost:hover{border-color:#8dfff4;color:#8dfff4}
   .hidden{display:none}
 </style>
 </head>
@@ -87,6 +91,15 @@
 <div class="wrap">
 <main class="card">
   <div class="logo" aria-label="MyOS"><b>My</b><svg viewBox="6 -7 88 101" aria-hidden="true"><path fill="#eff3fa" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path fill="#2ff0e6" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg><b>S</b></div>
+
+  <!-- ---------- החלפת חשבון (מהתוסף, עם &switch=1): מחובר כ-X — להמשיך או להתנתק ---------- -->
+  <div id="switchCard" class="hidden">
+    <h1>כבר מחוברים לחשבון</h1>
+    <div class="who"><span class="dot"></span><span id="switchEmail"></span></div>
+    <button type="button" id="switchContinue">להמשיך עם החשבון הזה</button>
+    <button type="button" class="ghost" id="switchLogout">להתנתק ולהתחבר עם חשבון אחר</button>
+    <p class="msg" id="switchMsg" role="status"></p>
+  </div>
 
   <!-- ---------- התחברות ---------- -->
   <form id="loginForm">
@@ -350,6 +363,22 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     // אם החשבון נמחק/בוטל — ה-session ה"מת" מנותק ומוצג טופס במקום "מחובר" מדומה.
     var chk = await client.auth.getUser();
     if (chk && chk.data && chk.data.user && !chk.error) {
+      /* "החלפת חשבון" מהתוסף (&switch=1): לא מחזירים אוטומטית — מציגים מי מחובר
+       * ונותנים לבחור: להמשיך עם החשבון הזה, או להתנתק ולהתחבר עם אחר */
+      if (/[#&?]switch=1/.test(location.hash + location.search)) {
+        $('loginForm').classList.add('hidden');
+        $('switchCard').classList.remove('hidden');
+        $('switchEmail').textContent = chk.data.user.email || '';
+        $('switchContinue').onclick = function () { forwardToExt(sess, back); };
+        $('switchLogout').onclick = async function () {
+          $('switchLogout').disabled = true;
+          await client.auth.signOut();
+          $('switchCard').classList.add('hidden');
+          $('loginForm').classList.remove('hidden');
+          say('msg', 'התנתקתם. התחברו עם החשבון האחר', 'ok');
+        };
+        return;
+      }
       forwardToExt(sess, back);              // session תקין — ממשיכים כרגיל
     } else {
       await client.auth.signOut();
