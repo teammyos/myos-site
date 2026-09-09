@@ -85,11 +85,17 @@
   button.ghost{background:none;border:1px solid #2a3a58;color:#b9c5dd;margin-top:.6rem;font-weight:500}
   button.ghost:hover{border-color:#8dfff4;color:#8dfff4}
   .hidden{display:none}
+  /* נגישות */
+  .skip{position:absolute;top:0;inset-inline-start:1rem;z-index:200;transform:translateY(-150%);background:#2ff0e6;color:#0E1A33;padding:.75rem 1.25rem;border-radius:0 0 .6rem .6rem;font-weight:700;text-decoration:none;transition:transform .15s ease}
+  .skip:focus{transform:translateY(0)}
+  a:focus-visible,button:focus-visible,select:focus-visible{outline:none;box-shadow:0 0 0 3px #0E1A33,0 0 0 6px #2ff0e6;border-radius:.5rem}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
+<a class="skip" href="#main">דלג לתוכן הראשי</a>
 <div class="wrap">
-<main class="card">
+<main class="card" id="main" tabindex="-1">
   <div class="logo" aria-label="MyOS"><b>My</b><svg viewBox="6 -7 88 101" aria-hidden="true"><path fill="#eff3fa" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path fill="#2ff0e6" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg><b>S</b></div>
 
   <!-- ---------- החלפת חשבון (מהתוסף, עם &switch=1): מחובר כ-X — להמשיך או להתנתק ---------- -->
@@ -120,7 +126,7 @@
       עדיין אין חשבון? <a id="openRegister">הרשמה לניסיון</a>
     </p>
     <p class="links" style="margin-top:.45rem"><a id="openContact">או צרו קשר</a></p>
-    <p class="links" style="margin-top:.9rem;padding-top:.8rem;border-top:1px solid #2a3a58">עדיין לא התקנתם את התוסף? <a href="install.html">מדריך התקנה ב-4 צעדים</a></p>
+    <p class="links" style="margin-top:.9rem;padding-top:.8rem;border-top:1px solid #2a3a58">עדיין לא התקנתם את התוסף? <a href="/install/">מדריך התקנה ב-4 צעדים</a></p>
   </form>
 
   <!-- ---------- הרשמה לניסיון ---------- -->
