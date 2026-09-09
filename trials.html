@@ -102,6 +102,8 @@
   .unlim.armed{background:#1f8f5f;border-color:#1f8f5f;color:#fff}
   .pill.life{color:var(--accent);border-color:rgba(47,240,230,.4);background:rgba(47,240,230,.08)}
   .row .em,.ucard .em{white-space:normal;word-break:break-all}
+  .nm{color:var(--heading);font-weight:700;font-size:1rem}
+  .nm+.em{font-weight:400;color:var(--text);font-size:.88rem}
   .hidden{display:none}
 </style>
 </head>
@@ -167,6 +169,11 @@
       return d.toLocaleDateString('he-IL',{timeZone:'Asia/Jerusalem'})+' '+
              d.toLocaleTimeString('he-IL',{timeZone:'Asia/Jerusalem',hour:'2-digit',minute:'2-digit'});
     }catch(e){ return s; }
+  }
+  /* שם מלא (אם יש) מעל המייל */
+  function nameHtml(u){
+    return (u.full_name ? '<div class="nm">'+esc(u.full_name)+'</div>' : '')+
+           '<div class="em">'+esc(u.email||u.user_id)+'</div>';
   }
   function lastSeenHtml(u){
     return u.last_sign_in_at
@@ -252,7 +259,7 @@
     list.forEach(function(u){
       var blocked = u.license_status==='blocked';
       var el=document.createElement('div'); el.className='row';
-      el.innerHTML='<div class="info"><div class="em">'+esc(u.email||u.user_id)+'</div><div class="meta">נרשם: '+esc(fmtDate(u.created_at))+lastSeenHtml(u)+(u.license_status?(' · רישיון: '+esc(u.license_status)):'')+'</div></div>'+
+      el.innerHTML='<div class="info">'+nameHtml(u)+'<div class="meta">נרשם: '+esc(fmtDate(u.created_at))+lastSeenHtml(u)+(u.license_status?(' · רישיון: '+esc(u.license_status)):'')+'</div></div>'+
                    (blocked?'<span class="pill susp">מושהה</span>':'')+
                    '<div class="acts">'+
                      (blocked ? '<button class="grant" data-react="1">הפעל מחדש</button>' : '')+
@@ -285,7 +292,7 @@
       var el=document.createElement('div'); el.className='ucard';
       el.innerHTML=
         '<div class="head">'+
-          '<div class="info"><div class="em">'+esc(u.email||u.user_id)+'</div>'+
+          '<div class="info">'+nameHtml(u)+
             '<div class="meta">'+(unlimited?'<b style="color:var(--accent)">ללא הגבלה</b>':'בתוקף עד: '+esc(fmtDate(u.valid_until)))+lastSeenHtml(u)+'</div></div>'+
           (unlimited?'<span class="pill life">לצמיתות</span>':'<span class="pill active">פעיל</span>')+
           '<div class="acts">'+
@@ -387,10 +394,10 @@
   function csvCell(v){ v=String(v==null?'':v); return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
   $('csvBtn').addEventListener('click', function(){
     if(!allUsers.length){ $('boardMsg').className='msg'; $('boardMsg').textContent='אין נתונים לייצוא'; return; }
-    var head=['אימייל','תאריך הרשמה','התחברות אחרונה','סטטוס רישיון','בתוקף עד','פעיל'];
+    var head=['שם','אימייל','תאריך הרשמה','התחברות אחרונה','סטטוס רישיון','בתוקף עד','פעיל'];
     var lines=[head.map(csvCell).join(',')];
     allUsers.forEach(function(u){
-      lines.push([u.email||'', fmtDateTime(u.created_at), fmtDateTime(u.last_sign_in_at), u.license_status||'', u.valid_until?fmtDate(u.valid_until):(u.active?'ללא הגבלה':''), u.active?'כן':'לא'].map(csvCell).join(','));
+      lines.push([u.full_name||'', u.email||'', fmtDateTime(u.created_at), fmtDateTime(u.last_sign_in_at), u.license_status||'', u.valid_until?fmtDate(u.valid_until):(u.active?'ללא הגבלה':''), u.active?'כן':'לא'].map(csvCell).join(','));
     });
     var csv='\uFEFF'+lines.join('\r\n');
     var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
