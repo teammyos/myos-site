@@ -11,12 +11,13 @@
   :root{--navy:#0E1A33;--navy2:#0b1428;--card:#16264a;--line:#26375c;--text:#cfd8ea;--dim:#9aa8c4;--heading:#eef3fb;--accent:#2ff0e6;--accent2:#8dfff4;--wait:#ffcf6b;--done:#66e6a8}
   body{min-height:100svh;display:flex;flex-direction:column;background:radial-gradient(120% 60% at 50% -10%,#12233f,var(--navy) 55%,var(--navy2));color:var(--text);font-family:'Heebo',system-ui,'Segoe UI',Arial,sans-serif;line-height:1.6}
   .top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.8rem 1.2rem;border-bottom:1px solid var(--line)}
-  .logo{display:inline-flex;align-items:baseline;gap:.04em;direction:ltr;font-size:1.35rem}
+  .logo{display:inline-flex;align-items:center;gap:.45em;direction:rtl;font-size:1.35rem}
+  .logo .mark{display:inline-flex;align-items:baseline;gap:.04em;direction:ltr}
   .logo .my,.logo .sc{background:linear-gradient(122deg,#13a8bd,#2ff0e6 60%,#8dfff4);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
   .logo .o{display:block;width:.72em;height:.826em;align-self:center;flex:none}
   .logo .o svg{width:100%;height:100%;display:block;overflow:visible}
   .logo .ring{fill:#eff3fa}.logo .stem{fill:#2ff0e6}
-  .logo .pt{font-size:.62em;color:#dbe4f5;font-weight:600;margin-inline-start:.4em;align-self:center}
+  .logo .pt{font-size:.62em;color:#dbe4f5;font-weight:600}
   .top .right{display:flex;align-items:center;gap:.7rem;font-size:.85rem;color:var(--dim)}
   .top .right button{color:var(--dim);background:none;border:1px solid var(--line);border-radius:.5rem;padding:.35rem .75rem;cursor:pointer;font:inherit;font-size:.82rem}
   .top .right button:hover{border-color:var(--accent);color:var(--accent)}
@@ -106,10 +107,13 @@
 </head>
 <body>
   <div class="top">
-    <span class="logo" dir="ltr" aria-label="MyOS">
-      <span class="my">My</span>
-      <span class="o"><svg viewBox="6 -7 88 101"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg></span>
-      <span class="sc">S</span><span class="pt">ניהול ניסיונות</span>
+    <span class="logo" aria-label="MyOS — ניהול ניסיונות">
+      <span class="mark" dir="ltr">
+        <span class="my">My</span>
+        <span class="o"><svg viewBox="6 -7 88 101"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg></span>
+        <span class="sc">S</span>
+      </span>
+      <span class="pt">ניהול ניסיונות</span>
     </span>
     <span class="right hidden" id="who"><span id="whoEmail"></span><button id="logoutBtn" type="button">התנתקות</button></span>
   </div>
