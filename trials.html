@@ -85,6 +85,22 @@
   .gbtn:hover{background:#eef1f6}.gbtn svg{width:1.1rem;height:1.1rem;flex:none}
   .csvbtn{background:none;border:1px solid var(--line);color:var(--dim);border-radius:.55rem;padding:.5rem .9rem;cursor:pointer;font:inherit;font-size:.85rem}
   .csvbtn:hover{border-color:var(--accent);color:var(--accent)}
+  /* פקדי טווח: ימים / תאריך סיום / ללא הגבלה */
+  .row,.ucard .head{flex-wrap:wrap}
+  .row .info,.ucard .info{flex:1 1 15rem}
+  .rangebar{flex-basis:100%;display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap;border-top:1px dashed var(--line);padding-top:.55rem}
+  .rangebar .hint{color:var(--dim);font-size:.78rem}
+  .range{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;justify-content:flex-end}
+  .range input{width:auto;margin:0;padding:.38rem .5rem;font-size:.85rem;border-radius:.5rem;background:#f5f8fc;color:#12233f;border:1.5px solid #cdd8ec}
+  .range input[type=number]{width:4.2rem;text-align:center}
+  .range input[type=date]{width:9.2rem;direction:ltr}
+  .range .lbl{color:var(--dim);font-size:.78rem}
+  .range .sep{color:var(--line);font-size:.8rem}
+  .unlim{background:none;border:1px solid rgba(102,230,168,.4);color:var(--done);border-radius:.55rem;padding:.5rem .8rem;cursor:pointer;font:inherit;font-weight:600;font-size:.82rem}
+  .unlim:hover{background:rgba(102,230,168,.1)}
+  .unlim.armed{background:#1f8f5f;border-color:#1f8f5f;color:#fff}
+  .pill.life{color:var(--accent);border-color:rgba(47,240,230,.4);background:rgba(47,240,230,.08)}
+  .row .em,.ucard .em{white-space:normal;word-break:break-all}
   .hidden{display:none}
 </style>
 </head>
@@ -139,6 +155,51 @@
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function fmtDate(s){ if(!s) return ''; try{ return new Date(s).toLocaleDateString('he-IL'); }catch(e){ return s; } }
+  /* תאריך + שעה בשעון ישראל, למשל 5.9.2026 14:32 */
+  function fmtDateTime(s){
+    if(!s) return '';
+    try{
+      var d=new Date(s);
+      return d.toLocaleDateString('he-IL',{timeZone:'Asia/Jerusalem'})+' '+
+             d.toLocaleTimeString('he-IL',{timeZone:'Asia/Jerusalem',hour:'2-digit',minute:'2-digit'});
+    }catch(e){ return s; }
+  }
+  function lastSeenHtml(u){
+    return u.last_sign_in_at
+      ? ' · <span class="ls">התחברות אחרונה: '+esc(fmtDateTime(u.last_sign_in_at))+'</span>'
+      : ' · <span class="ls">טרם התחבר</span>';
+  }
+  /* בלוק פקדי הטווח (ימים / תאריך סיום) + כפתור פעולה + ללא הגבלה */
+  function rangeHtml(actionLabel){
+    return '<div class="rangebar"><span class="hint">'+(actionLabel==='חדש'?'חידוש — נספר מסוף התוקף הנוכחי':'אישור מנוי')+'</span>'+
+             '<div class="range">'+
+               '<input type="number" min="1" max="3650" value="7" data-days aria-label="מספר ימים"><span class="lbl">ימים</span>'+
+               '<span class="sep">|</span>'+
+               '<input type="date" data-until aria-label="תאריך סיום">'+
+               '<button class="grant" data-grant="1">'+esc(actionLabel)+'</button>'+
+               '<button class="unlim" data-unlim="1">ללא הגבלה</button>'+
+             '</div>'+
+           '</div>';
+  }
+  /* קריאת הבחירה מהפקדים: תאריך אם מולא, אחרת ימים */
+  function readRange(el){
+    var until=el.querySelector('[data-until]').value;
+    var days=parseInt(el.querySelector('[data-days]').value,10);
+    if(until) return {until:until};
+    if(days>0) return {days:days};
+    return null;
+  }
+  function wireRange(el, uid){
+    el.querySelector('[data-grant]').addEventListener('click',function(){
+      var opt=readRange(el);
+      if(!opt){ $('boardMsg').className='msg err'; $('boardMsg').textContent='ציין מספר ימים או בחר תאריך סיום'; return; }
+      grant(uid, this, opt);
+    });
+    confirmClick(el.querySelector('[data-unlim]'),'בטוח? ללא הגבלה',function(b){ grant(uid, b, {unlimited:true}); });
+    /* בחירת תאריך מנקה את שדה הימים כדי שיהיה ברור מה נשלח */
+    el.querySelector('[data-until]').addEventListener('change',function(){ if(this.value) el.querySelector('[data-days]').value=''; });
+    el.querySelector('[data-days]').addEventListener('input',function(){ if(this.value) el.querySelector('[data-until]').value=''; });
+  }
 
   async function fn(action, extra){
     var body=Object.assign({action:action}, extra||{});
@@ -187,15 +248,14 @@
     list.forEach(function(u){
       var blocked = u.license_status==='blocked';
       var el=document.createElement('div'); el.className='row';
-      el.innerHTML='<div class="info"><div class="em">'+esc(u.email||u.user_id)+'</div><div class="meta">נרשם: '+esc(fmtDate(u.created_at))+(u.license_status?(' · רישיון: '+esc(u.license_status)):'')+'</div></div>'+
+      el.innerHTML='<div class="info"><div class="em">'+esc(u.email||u.user_id)+'</div><div class="meta">נרשם: '+esc(fmtDate(u.created_at))+lastSeenHtml(u)+(u.license_status?(' · רישיון: '+esc(u.license_status)):'')+'</div></div>'+
                    (blocked?'<span class="pill susp">מושהה</span>':'')+
                    '<div class="acts">'+
-                     (blocked
-                        ? '<button class="grant" data-react="1">הפעל מחדש</button>'
-                        : '<button class="grant" data-grant="1">אשר ניסיון 7 ימים</button>')+
+                     (blocked ? '<button class="grant" data-react="1">הפעל מחדש</button>' : '')+
                      '<button class="delbtn" data-del="1">מחק</button>'+
-                   '</div>';
-      var g=el.querySelector('[data-grant]'); if(g) g.addEventListener('click',function(){ grant(u.user_id, this); });
+                   '</div>'+
+                   (blocked ? '' : rangeHtml('אשר'));
+      if(!blocked) wireRange(el, u.user_id);
       var rc=el.querySelector('[data-react]'); if(rc) rc.addEventListener('click',function(){ reactivateUser(u.user_id, this); });
       confirmClick(el.querySelector('[data-del]'),'בטוח? מחק',function(b){ deleteUser(u.user_id, b); });
       box.appendChild(el);
@@ -212,28 +272,30 @@
         ? '<div class="devlist">'+devs.map(function(d){
             return '<div class="devline"><div class="dinfo"><div class="dname">'+esc(d.device_name||'מחשב')+'</div>'+
                    '<div class="did">'+esc(d.device_id||'')+'</div>'+
-                   (d.last_seen?'<div class="dmeta">נראה לאחרונה: '+esc(fmtDate(d.last_seen))+'</div>':'')+'</div>'+
+                   (d.last_seen?'<div class="dmeta">נראה לאחרונה: '+esc(fmtDateTime(d.last_seen))+'</div>':'')+'</div>'+
                    '<button class="relbtn" data-rel="'+esc(d.id)+'">שחרר</button></div>';
           }).join('')+'</div>'
         : '<div class="devnone">אין מחשבים מחוברים עדיין.</div>';
 
+      var unlimited=!u.valid_until;
       var el=document.createElement('div'); el.className='ucard';
       el.innerHTML=
         '<div class="head">'+
-          '<div class="info"><div class="em">'+esc(u.email||u.user_id)+'</div><div class="meta">בתוקף עד: '+esc(fmtDate(u.valid_until))+'</div></div>'+
-          '<span class="pill active">פעיל</span>'+
+          '<div class="info"><div class="em">'+esc(u.email||u.user_id)+'</div>'+
+            '<div class="meta">'+(unlimited?'<b style="color:var(--accent)">ללא הגבלה</b>':'בתוקף עד: '+esc(fmtDate(u.valid_until)))+lastSeenHtml(u)+'</div></div>'+
+          (unlimited?'<span class="pill life">לצמיתות</span>':'<span class="pill active">פעיל</span>')+
           '<div class="acts">'+
-            '<button class="grant ext" data-renew="1">חדש 7 ימים</button>'+
             '<button class="warnbtn" data-suspend="1">השהה</button>'+
             '<button class="delbtn" data-del="1">מחק</button>'+
           '</div>'+
         '</div>'+
+        rangeHtml('חדש')+
         '<div class="devbox">'+
           '<div class="devsum"><span class="cnt'+(full?' full':'')+'">מחשבים: <b>'+cnt+' / '+max+'</b></span>'+
           '<button class="miniadd" data-add="1">+ הוסף מחשב</button></div>'+
           devRows+
         '</div>';
-      el.querySelector('[data-renew]').addEventListener('click',function(){ grant(u.user_id, this); });
+      wireRange(el, u.user_id);
       el.querySelector('[data-suspend]').addEventListener('click',function(){ suspendUser(u.user_id, this); });
       confirmClick(el.querySelector('[data-del]'),'בטוח? מחק',function(b){ deleteUser(u.user_id, b); });
       el.querySelector('[data-add]').addEventListener('click',function(){ addDevice(u.user_id, this); });
@@ -296,13 +358,15 @@
     $('boardMsg').className='msg ok'; $('boardMsg').textContent='המחשב שוחרר — המקום התפנה ✓';
   }
 
-  async function grant(uid, btn){
+  /* opt: {days:N} | {until:'YYYY-MM-DD'} | {unlimited:true} */
+  async function grant(uid, btn, opt){
     btn.disabled=true; var o=btn.textContent; btn.textContent='מאשר…';
-    var r=await fn('grant',{user_id:uid, days:7});
-    if(!r.j.ok){ btn.disabled=false; btn.textContent=o; $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status); return; }
+    var r=await fn('grant',Object.assign({user_id:uid}, opt||{days:7}));
+    if(!r.j.ok){ btn.disabled=false; btn.textContent=o; btn.classList.remove('armed'); $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status); return; }
     var mailed=r.j.emailed;
     await load();
-    $('boardMsg').className='msg ok'; $('boardMsg').textContent='אושר ניסיון 7 ימים ✓'+(mailed?' · מייל אישור נשלח למשתמש':'');
+    var what = r.j.unlimited ? 'המנוי הופעל ללא הגבלת זמן' : 'המנוי בתוקף עד '+fmtDate(r.j.valid_until);
+    $('boardMsg').className='msg ok'; $('boardMsg').textContent=what+' ✓'+(mailed?' · מייל אישור נשלח למשתמש':'');
   }
 
   /* ---------- הצג/הסתר סיסמה (אייקון עין) ---------- */
@@ -319,10 +383,10 @@
   function csvCell(v){ v=String(v==null?'':v); return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
   $('csvBtn').addEventListener('click', function(){
     if(!allUsers.length){ $('boardMsg').className='msg'; $('boardMsg').textContent='אין נתונים לייצוא'; return; }
-    var head=['אימייל','תאריך הרשמה','סטטוס רישיון','בתוקף עד','פעיל'];
+    var head=['אימייל','תאריך הרשמה','התחברות אחרונה','סטטוס רישיון','בתוקף עד','פעיל'];
     var lines=[head.map(csvCell).join(',')];
     allUsers.forEach(function(u){
-      lines.push([u.email||'', fmtDate(u.created_at), u.license_status||'', fmtDate(u.valid_until), u.active?'כן':'לא'].map(csvCell).join(','));
+      lines.push([u.email||'', fmtDateTime(u.created_at), fmtDateTime(u.last_sign_in_at), u.license_status||'', u.valid_until?fmtDate(u.valid_until):(u.active?'ללא הגבלה':''), u.active?'כן':'לא'].map(csvCell).join(','));
     });
     var csv='\uFEFF'+lines.join('\r\n');
     var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
