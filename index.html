@@ -639,102 +639,6 @@ strong{color:var(--heading);font-weight:600;}
     width:min(17.8rem, calc(var(--textleft) - 1.5rem));
   }
 }
-/* ---- תרשים "מרכז השליטה": שתי מערכות → MyOS → סביבת עבודה אחת ----
-   קטן, שקוף וצנוע — בצבעי האזור בלבד: כחול-אפור, טורקיז ורקע השמנת. */
-.flow2{
-  display:grid;gap:0;width:100%;max-width:16rem;justify-items:stretch;margin:0 auto;
-  background:rgba(239,236,229,.9);
-  -webkit-backdrop-filter:blur(2.5px);backdrop-filter:blur(2.5px);
-  border-radius:1rem;padding:.8rem .9rem;
-}
-.f2-sources{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
-.f2-box{
-  padding:.45rem .55rem;border:1px solid #d5d0c6;border-radius:.6rem;
-  font-size:.76rem;color:#55617d;text-align:center;background:transparent;
-}
-.f2-lines{display:block;width:100%;height:1.9rem;overflow:visible;}
-.f2-lines path.f2-wire{fill:none;stroke:#12879b;stroke-opacity:.45;stroke-width:1.3;}
-.f2-dot{fill:#12879b;}
-/* הכרטיס המרכזי — קומפקטי, מילוי טורקיז עדין וזוהר חלש */
-.f2-core{
-  text-align:center;
-  padding:.55rem .7rem .6rem;border:1px solid rgba(10,87,102,.35);border-radius:.7rem;
-  background:#e7f4f5;
-  box-shadow:0 4px 14px rgba(18,135,155,.16);
-}
-.f2-core-title{
-  display:inline-flex;align-items:baseline;justify-content:center;gap:.4em;
-  font-size:.95rem;font-weight:700;color:#0a5766;
-}
-.f2-core-title .mark{width:1em;height:1em;align-self:center;overflow:visible;}
-.f2-core-title .f2-ring,.f2-core-title .f2-stem{fill:#0a5766;}
-/* ה-O "נדלקת" לרגע כשנקודות האור מגיעות — מסונכרן למחזור של 4.8ש */
-@keyframes f2glow{
-  0%,38%{filter:drop-shadow(0 0 0 rgba(18,135,155,0));}
-  46%{filter:drop-shadow(0 0 7px rgba(18,135,155,.8));}
-  58%,100%{filter:drop-shadow(0 0 0 rgba(18,135,155,0));}
-}
-body:not(.no-motion) .f2-core-title .mark{animation:f2glow 4.8s ease-in-out infinite;}
-.f2-core-sub{display:block;margin-top:.05rem;font-size:.74rem;color:#55617d;}
-.f2-ops{display:block;margin-top:.3rem;font-size:.72rem;font-weight:600;color:#0a5766;letter-spacing:.04em;}
-/* שורת התוצאה — טקסט בלבד, לא כרטיס */
-.f2-result{text-align:center;}
-.f2-result strong{display:block;color:#0a5766;font-size:.86rem;font-weight:700;}
-.f2-result span{display:block;margin-top:.05rem;font-size:.72rem;color:#55617d;}
-/* ניגודיות גבוהה — צבעי הערכה במקום הגוונים הקבועים */
-body.high-contrast .f2-box,body.high-contrast .f2-core-sub,body.high-contrast .f2-result span{color:var(--text);}
-body.high-contrast .f2-core-title,body.high-contrast .f2-ops,body.high-contrast .f2-result strong{color:var(--accent);}
-body.high-contrast .f2-core{background:var(--surface);border-color:var(--line);box-shadow:none;}
-/* צמצום תנועה — התרשים סטטי, בלי נקודות אור */
-body.no-motion .f2-dot{display:none;}
-@media (prefers-reduced-motion:reduce){.f2-dot{display:none;}}
-
-/* ---- "לפני / אחרי": ברירת המחדל ב-CSS היא מצב "אחרי" (מסודר). ה-JS מוסיף
-   .f2-before בטעינה (המערכות מפוזרות, קווים אפורים מקווקווים ביניהן, MyOS
-   עמום) ומסיר אותה כשהתרשים נכנס למסך — הקופסאות מתיישרות סביב MyOS.
-   בלי JS / בצמצום תנועה — נשאר מצב "אחרי". ---- */
-.f2-sources{position:relative;grid-template-columns:1fr 1fr;gap:.5rem;}
-.f2-box{
-  position:relative;z-index:1;
-  transition:transform .7s cubic-bezier(.2,.7,.2,1),border-color .45s ease,color .45s ease,opacity .45s ease;
-}
-.f2-mess{
-  position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;
-  pointer-events:none;overflow:visible;opacity:0;transition:opacity .45s ease;
-}
-.f2-mess line{stroke:#55617d;stroke-opacity:.6;stroke-width:1.3;stroke-dasharray:3 4;}
-#advantage .f2-mess line{stroke:var(--text-dim);}
-.f2-core,.f2-result,.f2-lines{transition:opacity .55s ease,transform .55s ease;}
-.f2-before .f2-mess{opacity:1;}
-.f2-before .f2-box{border-style:dashed;}
-.f2-before .f2-box:nth-child(1){transform:translate(-7%,-10%) rotate(-4deg);}
-.f2-before .f2-box:nth-child(2){transform:translate(6%,-4%) rotate(3deg);}
-.f2-before .f2-box:nth-child(3){transform:translate(-4%,9%) rotate(2.5deg);}
-.f2-before .f2-box:nth-child(4){transform:translate(8%,6%) rotate(-3deg);}
-.f2-before .f2-lines{opacity:.15;}
-.f2-before .f2-core{opacity:.32;transform:translateY(6px);}
-.f2-before .f2-result{opacity:.32;transform:translateY(4px);}
-.f2-before .f2-dot{display:none;}
-.f2-before .f2-core-title .mark{animation:none;}
-/* שורת המצב + כפתור החלפה ידני (התרשים דקורטיבי ומחוץ לסדר הטאב) */
-.f2-state{
-  display:block;margin-top:.55rem;text-align:center;
-  font-family:var(--mono);font-size:.64rem;letter-spacing:.05em;color:#55617d;
-}
-#advantage .f2-state{color:var(--text-dim);}
-.f2-state .f2-on{display:none;}
-.f2-before .f2-state .f2-on{display:inline;}
-.f2-before .f2-state .f2-off{display:none;}
-.f2-toggle{
-  display:inline-block;justify-self:center;margin:.35rem auto 0;padding:.2rem .6rem;
-  font:inherit;font-family:var(--mono);font-size:.62rem;letter-spacing:.05em;
-  color:#0a5766;background:transparent;border:1px solid #d5d0c6;border-radius:999px;cursor:pointer;
-}
-#advantage .f2-toggle{color:var(--accent);border-color:var(--line);}
-.f2-toggle:hover{border-color:currentColor;}
-body.high-contrast .f2-state{color:var(--text);}
-body.high-contrast .f2-mess line{stroke:var(--text);}
-
 /* סקשן 3 */
 .cards{display:grid;grid-template-columns:1fr;gap:1.1rem;margin-top:2rem;}
 @media (min-width:760px){.cards{grid-template-columns:repeat(3,1fr);}}
@@ -752,51 +656,36 @@ body.high-contrast .f2-mess line{stroke:var(--text);}
   stroke-linecap:round;stroke-linejoin:round;}
 .card p{font-size:.95rem;color:var(--text-dim);}
 
-/* ---- היתרונות: התרשים יושב כ"תא רביעי" בשורת הכרטיסים ----
-   מובייל: עמודה אחת, התרשים אחרון. טאבלט (≥760): 2 עמודות.
-   דסקטופ (≥1000): 4 עמודות — התרשים הכי ימני, מיושר לכרטיסים (אותו קו עליון וגובה). */
-#advantage .adv-slot{order:2;display:grid;place-items:center;min-width:0;padding:.5rem;}
+/* ---- היתרונות: ארבעה כרטיסים זהים. מובייל: עמודה אחת. טאבלט (≥760): 2 עמודות.
+   דסקטופ (≥1000): 4 עמודות באותו גובה. ---- */
 @media (min-width:760px){
   #advantage .adv-cards{grid-template-columns:1fr 1fr;}
 }
 @media (min-width:1000px){
   #advantage .adv-cards{grid-template-columns:repeat(4,1fr);align-items:stretch;}
-  #advantage .adv-slot{order:0;}
 }
-/* המסגרת "הדמיונית" סביב התרשים — בלתי־נראית, ושני עיגולים רצים סביבה כדי
-   לרמז עליה: יוצאים מאמצע־למעלה, כל אחד לצד אחר, ונפגשים באמצע־למטה.
-   מוצג רק בדסקטופ (שם התרשים הוא "התא הרביעי" בשורה). */
-#advantage .adv-slot{position:relative;}
-#advantage .adv-slot .flow2{position:relative;z-index:1;}
-#advantage .adv-frame{
-  position:absolute;inset:0;width:100%;height:100%;
-  pointer-events:none;z-index:0;display:none;overflow:visible;
+/* סמן עכבר דקורטיבי שנע מכרטיס לכרטיס (דסקטופ בלבד, aria-hidden, לא תופס אירועים).
+   המיקום מחושב ב-JS לפי מרכז כל כרטיס; המעבר עצמו ב-CSS transition.
+   הכרטיס ש"נלחץ" מקבל .is-poked — אותה הרמה כמו בריחוף. */
+#advantage .adv-cards{position:relative;}
+.adv-cursor{
+  position:absolute;top:0;left:0;width:1.35rem;height:1.35rem;z-index:3;
+  pointer-events:none;display:none;opacity:0;
+  transform:translate(0,0);
+  transition:transform 1.1s cubic-bezier(.45,.05,.2,1),opacity .4s ease;
+  filter:drop-shadow(0 2px 3px rgba(2,6,20,.45));
 }
-#advantage .adv-frame path{fill:none;stroke:none;}
-@media (min-width:1000px){#advantage .adv-frame{display:block;}}
-body.no-motion #advantage .adv-frame{display:none;}
+.adv-cursor.is-on{opacity:1;}
+.adv-cursor.is-click{transform-origin:20% 15%;animation:advClick .28s ease-out;}
+@keyframes advClick{0%{scale:1;}50%{scale:.82;}100%{scale:1;}}
+.adv-cursor svg{width:100%;height:100%;display:block;overflow:visible;}
+.adv-cursor path{fill:#ffffff;stroke:#0E1A33;stroke-width:1.4;stroke-linejoin:round;}
+.card.is-poked{transform:translateY(-3px);}
+@media (min-width:1000px){body:not(.no-motion) .adv-cursor{display:block;}}
+@media (prefers-reduced-motion:reduce){.adv-cursor{display:none !important;}}
 
-/* אחרי שהתרשים עבר להיתרונות — הטקסט של "מה אנחנו עושים" בעמודה קריאה */
+/* הטקסט של "מה אנחנו עושים" בעמודה קריאה */
 #hook .inner>div:not(.hook-cta){max-width:52rem;}
-
-/* התרשים יושב ישירות על רקע הסקשן (בלי המסגרת הבהירה); הצבעים דרך המשתנים
-   כדי שיתאימו גם לרקע הכהה וגם ל"תצוגה בהירה". */
-#advantage .flow2{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0;}
-#advantage .f2-box{background:transparent;border-color:var(--line);color:var(--text-dim);}
-#advantage .f2-wire{stroke:var(--accent);stroke-opacity:.5;}
-#advantage .f2-dot{fill:var(--accent);}
-#advantage .f2-core{
-  background:var(--surface);
-  border-color:color-mix(in srgb, var(--accent) 34%, transparent);
-  box-shadow:0 6px 18px rgba(2,6,20,.28);
-}
-#advantage .f2-core-title{color:var(--heading);}
-#advantage .f2-core-title .f2-ring{fill:var(--heading);}
-#advantage .f2-core-title .f2-stem{fill:var(--accent);}
-#advantage .f2-core-sub{color:var(--text-dim);}
-#advantage .f2-ops{color:var(--accent);}
-#advantage .f2-result strong{color:var(--heading);}
-#advantage .f2-result span{color:var(--text-dim);}
 
 /* סקשן 4 — קרוסלה אופקית עם נעילת גלילה (scroll snap) */
 .cases-wrap{position:relative;margin-top:2rem;}
@@ -1485,63 +1374,8 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
       <h2 id="advTitle">היתרון של <span class="h2-logo" dir="ltr" role="img" aria-label="MyOS"><span class="my" aria-hidden="true">My</span><span class="o" aria-hidden="true"><svg class="mark" viewBox="6 -7 88 101" focusable="false"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"></path><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"></path></svg></span><span class="s" aria-hidden="true">S</span></span></h2>
 
       <div class="cards adv-cards">
-        <div class="aside-mark adv-slot" aria-hidden="true">
-          <svg class="adv-frame" viewBox="0 0 200 210" preserveAspectRatio="none" focusable="false">
-            <path id="advFrameR" d="M100 6 H180 A14 14 0 0 1 194 20 V190 A14 14 0 0 1 180 204 H100"/>
-            <path id="advFrameL" d="M100 6 H20 A14 14 0 0 0 6 20 V190 A14 14 0 0 0 20 204 H100"/>
-            <circle class="f2-dot" r="3.2" opacity="0">
-              <animateMotion dur="3.6s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1" keyTimes="0;1"><mpath href="#advFrameR"/></animateMotion>
-              <animate attributeName="opacity" dur="3.6s" repeatCount="indefinite" values="0;1;1;0" keyTimes="0;0.12;0.82;1"/>
-            </circle>
-            <circle class="f2-dot" r="3.2" opacity="0">
-              <animateMotion dur="3.6s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1" keyTimes="0;1"><mpath href="#advFrameL"/></animateMotion>
-              <animate attributeName="opacity" dur="3.6s" repeatCount="indefinite" values="0;1;1;0" keyTimes="0;0.12;0.82;1"/>
-            </circle>
-          </svg>
-          <div class="flow2">
-            <div class="f2-sources">
-              <div class="f2-box">Excel</div>
-              <div class="f2-box">וואטסאפ</div>
-              <div class="f2-box">מייל</div>
-              <div class="f2-box">מערכת פנימית</div>
-              <!-- מצב "לפני": העתקה ידנית בין כל זוג מערכות -->
-              <svg class="f2-mess" viewBox="0 0 100 100" preserveAspectRatio="none" focusable="false">
-                <line x1="25" y1="25" x2="75" y2="25"/><line x1="25" y1="75" x2="75" y2="75"/>
-                <line x1="25" y1="25" x2="25" y2="75"/><line x1="75" y1="25" x2="75" y2="75"/>
-                <line x1="25" y1="25" x2="75" y2="75"/><line x1="75" y1="25" x2="25" y2="75"/>
-              </svg>
-            </div>
-            <svg class="f2-lines" viewBox="0 0 384 38" preserveAspectRatio="none" focusable="false">
-              <path id="f2pA" class="f2-wire" d="M96 0 C96 22 192 14 192 38"/>
-              <path id="f2pB" class="f2-wire" d="M288 0 C288 22 192 14 192 38"/>
-              <circle class="f2-dot" r="3.5" opacity="0">
-                <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1;1" keyTimes="0;0.4;1"><mpath href="#f2pA"/></animateMotion>
-                <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.05;0.36;0.42;1"/>
-              </circle>
-              <circle class="f2-dot" r="3.5" opacity="0">
-                <animateMotion dur="4.8s" begin="0.35s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1;1" keyTimes="0;0.4;1"><mpath href="#f2pB"/></animateMotion>
-                <animate attributeName="opacity" dur="4.8s" begin="0.35s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.05;0.36;0.42;1"/>
-              </circle>
-            </svg>
-            <div class="f2-core">
-              <span class="f2-core-title" dir="ltr">
-                <svg class="mark" viewBox="6 -7 88 101" focusable="false"><path class="f2-ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="f2-stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg>
-                <span>MyOS</span>
-              </span>
-              <span class="f2-core-sub">שכבת החיבור החכמה</span>
-              <span class="f2-ops">מתרגמת · מסנכרנת · מפעילה</span>
-            </div>
-            <svg class="f2-lines" viewBox="0 0 384 38" preserveAspectRatio="none" focusable="false">
-              <path id="f2pC" class="f2-wire" d="M192 0 L192 38"/>
-              <circle class="f2-dot" r="3.5" opacity="0">
-                <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.52;0.8;1"><mpath href="#f2pC"/></animateMotion>
-                <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.52;0.56;0.76;0.82;1"/>
-              </circle>
-            </svg>
-            <div class="f2-result"><strong>סביבת עבודה אחת</strong><span>האנשים, המידע והמערכות עובדים יחד</span></div>
-            <span class="f2-state"><span class="f2-on">היום: כל מערכת לבד</span><span class="f2-off">עם MyOS: מקור אמת אחד</span></span>
-            <button type="button" class="f2-toggle" tabindex="-1">לפני / אחרי</button>
-          </div>
+        <div class="adv-cursor" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M5 3 L19 12 L12.5 13.4 L16.2 20.2 L13.6 21.5 L9.9 14.6 L5 19.2 Z"/></svg>
         </div>
         <article class="card">
           <div class="ico" aria-hidden="true">
@@ -1565,6 +1399,13 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
           </div>
           <h3>פיתוח מערכת מלאה</h3>
           <p>אנחנו לא מוגבלים לפעולות פשוטות. אנו בונים מערכות חכמות מקצה לקצה שמתממשקות למערכות ולמאגרי המידע שהעסק שלכם עובד איתם.</p>
+        </article>
+        <article class="card">
+          <div class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 9.5h18"/><path d="M8 4v5.5"/><path d="M12 14l2 2 3.5-3.5"/></svg>
+          </div>
+          <h3>סביבת עבודה אחת</h3>
+          <p>במקום לקפוץ בין תוכנות ולהעתיק נתונים ידנית — המערכות, המידע והאנשים עובדים יחד במקום אחד, עם מקור אמת אחד.</p>
         </article>
       </div>
     </div>
@@ -2198,37 +2039,62 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
     }
   })();
 
-  /* ---------- תרשים היתרונות: "לפני / אחרי" ----------
-     ברירת המחדל (בלי JS / בצמצום תנועה) היא "אחרי". כאן מוסיפים "לפני" בטעינה,
-     ומסירים כשהתרשים נכנס למסך (פעם אחת). הכפתור מחליף ידנית. */
+  /* ---------- היתרונות: סמן עכבר שנע מכרטיס לכרטיס ----------
+     דקורטיבי בלבד. רץ רק כשהשורה על המסך, בדסקטופ, ולא בצמצום תנועה. */
   (function () {
-    var flow = document.querySelector('#advantage .flow2');
-    if (!flow) return;
-    var btn = flow.querySelector('.f2-toggle');
-    function restartDots() {
-      /* מאפסים את ציר הזמן של ה-SMIL כדי שנקודות האור יתחילו מהמקור */
-      var svgs = flow.querySelectorAll('svg.f2-lines');
-      for (var i = 0; i < svgs.length; i++) { try { svgs[i].setCurrentTime(0); } catch (e) {} }
+    var grid = document.querySelector('#advantage .adv-cards');
+    var cur = grid && grid.querySelector('.adv-cursor');
+    if (!grid || !cur || !('IntersectionObserver' in window)) return;
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.card'));
+    if (!cards.length) return;
+    var i = -1, timer = null, running = false, visible = false;
+    function active() {
+      return visible && !reducedMotion() && window.getComputedStyle(cur).display !== 'none';
     }
-    function setBefore(on) {
-      flow.classList.toggle('f2-before', on);
-      if (!on) restartDots();
+    function moveTo(card) {
+      var g = grid.getBoundingClientRect(), c = card.getBoundingClientRect();
+      /* יעד: מעט מתחת ומימין למרכז הכרטיס — כמו יד שמצביעה על הכותרת */
+      var x = c.left - g.left + c.width * 0.5;
+      var y = c.top - g.top + c.height * 0.36;
+      cur.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
     }
-    if (btn) btn.addEventListener('click', function () {
-      setBefore(!flow.classList.contains('f2-before'));
+    function step() {
+      if (!active()) { stop(); return; }
+      cards.forEach(function (c) { c.classList.remove('is-poked'); });
+      i = (i + 1) % cards.length;
+      moveTo(cards[i]);
+      /* אחרי שהסמן הגיע — "לחיצה": הסמן מתכווץ לרגע והכרטיס מתרומם */
+      timer = setTimeout(function () {
+        if (!active()) { stop(); return; }
+        cur.classList.remove('is-click'); void cur.offsetWidth; cur.classList.add('is-click');
+        cards[i].classList.add('is-poked');
+        timer = setTimeout(step, 1500);
+      }, 1200);
+    }
+    function start() {
+      if (running || !active()) return;
+      running = true;
+      /* מתחילים מהכרטיס הראשון בלי אנימציית מעבר — ואז נדלקים */
+      cur.style.transition = 'none'; i = -1; moveTo(cards[0]); void cur.offsetWidth;
+      cur.style.transition = ''; cur.classList.add('is-on');
+      timer = setTimeout(step, 400);
+    }
+    function stop() {
+      running = false; clearTimeout(timer); timer = null;
+      cur.classList.remove('is-on', 'is-click');
+      cards.forEach(function (c) { c.classList.remove('is-poked'); });
+    }
+    new IntersectionObserver(function (es) {
+      es.forEach(function (e) { visible = e.isIntersecting; });
+      if (visible) start(); else stop();
+    }, { threshold: 0.35 }).observe(grid);
+    var rt = null;
+    window.addEventListener('resize', function () {
+      clearTimeout(rt); rt = setTimeout(function () { stop(); start(); }, 200);
     });
-    if (reducedMotion() || !('IntersectionObserver' in window)) return;
-    setBefore(true);
-    var io = new IntersectionObserver(function (es) {
-      for (var i = 0; i < es.length; i++) {
-        if (es[i].isIntersecting) {
-          io.disconnect();
-          setTimeout(function () { setBefore(false); }, 1100);
-          break;
-        }
-      }
-    }, { threshold: 0.6 });
-    io.observe(flow);
+    /* כפתור "צמצום תנועה" בתפריט הנגישות — עוצרים מיד */
+    new MutationObserver(function () { if (!active()) stop(); else start(); })
+      .observe(body, { attributes: true, attributeFilter: ['class'] });
   })();
 
   /* ---------- תפריט הניווט העליון (נייד) ---------- */
