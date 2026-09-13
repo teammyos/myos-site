@@ -21,7 +21,7 @@
   .top .right{display:flex;align-items:center;gap:.7rem;font-size:.85rem;color:var(--dim)}
   .top .right button{color:var(--dim);background:none;border:1px solid var(--line);border-radius:.5rem;padding:.35rem .75rem;cursor:pointer;font:inherit;font-size:.82rem}
   .top .right button:hover{border-color:var(--accent);color:var(--accent)}
-  .wrap{width:min(46rem,100%);margin:0 auto;padding:1.6rem 1.2rem 4rem;flex:1}
+  .wrap{width:min(125rem,100%);margin:0 auto;padding:1.6rem 1.2rem 4rem;flex:1}
   h1{color:var(--heading);font-size:1.4rem;margin-bottom:1.2rem}
   h2{color:var(--heading);font-size:1.05rem;margin:1.6rem 0 .7rem}
   /* login card */
@@ -104,6 +104,43 @@
   .row .em,.ucard .em{white-space:normal;word-break:break-all}
   .nm{color:var(--heading);font-weight:700;font-size:1rem}
   .nm+.em{font-weight:400;color:var(--text);font-size:.88rem}
+
+  /* ---------- טבלת מנויים (רחבה, גלילה אופקית) ---------- */
+  .toolbar{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;margin:.2rem 0 .8rem}
+  .toolbar input{width:min(22rem,100%);margin:0;padding:.55rem .8rem;font-size:.95rem}
+  .toolbar .cnt{color:var(--dim);font-size:.85rem}
+  .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:.75rem;background:var(--card)}
+  table.ut{border-collapse:separate;border-spacing:0;width:100%;min-width:1480px;font-size:.86rem}
+  table.ut.pend{min-width:1180px}
+  table.ut th,table.ut td{padding:.5rem .6rem;border-bottom:1px solid var(--line);vertical-align:top;text-align:right}
+  table.ut th{position:sticky;top:0;background:#1b2d55;color:var(--heading);font-weight:700;font-size:.8rem;white-space:nowrap;z-index:1;cursor:pointer;user-select:none}
+  table.ut th.ns{cursor:default}
+  table.ut th .arr{color:var(--accent);font-size:.7rem;margin-inline-start:.25rem}
+  table.ut tbody tr:nth-child(even) td{background:rgba(255,255,255,.025)}
+  table.ut tbody tr:hover td{background:rgba(47,240,230,.06)}
+  table.ut tr:last-child td{border-bottom:0}
+  table.ut td.nmcell{min-width:9rem;max-width:14rem}
+  table.ut td .nm{font-size:.92rem;margin:0}
+  table.ut td .em{font-size:.82rem;color:var(--text);direction:ltr;text-align:right;word-break:break-all}
+  table.ut td.nw{white-space:nowrap}
+  table.ut td .ls{color:var(--dim);font-size:.78rem}
+  table.ut td.expiring{color:var(--wait);font-weight:700}
+  table.ut td.expired{color:#ff8f7d;font-weight:700}
+  table.ut .range{justify-content:flex-start;flex-wrap:nowrap}
+  table.ut .range input{padding:.3rem .45rem;font-size:.82rem}
+  table.ut .range input[type=number]{width:3.6rem}
+  table.ut .range input[type=date]{width:8.6rem}
+  table.ut .grant,table.ut .unlim,table.ut .warnbtn,table.ut .delbtn{padding:.34rem .6rem;font-size:.78rem}
+  table.ut .devcell{min-width:17rem}
+  table.ut .devsum{margin-bottom:.25rem}
+  table.ut .devline{padding:.25rem .45rem;gap:.4rem}
+  table.ut .devline .dname{font-size:.78rem}
+  table.ut .devline .did{font-size:.66rem;max-width:11rem}
+  table.ut .devline .dmeta{font-size:.68rem}
+  table.ut .miniadd{padding:.25rem .55rem;font-size:.74rem}
+  table.ut .acts{justify-content:flex-start;flex-wrap:nowrap}
+  table.ut .idx{color:var(--dim);font-size:.74rem;width:2rem}
+  table.ut .empty{padding:.8rem}
   .hidden{display:none}
   /* נגישות */
   .skip{position:absolute;top:0;inset-inline-start:1rem;z-index:200;transform:translateY(-150%);background:#2ff0e6;color:#0E1A33;padding:.75rem 1.25rem;border-radius:0 0 .6rem .6rem;font-weight:700;text-decoration:none;transition:transform .15s ease}
@@ -148,10 +185,21 @@
       <h1 style="margin:0">ניהול ניסיונות ומנויים</h1>
       <button class="csvbtn" id="csvBtn" type="button">⬇ הורדת מאגר נרשמים (CSV)</button>
     </div>
+    <div class="toolbar">
+      <input id="q" type="search" placeholder="חיפוש לפי שם או מייל…" aria-label="חיפוש מנוי">
+      <span class="cnt" id="cnt"></span>
+    </div>
     <h2 style="margin-top:0">ממתינים לאישור</h2>
-    <div class="list" id="pending"><p class="empty">טוען…</p></div>
+    <div class="tblwrap"><table class="ut pend"><thead><tr>
+      <th class="ns idx">#</th><th data-k="name">שם / מייל</th><th data-k="created_at">נרשם</th>
+      <th data-k="last_sign_in_at">התחברות אחרונה</th><th class="ns">רישיון</th><th class="ns">אישור מנוי</th><th class="ns">פעולות</th>
+    </tr></thead><tbody id="pending"><tr><td colspan="7" class="empty">טוען…</td></tr></tbody></table></div>
     <h2>מנויים פעילים</h2>
-    <div class="list" id="active"><p class="empty">טוען…</p></div>
+    <div class="tblwrap"><table class="ut"><thead><tr>
+      <th class="ns idx">#</th><th data-k="name">שם / מייל</th><th data-k="status">סטטוס</th><th data-k="valid_until">בתוקף עד</th>
+      <th data-k="last_sign_in_at">התחברות אחרונה</th><th class="ns">חידוש — נספר מסוף התוקף הנוכחי</th>
+      <th data-k="devices">מחשבים</th><th class="ns">פעולות</th>
+    </tr></thead><tbody id="active"><tr><td colspan="8" class="empty">טוען…</td></tr></tbody></table></div>
     <p class="msg" id="boardMsg" role="status"></p>
   </div>
 
@@ -188,14 +236,12 @@
   }
   /* בלוק פקדי הטווח (ימים / תאריך סיום) + כפתור פעולה + ללא הגבלה */
   function rangeHtml(actionLabel){
-    return '<div class="rangebar"><span class="hint">'+(actionLabel==='חדש'?'חידוש — נספר מסוף התוקף הנוכחי':'אישור מנוי')+'</span>'+
-             '<div class="range">'+
+    return '<div class="range">'+
                '<input type="number" min="1" max="3650" value="7" data-days aria-label="מספר ימים"><span class="lbl">ימים</span>'+
                '<span class="sep">|</span>'+
                '<input type="date" data-until aria-label="תאריך סיום">'+
                '<button class="grant" data-grant="1">'+esc(actionLabel)+'</button>'+
                '<button class="unlim" data-unlim="1">ללא הגבלה</button>'+
-             '</div>'+
            '</div>';
   }
   /* קריאת הבחירה מהפקדים: תאריך אם מולא, אחרת ימים */
@@ -240,86 +286,138 @@
     $('whoEmail').textContent=email||'';
   }
 
+  var sortKey={pending:'created_at',active:'valid_until'}, sortDir={pending:-1,active:1};
+  function loadingRows(){
+    $('pending').innerHTML='<tr><td colspan="7" class="empty">טוען…</td></tr>';
+    $('active').innerHTML='<tr><td colspan="8" class="empty">טוען…</td></tr>';
+  }
   async function load(){
-    $('pending').innerHTML='<p class="empty">טוען…</p>';
-    $('active').innerHTML='<p class="empty">טוען…</p>';
+    loadingRows();
     var r=await fn('list');
     if(r.status===403){ $('board').classList.add('hidden'); $('loginCard').classList.remove('hidden'); $('loginMsg').className='msg err'; $('loginMsg').textContent='החשבון הזה אינו מנהל.'; return; }
     if(!r.j.ok){
-      $('pending').innerHTML='<p class="empty">—</p>';
-      $('active').innerHTML='<p class="empty">—</p>';
+      $('pending').innerHTML='<tr><td colspan="7" class="empty">—</td></tr>';
+      $('active').innerHTML='<tr><td colspan="8" class="empty">—</td></tr>';
       $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status);
       return;
     }
     $('boardMsg').textContent='';
-    var users=r.j.users||[]; allUsers=users;
+    allUsers=r.j.users||[];
+    render();
+  }
+  /* סינון לפי חיפוש + מיון + ציור שתי הטבלאות */
+  function matches(u,q){
+    if(!q) return true;
+    return ((u.full_name||'')+' '+(u.email||'')).toLowerCase().indexOf(q)>=0;
+  }
+  function sortVal(u,k){
+    if(k==='name') return ((u.full_name||'')+' '+(u.email||'')).toLowerCase();
+    if(k==='status') return u.valid_until?1:0;            /* לצמיתות אחרון */
+    if(k==='valid_until') return u.valid_until?new Date(u.valid_until).getTime():8.64e15;
+    if(k==='devices') return (u.device_count||0);
+    return u[k]?new Date(u[k]).getTime():0;
+  }
+  function sorted(list,which){
+    var k=sortKey[which], d=sortDir[which];
+    return list.slice().sort(function(a,b){ var x=sortVal(a,k), y=sortVal(b,k); return x<y?-d:x>y?d:0; });
+  }
+  function render(){
+    var q=($('q').value||'').trim().toLowerCase();
+    var users=allUsers.filter(function(u){return matches(u,q);});
     var pending=users.filter(function(u){return !u.active;});
     var active=users.filter(function(u){return u.active;});
-    renderPending(pending); renderActive(active);
+    renderPending(sorted(pending,'pending')); renderActive(sorted(active,'active'));
+    $('cnt').textContent=(q?'מוצגים '+users.length+' מתוך '+allUsers.length:allUsers.length+' נרשמים')+' · '+
+                         allUsers.filter(function(u){return u.active;}).length+' פעילים';
+    document.querySelectorAll('table.ut th[data-k]').forEach(function(th){
+      var which=th.closest('table').classList.contains('pend')?'pending':'active';
+      var a=th.querySelector('.arr'); if(a) a.remove();
+      if(th.getAttribute('data-k')===sortKey[which]){ var sp=document.createElement('span'); sp.className='arr'; sp.textContent=sortDir[which]>0?'▲':'▼'; th.appendChild(sp); }
+    });
+  }
+  document.querySelectorAll('table.ut th[data-k]').forEach(function(th){
+    th.addEventListener('click',function(){
+      var which=th.closest('table').classList.contains('pend')?'pending':'active', k=th.getAttribute('data-k');
+      if(sortKey[which]===k) sortDir[which]*=-1; else { sortKey[which]=k; sortDir[which]=1; }
+      render();
+    });
+  });
+  $('q').addEventListener('input', render);
+
+  function validCell(u){
+    if(!u.valid_until) return '<td class="nw"><b style="color:var(--accent)">ללא הגבלה</b></td>';
+    var days=Math.ceil((new Date(u.valid_until).getTime()-Date.now())/864e5);
+    var cls=days<0?' expired':days<=3?' expiring':'';
+    return '<td class="nw'+cls+'">'+esc(fmtDate(u.valid_until))+(days<0?' (פג)':days<=7?' ('+days+' ימים)':'')+'</td>';
+  }
+  function lastCell(u){
+    return '<td class="nw"><span class="ls">'+(u.last_sign_in_at?esc(fmtDateTime(u.last_sign_in_at)):'טרם התחבר')+'</span></td>';
   }
 
   function renderPending(list){
     var box=$('pending');
-    if(!list.length){ box.innerHTML='<p class="empty">אין נרשמים ממתינים.</p>'; return; }
+    if(!list.length){ box.innerHTML='<tr><td colspan="7" class="empty">אין נרשמים ממתינים.</td></tr>'; return; }
     box.innerHTML='';
-    list.forEach(function(u){
+    list.forEach(function(u,i){
       var blocked = u.license_status==='blocked';
-      var el=document.createElement('div'); el.className='row';
-      el.innerHTML='<div class="info">'+nameHtml(u)+'<div class="meta">נרשם: '+esc(fmtDate(u.created_at))+lastSeenHtml(u)+(u.license_status?(' · רישיון: '+esc(u.license_status)):'')+'</div></div>'+
-                   (blocked?'<span class="pill susp">מושהה</span>':'')+
-                   '<div class="acts">'+
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td class="idx">'+(i+1)+'</td>'+
+                   '<td class="nmcell">'+nameHtml(u)+'</td>'+
+                   '<td class="nw">'+esc(fmtDate(u.created_at))+'</td>'+
+                   lastCell(u)+
+                   '<td class="nw">'+(blocked?'<span class="pill susp">מושהה</span>':esc(u.license_status||'—'))+'</td>'+
+                   '<td>'+(blocked ? '—' : rangeHtml('אשר'))+'</td>'+
+                   '<td><div class="acts">'+
                      (blocked ? '<button class="grant" data-react="1">הפעל מחדש</button>' : '')+
                      '<button class="delbtn" data-del="1">מחק</button>'+
-                   '</div>'+
-                   (blocked ? '' : rangeHtml('אשר'));
-      if(!blocked) wireRange(el, u.user_id);
-      var rc=el.querySelector('[data-react]'); if(rc) rc.addEventListener('click',function(){ reactivateUser(u.user_id, this); });
-      confirmClick(el.querySelector('[data-del]'),'בטוח? מחק',function(b){ deleteUser(u.user_id, b); });
-      box.appendChild(el);
+                   '</div></td>';
+      if(!blocked) wireRange(tr, u.user_id);
+      var rc=tr.querySelector('[data-react]'); if(rc) rc.addEventListener('click',function(){ reactivateUser(u.user_id, this); });
+      confirmClick(tr.querySelector('[data-del]'),'בטוח? מחק',function(b){ deleteUser(u.user_id, b); });
+      box.appendChild(tr);
     });
   }
   function renderActive(list){
     var box=$('active');
-    if(!list.length){ box.innerHTML='<p class="empty">אין מנויים פעילים.</p>'; return; }
+    if(!list.length){ box.innerHTML='<tr><td colspan="8" class="empty">אין מנויים פעילים.</td></tr>'; return; }
     box.innerHTML='';
-    list.forEach(function(u){
+    list.forEach(function(u,i){
       var max=u.max_devices==null?1:u.max_devices, cnt=u.device_count||0, full=cnt>=max;
       var devs=u.devices||[];
       var devRows = devs.length
         ? '<div class="devlist">'+devs.map(function(d){
             return '<div class="devline"><div class="dinfo"><div class="dname">'+esc(d.device_name||'מחשב')+'</div>'+
-                   '<div class="did">'+esc(d.device_id||'')+'</div>'+
+                   '<div class="did" title="'+esc(d.device_id||'')+'">'+esc(d.device_id||'')+'</div>'+
                    (d.last_seen?'<div class="dmeta">נראה לאחרונה: '+esc(fmtDateTime(d.last_seen))+'</div>':'')+'</div>'+
                    '<button class="relbtn" data-rel="'+esc(d.id)+'">שחרר</button></div>';
           }).join('')+'</div>'
         : '<div class="devnone">אין מחשבים מחוברים עדיין.</div>';
-
       var unlimited=!u.valid_until;
-      var el=document.createElement('div'); el.className='ucard';
-      el.innerHTML=
-        '<div class="head">'+
-          '<div class="info">'+nameHtml(u)+
-            '<div class="meta">'+(unlimited?'<b style="color:var(--accent)">ללא הגבלה</b>':'בתוקף עד: '+esc(fmtDate(u.valid_until)))+lastSeenHtml(u)+'</div></div>'+
-          (unlimited?'<span class="pill life">לצמיתות</span>':'<span class="pill active">פעיל</span>')+
-          '<div class="acts">'+
-            '<button class="warnbtn" data-suspend="1">השהה</button>'+
-            '<button class="delbtn" data-del="1">מחק</button>'+
-          '</div>'+
-        '</div>'+
-        rangeHtml('חדש')+
-        '<div class="devbox">'+
+      var tr=document.createElement('tr');
+      tr.innerHTML=
+        '<td class="idx">'+(i+1)+'</td>'+
+        '<td class="nmcell">'+nameHtml(u)+'</td>'+
+        '<td class="nw">'+(unlimited?'<span class="pill life">לצמיתות</span>':'<span class="pill active">פעיל</span>')+'</td>'+
+        validCell(u)+
+        lastCell(u)+
+        '<td>'+rangeHtml('חדש')+'</td>'+
+        '<td class="devcell">'+
           '<div class="devsum"><span class="cnt'+(full?' full':'')+'">מחשבים: <b>'+cnt+' / '+max+'</b></span>'+
           '<button class="miniadd" data-add="1">+ הוסף מחשב</button></div>'+
           devRows+
-        '</div>';
-      wireRange(el, u.user_id);
-      el.querySelector('[data-suspend]').addEventListener('click',function(){ suspendUser(u.user_id, this); });
-      confirmClick(el.querySelector('[data-del]'),'בטוח? מחק',function(b){ deleteUser(u.user_id, b); });
-      el.querySelector('[data-add]').addEventListener('click',function(){ addDevice(u.user_id, this); });
-      el.querySelectorAll('[data-rel]').forEach(function(b){
+        '</td>'+
+        '<td><div class="acts">'+
+          '<button class="warnbtn" data-suspend="1">השהה</button>'+
+          '<button class="delbtn" data-del="1">מחק</button>'+
+        '</div></td>';
+      wireRange(tr, u.user_id);
+      tr.querySelector('[data-suspend]').addEventListener('click',function(){ suspendUser(u.user_id, this); });
+      confirmClick(tr.querySelector('[data-del]'),'בטוח? מחק',function(b){ deleteUser(u.user_id, b); });
+      tr.querySelector('[data-add]').addEventListener('click',function(){ addDevice(u.user_id, this); });
+      tr.querySelectorAll('[data-rel]').forEach(function(b){
         b.addEventListener('click',function(){ releaseDevice(b.getAttribute('data-rel'), b, u.email); });
       });
-      box.appendChild(el);
+      box.appendChild(tr);
     });
   }
 
