@@ -328,7 +328,17 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     /* ההתרעה על נרשם חדש נשלחת אוטומטית בצד השרת (טריגר DB → notify-signup),
        אמין ב-100% וגם עבור הרשמות Google — אין צורך בשליחה מהדפדפן. */
     $('rSubmit').disabled = false;
-    say('rStatus', 'נרשמת בהצלחה! החשבון ממתין לאישור ניסיון — נאשר אותו בהקדם ונעדכן אותך.', 'ok');
+    /* מאז 005_auto_trial הניסיון מאושר אוטומטית — אין המתנה לאישור.
+       אם Supabase החזיר session (אימות מייל כבוי): מחוברים; מהתוסף — מעבירים מיד. */
+    var sess = r.data && r.data.session;
+    var back = extRedirect();
+    if (sess && back) { forwardToExt(sess, back); return; }
+    if (sess) {
+      say('rStatus', 'נרשמת בהצלחה! שבוע הניסיון פעיל ואתם כבר מחוברים — אפשר לחזור לתוסף וללחוץ "התחברות".', 'ok');
+    } else {
+      /* אימות מייל פעיל: קודם מאשרים בקישור שנשלח, ואז מתחברים */
+      say('rStatus', 'נרשמת בהצלחה! שבוע הניסיון פעיל. שלחנו קישור אימות למייל — לחצו עליו, ואז חזרו לכאן ל"התחברות".', 'ok');
+    }
     $('registerForm').reset();
   });
 
