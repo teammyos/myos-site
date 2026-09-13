@@ -672,7 +672,7 @@ strong{color:var(--heading);font-weight:600;}
   position:absolute;top:0;left:0;width:1.35rem;height:1.35rem;z-index:3;
   pointer-events:none;display:none;opacity:0;
   transform:translate(0,0);
-  transition:transform .9s ease-in-out,opacity .4s ease;
+  transition:transform .45s ease-in-out,opacity .4s ease;
   filter:drop-shadow(0 2px 3px rgba(2,6,20,.45));
 }
 .adv-cursor.is-on{opacity:1;}
@@ -2046,34 +2046,39 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
     if (!grid || !cur) return;
     var cards = Array.prototype.slice.call(grid.querySelectorAll('.card'));
     if (!cards.length) return;
-    var STEP_MS = 2200;            /* זמן בין כרטיס לכרטיס (המעבר עצמו .9ש ב-CSS) */
-    var i = 0, timer = null, visible = false;
+    var MOVE_MS = 450;             /* משך הנסיעה בין כרטיסים (תואם ל-transition ב-CSS) */
+    var HOLD_MS = 900;             /* שהייה על הכרטיס אחרי שהסמן הגיע */
+    var i = 0, timer = null, pokeTimer = null, visible = false;
     function active() {
       return visible && !reducedMotion() && window.getComputedStyle(cur).display !== 'none';
     }
+    function poke(idx) { cards.forEach(function (c, k) { c.classList.toggle('is-poked', k === idx); }); }
     function place(idx, instant) {
       var g = grid.getBoundingClientRect(), c = cards[idx].getBoundingClientRect();
       var x = c.left - g.left + c.width * 0.5, y = c.top - g.top + c.height * 0.36;
       if (instant) { cur.style.transition = 'none'; }
       cur.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
       if (instant) { void cur.offsetWidth; cur.style.transition = ''; }
-      cards.forEach(function (c, k) { c.classList.toggle('is-poked', k === idx); });
+      /* הכרטיס מתרומם רק כשהסמן מגיע אליו — לא לפני */
+      clearTimeout(pokeTimer);
+      poke(-1);
+      pokeTimer = setTimeout(function () { poke(idx); }, instant ? 0 : MOVE_MS);
     }
     function tick() {
       timer = null;
       if (!active()) { pause(); return; }
       i = (i + 1) % cards.length;
       place(i, false);
-      timer = setTimeout(tick, STEP_MS);
+      timer = setTimeout(tick, MOVE_MS + HOLD_MS);
     }
     function resume() {
       if (timer || !active()) return;
       place(i, true);                 /* מתייצב על הכרטיס הנוכחי בלי מעבר */
       cur.classList.add('is-on');
-      timer = setTimeout(tick, STEP_MS);
+      timer = setTimeout(tick, HOLD_MS);
     }
     function pause() {
-      clearTimeout(timer); timer = null;
+      clearTimeout(timer); timer = null; clearTimeout(pokeTimer);
       cur.classList.remove('is-on');
       cards.forEach(function (c) { c.classList.remove('is-poked'); });
     }
