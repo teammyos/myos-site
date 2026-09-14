@@ -23,6 +23,13 @@
   .logo .ring{fill:#eff3fa}.logo .stem{fill:#2ff0e6}
   .logo .pt{font-size:.62em;color:#dbe4f5;font-weight:600}
   .top .lnk{font-size:.85rem;color:var(--dim);text-decoration:none;border:1px solid var(--line);border-radius:.5rem;padding:.35rem .8rem}
+  .top .lnk.on{color:#d9fbe7;border-color:#22c55e;background:#0f3d2e;display:inline-flex;align-items:center;gap:.45rem;max-width:18rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .top .lnk.on .dot{flex:none;width:.55rem;height:.55rem;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.25)}
+  .done .n,.step.done h2 .n{background:#22c55e!important;color:#04121a}
+  .flow a.done{border-color:rgba(34,197,94,.5)}
+  .flow a.done small,.step.done .donenote{color:#66e6a8}
+  .step.done .donenote{display:block;font-weight:600;margin:-.4rem 0 .8rem}
+  .donenote{display:none}
   .top .lnk:hover{border-color:var(--accent);color:var(--accent)}
   .wrap{width:min(50rem,100%);margin:0 auto;padding:1.8rem 1.2rem 4rem;flex:1}
   .hero{text-align:center;margin-bottom:2rem}
@@ -109,7 +116,7 @@
       </span>
       <span class="pt">עסקאות · התקנה</span>
     </a>
-    <a class="lnk" href="../login.html">התחברות לחשבון</a>
+    <a class="lnk" id="acct" href="../login.html">התחברות לחשבון</a>
   </div>
 
   <main class="wrap" id="main" tabindex="-1">
@@ -123,7 +130,7 @@
     </section>
 
     <nav class="flow" aria-label="צעדי ההתקנה — אחד אחרי השני">
-      <a href="#s1"><span class="n">1</span><span>הרשמה — פתיחת חשבון MyOS<small>באתר, דקה אחת — שבוע ניסיון מופעל מיד</small></span></a>
+      <a href="#s1" id="flow1"><span class="n" id="flow1n">1</span><span>הרשמה — פתיחת חשבון MyOS<small>באתר, דקה אחת — שבוע ניסיון מופעל מיד</small></span></a>
       <span class="arr" aria-hidden="true">↓</span>
       <a href="#s2"><span class="n">2</span><span>התקנה מחנות Chrome<small>לוחצים "הוספה ל-Chrome"</small></span></a>
       <span class="arr" aria-hidden="true">↓</span>
@@ -134,7 +141,8 @@
 
     <!-- ========== צעד 1 ========== -->
     <section class="step" id="s1">
-      <h2><span class="n">1</span>נרשמים — פותחים חשבון MyOS</h2>
+      <h2><span class="n" id="s1n">1</span>נרשמים — פותחים חשבון MyOS</h2>
+      <span class="donenote" id="s1done"></span>
       <p>ההרשמה נעשית באתר, פעם אחת. ההתחברות בתוך התוסף עצמו — בצעד 3.</p>
       <ol>
         <li>פותחים את דף ההרשמה: <a href="../login.html">myos.co.il/login</a> ולוחצים <b>"הרשמה לניסיון"</b>.</li>
@@ -245,5 +253,27 @@
     <span class="sep" aria-hidden="true"></span>
     <span dir="ltr">© 2026 MyOS</span>
   </footer>
+<script src="../js/supabase.umd.js"></script>
+<script>
+(async function () {
+  /* אם כבר יש חשבון מחובר (נרשמו/התחברו ב-login.html) — מסמנים: "מחובר" למעלה, וצעד 1 ב-✓ */
+  try {
+    var client = supabase.createClient('https://oxofnuciofugcjlcwtqp.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94b2ZudWNpb2Z1Z2NqbGN3dHFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1ODE4OTUsImV4cCI6MjEwMzE1Nzg5NX0.E255x5r5mfpiGUvM4O7n64SFJ_tynx96Tg6HK7EaQxA');
+    var sess = (await client.auth.getSession()).data.session;
+    if (!sess || !sess.user) return;
+    var email = sess.user.email || '';
+    var a = document.getElementById('acct');
+    a.className = 'lnk on'; a.innerHTML = '<span class="dot"></span>מחובר ✓ ' + email.replace(/[<>&]/g, '');
+    a.title = 'מחובר לחשבון ' + email;
+    document.getElementById('flow1').classList.add('done');
+    document.getElementById('flow1n').textContent = '✓';
+    document.getElementById('flow1').querySelector('small').textContent = 'בוצע — מחובר כ-' + email;
+    document.getElementById('s1').classList.add('done');
+    document.getElementById('s1n').textContent = '✓';
+    document.getElementById('s1done').textContent = '✓ בוצע — אתם כבר מחוברים לחשבון ' + email + '. ממשיכים לצעד 2.';
+  } catch (e) { /* בלי חיבור — הדף נשאר כרגיל */ }
+})();
+</script>
 </body>
 </html>
