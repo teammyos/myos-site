@@ -356,6 +356,8 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     $('registerForm').classList.remove('hidden');
     $('rName').focus();
   });
+  /* קישור ישיר לטופס ההרשמה: login.html#register (מדף /nadlan) */
+  if (/[#&]register\b/.test(location.hash)) { $('openRegister').click(); }
   $('rBack').addEventListener('click', function () {
     $('registerForm').classList.add('hidden');
     $('loginForm').classList.remove('hidden');
