@@ -116,10 +116,12 @@
 
   <!-- ---------- מחוברים (התחברות מהאתר, לא מהתוסף): לאן ממשיכים ---------- -->
   <div id="doneCard" class="hidden">
-    <h1>מחוברים לחשבון</h1>
+    <h1 id="doneTitle">מחוברים לחשבון</h1>
+    <p class="next" id="doneSub" style="margin:-.4rem 0 .9rem"></p>
     <div class="who"><span class="dot"></span><span id="doneEmail"></span></div>
-    <a class="btnlink" href="https://chromewebstore.google.com/detail/dhckckgcpgjoolkneobojaikigmimnaa" target="_blank" rel="noopener">התוסף בחנות Chrome — התקנה</a>
-    <a class="btnlink ghost" href="/install/">הסבר והתקנה צעד אחר צעד</a>
+    <p class="next" style="margin:.2rem 0 .6rem"><b>עדיין לא התקנתם את התוסף?</b></p>
+    <a class="btnlink" href="/install/">התקנה ותחילת עבודה — צעד אחר צעד</a>
+    <a class="btnlink ghost" href="https://chromewebstore.google.com/detail/dhckckgcpgjoolkneobojaikigmimnaa" target="_blank" rel="noopener">ישר לחנות Chrome</a>
     <p class="next"><b>כבר התקנתם?</b> לחצו על אייקון MyOS בסרגל הדפדפן ← <b>"התחברות"</b> — החיבור יעבור לתוסף אוטומטית.</p>
     <p class="links"><a id="doneLogout">להתנתק</a></p>
   </div>
@@ -239,13 +241,17 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
       '&expires_in=' + encodeURIComponent(s.expires_in));
   }
 
+  function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function say(id, text, tone) {
     $(id).className = 'msg ' + (tone || '');
     $(id).textContent = text;
   }
   /* מסך "מחוברים" — כשמתחברים מהאתר (לא מתוך התוסף) */
-  function showDone(email) {
+  function showDone(email, title, sub) {
     ['loginForm', 'registerForm', 'contactForm', 'switchCard'].forEach(function (id) { var el = $(id); if (el) el.classList.add('hidden'); });
+    $('doneTitle').textContent = title || 'מחוברים לחשבון';
+    $('doneSub').textContent = sub || '';
+    $('doneSub').classList.toggle('hidden', !sub);
     $('doneEmail').textContent = email || '';
     $('doneCard').classList.remove('hidden');
     $('main').focus();
@@ -390,13 +396,15 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     var sess = r.data && r.data.session;
     var back = extRedirect();
     if (sess && back) { forwardToExt(sess, back); return; }
+    $('registerForm').reset();
     if (sess) {
-      say('rStatus', 'נרשמת בהצלחה! שבוע הניסיון פעיל ואתם כבר מחוברים — אפשר לחזור לתוסף וללחוץ "התחברות".', 'ok');
+      showDone(email, 'נרשמת בהצלחה!', 'שבוע הניסיון פעיל ואתם כבר מחוברים. הצעד הבא:');
     } else {
       /* אימות מייל פעיל: קודם מאשרים בקישור שנשלח, ואז מתחברים */
-      say('rStatus', 'נרשמת בהצלחה! שבוע הניסיון פעיל. שלחנו קישור אימות למייל — לחצו עליו, ואז חזרו לכאן ל"התחברות".', 'ok');
+      $('rStatus').className = 'msg ok';
+      $('rStatus').innerHTML = 'נרשמת בהצלחה! שבוע הניסיון פעיל.<br>שלחנו קישור אימות ל-<b dir="ltr">' + esc(email) + '</b> — לחצו עליו, ואז חזרו לכאן ל"התחברות".<br>' +
+        'בינתיים: <a href="/install/">התקנה ותחילת עבודה — צעד אחר צעד</a>';
     }
-    $('registerForm').reset();
   });
 
   /* ---------- התחברות ---------- */
