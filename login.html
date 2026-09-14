@@ -41,7 +41,8 @@
   .msg.err{color:#ffb3a4}
   .msg.ok{color:#8dfff4}
   .links{margin-top:1.1rem;text-align:center;font-size:.85rem;color:#b9c5dd}
-  .links a{color:#8dfff4;cursor:pointer;text-decoration:underline;text-underline-offset:.22em}
+  .links a,.msg a{color:#8dfff4;cursor:pointer;text-decoration:underline;text-underline-offset:.22em}
+  .msg.err a{color:#fff}
   textarea{
     width:100%;font:inherit;font-size:1rem;color:#12233f;background:#f5f8fc;
     border:1.5px solid #cdd8ec;border-radius:.6rem;padding:.7rem .9rem;margin-bottom:1rem;
@@ -80,9 +81,15 @@
     background:#fff;color:#1f2430;border:0;border-radius:.65rem;padding:.75rem}
   .gbtn:hover{background:#eef1f6}
   .gbtn svg{width:1.15rem;height:1.15rem;flex:none}
-  #switchCard .who{display:flex;align-items:center;justify-content:center;gap:.6rem;background:#0f3d2e;border:1px solid #22c55e;color:#d9fbe7;border-radius:.65rem;padding:.7rem .9rem;margin-bottom:1.1rem;font-weight:600;word-break:break-all}
-  #switchCard .dot{flex:none;width:.65rem;height:.65rem;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.25)}
+  #switchCard .who,#doneCard .who{display:flex;align-items:center;justify-content:center;gap:.6rem;background:#0f3d2e;border:1px solid #22c55e;color:#d9fbe7;border-radius:.65rem;padding:.7rem .9rem;margin-bottom:1.1rem;font-weight:600;word-break:break-all}
+  #switchCard .dot,#doneCard .dot{flex:none;width:.65rem;height:.65rem;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.25)}
   button.ghost{background:none;border:1px solid #2a3a58;color:#b9c5dd;margin-top:.6rem;font-weight:500}
+  a.btnlink{display:block;width:100%;text-align:center;text-decoration:none;font:inherit;font-weight:600;font-size:1.02rem;background:#2ff0e6;color:#04121a;border-radius:.7rem;padding:.85rem;box-sizing:border-box}
+  a.btnlink:hover{background:#8dfff4}
+  a.btnlink.ghost{background:none;border:1px solid #2a3a58;color:#b9c5dd;margin-top:.6rem;font-weight:500}
+  a.btnlink.ghost:hover{border-color:#8dfff4;color:#8dfff4}
+  #doneCard .next{margin-top:1.1rem;font-size:.88rem;color:#b9c5dd;line-height:1.6;text-align:center}
+  #doneCard .next b{color:#eef3fb}
   button.ghost:hover{border-color:#8dfff4;color:#8dfff4}
   .hidden{display:none}
   /* נגישות */
@@ -105,6 +112,16 @@
     <button type="button" id="switchContinue">להמשיך עם החשבון הזה</button>
     <button type="button" class="ghost" id="switchLogout">להתנתק ולהתחבר עם חשבון אחר</button>
     <p class="msg" id="switchMsg" role="status"></p>
+  </div>
+
+  <!-- ---------- מחוברים (התחברות מהאתר, לא מהתוסף): לאן ממשיכים ---------- -->
+  <div id="doneCard" class="hidden">
+    <h1>מחוברים לחשבון</h1>
+    <div class="who"><span class="dot"></span><span id="doneEmail"></span></div>
+    <a class="btnlink" href="https://chromewebstore.google.com/detail/dhckckgcpgjoolkneobojaikigmimnaa" target="_blank" rel="noopener">התוסף בחנות Chrome — התקנה</a>
+    <a class="btnlink ghost" href="/install/">הסבר והתקנה צעד אחר צעד</a>
+    <p class="next"><b>כבר התקנתם?</b> לחצו על אייקון MyOS בסרגל הדפדפן ← <b>"התחברות"</b> — החיבור יעבור לתוסף אוטומטית.</p>
+    <p class="links"><a id="doneLogout">להתנתק</a></p>
   </div>
 
   <!-- ---------- התחברות ---------- -->
@@ -150,13 +167,16 @@
     <input class="hp" type="checkbox" id="cBot" tabindex="-1" autocomplete="off">
     <label for="cName">שם מלא</label>
     <input id="cName" type="text" autocomplete="name" required>
-    <label for="cPhone">טלפון</label>
-    <input id="cPhone" type="tel" inputmode="tel" autocomplete="tel" required>
+    <label for="cEmail">דוא״ל</label>
+    <input id="cEmail" type="email" autocomplete="email" placeholder="כדי שנוכל לענות">
+    <label for="cPhone">טלפון <span class="opt">(אופציונלי — אם נוח לכם שנתקשר)</span></label>
+    <input id="cPhone" type="tel" inputmode="tel" autocomplete="tel">
     <label for="cMsg">הודעה <span class="opt">(אופציונלי)</span></label>
     <textarea id="cMsg" rows="2" placeholder="נשמח לשמוע איך נוכל לעזור"></textarea>
     <button id="cSubmit" type="submit">שליחה</button>
     <p class="msg" id="cStatus" role="status"></p>
     <p class="links"><a id="cBack">חזרה להתחברות</a></p>
+    <p class="links" style="font-size:.85rem">או ישירות: <a href="mailto:team@myos.co.il">team@myos.co.il</a> · <a href="tel:035333630" dir="ltr">03-5333630</a></p>
   </form>
 
   <!-- ---------- קביעת סיסמה חדשה (אחרי קישור איפוס) ---------- -->
@@ -223,6 +243,19 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     $(id).className = 'msg ' + (tone || '');
     $(id).textContent = text;
   }
+  /* מסך "מחוברים" — כשמתחברים מהאתר (לא מתוך התוסף) */
+  function showDone(email) {
+    ['loginForm', 'registerForm', 'contactForm', 'switchCard'].forEach(function (id) { var el = $(id); if (el) el.classList.add('hidden'); });
+    $('doneEmail').textContent = email || '';
+    $('doneCard').classList.remove('hidden');
+    $('main').focus();
+  }
+  $('doneLogout').addEventListener('click', async function () {
+    await client.auth.signOut();
+    $('doneCard').classList.add('hidden');
+    $('loginForm').classList.remove('hidden');
+    say('msg', 'התנתקתם', 'ok');
+  });
 
   /* ---------- קישור איפוס סיסמה מחזיר לכאן עם type=recovery ---------- */
   if (/type=recovery/.test(location.hash)) {
@@ -255,8 +288,9 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
   $('contactForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     if ($('cBot').checked) return;                 /* מלכודת בוטים */
-    var name = $('cName').value.trim(), phone = $('cPhone').value.trim();
-    if (!name || !phone) { say('cStatus', 'נא למלא שם וטלפון', 'err'); return; }
+    var name = $('cName').value.trim(), phone = $('cPhone').value.trim(), email = $('cEmail').value.trim();
+    if (!name) { say('cStatus', 'נא למלא שם', 'err'); return; }
+    if (!email && !phone) { say('cStatus', 'נא למלא דוא״ל או טלפון — כדי שנוכל לחזור אליכם', 'err'); return; }
     $('cSubmit').disabled = true;
     say('cStatus', 'שולח…');
     try {
@@ -265,7 +299,9 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
       fd.append('subject', 'פנייה חדשה — התחברות MyOS עסקאות');
       fd.append('from_name', 'myos.co.il/login');
       fd.append('שם מלא', name);
-      fd.append('טלפון', phone);
+      fd.append('דוא״ל', email || '—');
+      if (email) fd.append('replyto', email);
+      fd.append('טלפון', phone || '—');
       fd.append('הודעה', $('cMsg').value.trim());
       var res = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd });
       var j = await res.json();
@@ -324,7 +360,28 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     if (!name || !email || pw.length < 8) { say('rStatus', 'מלאו שם, דוא״ל וסיסמה בת 8 תווים לפחות', 'err'); return; }
     $('rSubmit').disabled = true; say('rStatus', 'נרשם…');
     var r = await client.auth.signUp({ email: email, password: pw, options: { data: { full_name: name } } });
-    if (r.error) { $('rSubmit').disabled = false; say('rStatus', 'ההרשמה נכשלה: ' + r.error.message, 'err'); return; }
+    if (r.error) {
+      $('rSubmit').disabled = false;
+      var em = String(r.error.message || '');
+      if (/already registered|already exists|already been registered/i.test(em)) {
+        /* מייל שכבר רשום — לא "נכשל": מפנים להתחברות עם המייל מלא */
+        $('rStatus').className = 'msg err';
+        $('rStatus').innerHTML = '<b>כבר יש חשבון עם המייל הזה</b> — אין צורך להירשם שוב.<br>' +
+          '<a id="rGoLogin">לעבור להתחברות</a> · <a id="rGoForgot">שכחתי סיסמה</a>';
+        $('rGoLogin').addEventListener('click', function () {
+          $('email').value = email; $('rBack').click(); $('password').focus();
+        });
+        $('rGoForgot').addEventListener('click', function () {
+          $('email').value = email; $('rBack').click(); $('forgot').click();
+        });
+        return;
+      }
+      if (/password/i.test(em) && /weak|short|least/i.test(em)) { say('rStatus', 'הסיסמה חלשה מדי — לפחות 8 תווים', 'err'); return; }
+      if (/rate limit|too many/i.test(em)) { say('rStatus', 'יותר מדי ניסיונות — נסו שוב בעוד כמה דקות', 'err'); return; }
+      if (/invalid.*email|email.*invalid/i.test(em)) { say('rStatus', 'כתובת הדוא״ל לא תקינה', 'err'); return; }
+      say('rStatus', 'ההרשמה נכשלה: ' + em, 'err');
+      return;
+    }
     /* ההתרעה על נרשם חדש נשלחת אוטומטית בצד השרת (טריגר DB → notify-signup),
        אמין ב-100% וגם עבור הרשמות Google — אין צורך בשליחה מהדפדפן. */
     $('rSubmit').disabled = false;
@@ -353,13 +410,26 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     });
     $('submit').disabled = false;
     if (r.error) {
-      say('msg', 'ההתחברות נכשלה — בדקו דוא״ל וסיסמה', 'err');
+      var m = String(r.error.message || '');
+      if (/not confirmed/i.test(m)) {
+        say('msg', 'המייל עדיין לא אומת — לחצו על קישור האימות ששלחנו למייל ואז נסו שוב', 'err');
+      } else {
+        /* Supabase לא מבחין בין "אין חשבון" ל"סיסמה שגויה" — מציגים את שתי האפשרויות */
+        $('msg').className = 'msg err';
+        $('msg').innerHTML = 'ההתחברות נכשלה. או שהסיסמה שגויה — או ש<b>עדיין אין חשבון</b> עם המייל הזה.<br>' +
+          '<a id="msgRegister">הרשמה לניסיון חינם</a> (דקה, בלי כרטיס אשראי) · <a id="msgForgot">שכחתי סיסמה</a>';
+        $('msgRegister').addEventListener('click', function () {
+          $('rEmail').value = $('email').value.trim();
+          $('openRegister').click();
+        });
+        $('msgForgot').addEventListener('click', function () { $('forgot').click(); });
+      }
       return;
     }
     var s = r.data.session;
     var back = extRedirect();
     if (back) { forwardToExt(s, back); }
-    else { say('msg', 'מחוברים ✓ אפשר לחזור לתוסף', 'ok'); }
+    else { showDone(s.user && s.user.email); }
   });
 
   /* ---------- התחברות/הרשמה עם Google ---------- */
@@ -372,9 +442,14 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
   /* ---------- חזרה מ-OAuth / כבר מחובר: העברת טוקנים לתוסף אם צריך ---------- */
   (async function () {
     var back = extRedirect();
-    if (!back) return;
     var sess = (await client.auth.getSession()).data.session;
     if (!sess) return;                       // אין session — יוצג טופס התחברות/הרשמה
+    if (!back) {                             // נכנסו לדף כשכבר מחוברים (או חזרה מ-Google בלי תוסף)
+      var u = await client.auth.getUser();
+      if (u && u.data && u.data.user && !u.error) showDone(u.data.user.email);
+      else await client.auth.signOut();
+      return;
+    }
     // מאמתים מול השרת שהמשתמש עדיין קיים לפני שמעבירים אותו לתוסף.
     // אם החשבון נמחק/בוטל — ה-session ה"מת" מנותק ומוצג טופס במקום "מחובר" מדומה.
     var chk = await client.auth.getUser();
