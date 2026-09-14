@@ -108,6 +108,13 @@
   .flow .fc.work .n{background:#66e6a8;color:#04121a;font-size:1rem}
   .flow .fc.work .body>a.t{color:#8ff0c0}
   .btnlike.navy{background:#0E1A33;color:#fff;border:1px solid #26375c;border-radius:.5rem;padding:.15rem .7rem;font-weight:600;font-size:.86em;white-space:nowrap}
+  details.more{margin-top:.2rem}
+  details.more>summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:.45rem;color:var(--accent);font-weight:600;font-size:.92rem;padding:.35rem .7rem;border:1px solid rgba(47,240,230,.4);border-radius:.55rem;user-select:none}
+  details.more>summary::-webkit-details-marker{display:none}
+  details.more>summary::before{content:"▸";font-size:1rem;transition:transform .15s}
+  details.more[open]>summary::before{transform:rotate(90deg)}
+  details.more>summary:hover{background:rgba(47,240,230,.08)}
+  details.more .morebody{margin-top:.8rem}
   .gblue{display:inline-block;background:#1a73e8;color:#fff;font-weight:700;border-radius:.35rem;padding:.05rem .5rem;font-size:.8rem}
   .flow .arr{color:var(--accent);font-size:1.6rem;line-height:1;padding:.15rem 0}
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -153,29 +160,33 @@
       <span class="arr" aria-hidden="true">↓</span>
       <div class="fc" id="flow4"><span class="n">4</span><span class="body"><a class="t" href="#s4">התחברות בתוסף</a><small>לוחצים על <img class="ic o" src="data:image/png;base64,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" alt="אייקון MyOS"> בסרגל ← "התחברות" — הפס הופך ירוק. פעם אחת.</small></span></div>
       <span class="arr" aria-hidden="true">↓</span>
-      <div class="fc work" id="flowW"><span class="n">▶</span><span class="body"><a class="t" href="#work">מעולה! מוכנים לעבודה</a><small>בחלונית התוסף: מלאו את הנתונים הנדרשים לכם ולחצו <span class="btnlike navy">פתח את אתר רשות המיסים ומלא</span> → קוד אבטחה → חיפוש → "הורד עסקאות"</small></span></div>
+      <div class="fc work" id="flowW"><span class="n">▶</span><span class="body"><a class="t" href="#work">מעולה! מוכנים לעבודה</a><small>בחלונית התוסף: מלאו את הנתונים הנדרשים לכם ולחצו <span class="btnlike navy">פתח את אתר רשות המיסים ומלא</span></small></span></div>
     </nav>
 
     <!-- ========== צעד 1 ========== -->
     <section class="step" id="s1">
       <h2><span class="n" id="s1n">1</span>נרשמים — פותחים חשבון MyOS</h2>
       <span class="donenote" id="s1done"></span>
-      <p>ההרשמה נעשית באתר, פעם אחת. ההתחברות בתוך התוסף עצמו — בצעד 3.</p>
+      <details class="more"><summary>הסבר מפורט + צילומי מסך</summary><div class="morebody">
+      <p>ההרשמה נעשית באתר, פעם אחת. ההתחברות בתוך התוסף עצמו — בצעד 4.</p>
       <ol>
-        <li>פותחים את דף ההרשמה: <a href="../login.html">myos.co.il/login</a> ולוחצים <b>"הרשמה לניסיון"</b>.</li>
-        <li>ממלאים שם מלא, דוא״ל וסיסמה ולוחצים <span class="btnlike teal">הרשמה</span> — או לוחצים <b>"התחברות / הרשמה עם Google"</b> ובוחרים חשבון Google.</li>
+        <li>פותחים את דף ההרשמה: <a href="../login.html#register">myos.co.il/login</a> (או הכפתור למטה).</li>
+        <li>ממלאים שם מלא, דוא״ל וסיסמה ולוחצים <span class="btnlike teal">הרשמה</span> — או לוחצים <b>"הרשמה עם Google"</b> ובוחרים חשבון Google.</li>
         <li>זהו: <b>שבוע הניסיון מופעל מיד</b>, בלי כרטיס אשראי. מופיע מסך "נרשמת בהצלחה!" עם המייל שלכם — ממשיכים לצעד 2.</li>
       </ol>
-      <a class="cta" href="../login.html">
+      <a class="cta" href="../login.html#register">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         הרשמה לניסיון חינם — פתיחת חשבון MyOS
       </a>
       <div class="tip"><span class="i">!</span><span><b>כבר יש לכם חשבון MyOS?</b> אין צורך להירשם שוב — עוברים ישר לצעד 2. (אם בהרשמה מופיע "כבר יש חשבון עם המייל הזה" — זה אתם; לוחצים "לעבור להתחברות", ואם הסיסמה נשכחה — "שכחתי סיסמה".)</span></div>
+    
+      </div></details>
     </section>
 
     <!-- ========== צעד 2 ========== -->
     <section class="step" id="s2">
       <h2><span class="n">2</span>מתקינים את התוסף מחנות Chrome</h2>
+      <details class="more"><summary>הסבר מפורט + צילומי מסך</summary><div class="morebody">
       <ol>
         <li>פותחים את התוסף בחנות — בדפדפן <b>Chrome</b> (במחשב, לא בטלפון):</li>
       </ol>
@@ -190,11 +201,14 @@
       <figure class="shot"><img src="../img/install/01-store.webp" alt="עמוד התוסף בחנות Chrome עם הכפתור הוספה ל-Chrome" loading="lazy"><figcaption>1. בחנות: הכפתור הכחול "הוספה ל-Chrome" (בצד שמאל)</figcaption></figure>
       <figure class="shot" style="max-width:32rem;margin-inline:auto"><img src="../img/install/02-dialog.webp" alt="חלון האישור של Chrome עם הכפתור התקנת התוסף" loading="lazy"><figcaption>2. בחלון האישור: "התקנת התוסף"</figcaption></figure>
       <div class="tip"><span class="i">!</span><span>עובדים ב-<b>Microsoft Edge</b>? גם שם זה עובד: פותחים את אותו קישור, מאשרים "אפשר תוספים מחנויות אחרות" אם נשאלים, ואז "הוספה ל-Chrome".</span></div>
+    
+      </div></details>
     </section>
 
     <!-- ========== צעד 3 ========== -->
     <section class="step" id="s3">
       <h2><span class="n">3</span>מצמידים את התוסף לסרגל</h2>
+      <details class="more"><summary>הסבר מפורט + צילומי מסך</summary><div class="morebody">
       <p>אחרי ההתקנה התוסף <b>מוסתר</b> מאחורי אייקון הפאזל. כדי שיהיה תמיד בהישג יד — מצמידים אותו פעם אחת:</p>
       <ol>
         <li>לוחצים על סמל התוספים <svg class="gi" viewBox="0 0 24 24" aria-label="סמל התוספים"><path fill="currentColor" d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg> בסרגל העליון של הדפדפן (בצד שמאל, ליד שורת הכתובת).</li>
@@ -206,11 +220,14 @@
         <figure class="shot"><img src="../img/install/04-pinned.webp" alt="אייקון MyOS מוצמד בסרגל הכלים" loading="lazy"><figcaption>התוצאה: האייקון קבוע בסרגל</figcaption></figure>
       </div>
       <div class="tip"><span class="i">!</span><span>לא רואים את הפאזל? ייתכן שחלון הדפדפן צר — הרחיבו אותו, או לחצו על שלוש הנקודות ⋮ ← <b>תוספים</b> ← <b>ניהול תוספים</b> וודאו ש-MyOS עסקאות <b>מופעל</b>.</span></div>
+    
+      </div></details>
     </section>
 
     <!-- ========== צעד 4 ========== -->
     <section class="step" id="s4">
       <h2><span class="n">4</span>מתחברים בתוסף</h2>
+      <details class="more"><summary>הסבר מפורט + צילומי מסך</summary><div class="morebody">
       <p>עם החשבון שפתחתם בצעד 1 — פעם אחת, התוסף זוכר:</p>
       <ol>
         <li>לוחצים על אייקון MyOS <img class="ic o" src="data:image/png;base64,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" alt="אייקון MyOS"> בסרגל — נפתחת חלונית התוסף.</li>
@@ -222,11 +239,14 @@
         <figure class="shot"><img src="../img/install/05-popup-off.webp?v=2" alt="חלונית התוסף לפני התחברות: כרטיס ברוכים הבאים ופס אדום לא מחובר עם כפתור התחברות" loading="lazy"><figcaption>לפני: פס אדום — לוחצים "התחברות"</figcaption></figure>
         <figure class="shot"><img src="../img/install/06-popup-on.webp?v=2" alt="חלונית התוסף אחרי התחברות: פס ירוק מחובר" loading="lazy"><figcaption>אחרי: פס ירוק — מוכנים לעבודה</figcaption></figure>
       </div>
+    
+      </div></details>
     </section>
 
     <!-- ========== צורת העבודה ========== -->
     <section class="step work" id="work">
       <h2><span class="n">▶</span>מעולה! מוכנים לעבודה — השליפה הראשונה, מגוש לאקסל</h2>
+      <details class="more"><summary>הסבר מפורט + צילומי מסך</summary><div class="morebody">
       <ol>
         <li>בחלונית: ממלאים <b>גוש</b> (למשל 7375; חלקה — אם רוצים) או ישוב/רחוב, ולוחצים <span class="btnlike navy">פתח את אתר רשות המיסים ומלא</span>.</li>
         <li>נפתחת לשונית עם אתר רשות המיסים והטופס <b>כבר מלא</b>. למעלה מופיעה הודעה: "הטופס מולא".</li>
@@ -243,6 +263,8 @@
       </div>
       <figure class="shot"><img src="../img/install/11-excel.webp?v=2" alt="קובץ האקסל שהתקבל: כל העסקאות של גוש 7375 בטבלה מסודרת" loading="lazy"><figcaption>התוצאה: כל העסקאות באקסל מסודר, מוכן לעבודה</figcaption></figure>
       <div class="tip"><span class="i">!</span><span>רוצים לבחור מקום ושם לקובץ? בחלונית, תחת "הקובץ — שם ושמירה", מסמנים "שאל אותי איפה לשמור".</span></div>
+    
+      </div></details>
     </section>
 
     <!-- ========== שאלות ========== -->
@@ -275,13 +297,29 @@
     <span class="sep" aria-hidden="true"></span>
     <span dir="ltr">© 2026 MyOS</span>
   </footer>
+<script>
+(function () {
+  function openFor(hash) {
+    if (!hash) return;
+    var sec = document.querySelector(hash); if (!sec) return;
+    var d = sec.querySelector('details.more'); if (d) d.open = true;
+  }
+  document.querySelectorAll('.flow a.t').forEach(function (a) {
+    a.addEventListener('click', function () { openFor(a.getAttribute('href')); });
+  });
+  window.addEventListener('hashchange', function () { openFor(location.hash); });
+  openFor(location.hash);
+})();
+</script>
 <script src="../js/supabase.umd.js"></script>
 <script>
 (async function () {
   /* אם כבר יש חשבון מחובר (נרשמו/התחברו ב-login.html) — מסמנים: "מחובר" למעלה, וצעד 1 ב-✓ */
   try {
     var client = supabase.createClient('https://oxofnuciofugcjlcwtqp.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94b2ZudWNpb2Z1Z2NqbGN3dHFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1ODE4OTUsImV4cCI6MjEwMzE1Nzg5NX0.E255x5r5mfpiGUvM4O7n64SFJ_tynx96Tg6HK7EaQxA');
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94b2ZudWNpb2Z1Z2NqbGN3dHFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1ODE4OTUsImV4cCI6MjEwMzE1Nzg5NX0.E255x5r5mfpiGUvM4O7n64SFJ_tynx96Tg6HK7EaQxA',
+      /* קריאה בלבד: בלי רענון טוקן אוטומטי — כדי לא לשרוף את טוקן-הרענון שהתוסף מחזיק */
+      { auth: { autoRefreshToken: false } });
     var sess = (await client.auth.getSession()).data.session;
     if (!sess || !sess.user) return;
     var email = sess.user.email || '';
