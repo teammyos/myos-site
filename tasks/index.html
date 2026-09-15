@@ -249,7 +249,13 @@ dialog::backdrop{background:#0e1a3388}
     <label>שם<input id="itemTitle" class="control" required></label>
     <div class="two">
       <label>סוג<select id="itemType" class="control"><option value="task">משימה</option><option value="goal">מטרה / פרויקט</option></select></label>
-      <label>שייך ל<select id="parent" class="control"></select></label>
+      <label id="parentField">שייך למטרה / פרויקט
+        <div class="inline"><select id="parent" class="control"></select><button type="button" id="quickGoal" class="btn small" title="מטרה חדשה">＋</button></div>
+      </label>
+    </div>
+    <div id="quickGoalBox" class="inline hidden">
+      <label style="flex:1">שם המטרה / הפרויקט החדש<input id="quickGoalName" class="control" placeholder="למשל: פרויקט מגדל צפת"></label>
+      <button type="button" id="quickGoalSave" class="btn primary">הוספה לאזור</button>
     </div>
     <label>הפעולה הבאה<input id="action" class="control" placeholder="למשל: להתקשר לעירייה"></label>
     <div class="two">
@@ -415,6 +421,12 @@ function fillSelects(sel={}){
   $('#parent').innerHTML='<option value="">ללא שיוך</option>'+goals.map(g=>`<option value="${g.id}" ${g.id===sel.parent?'selected':''}>${esc(g.title)}</option>`).join('');
   $('#owner').innerHTML='<option value="">ללא אחראי</option>'+people.map(p=>`<option value="${p.id}" ${p.id===sel.owner?'selected':''}>${esc(p.name)}</option>`).join('');
 }
+function typeChanged(){
+  const isGoal=$('#itemType').value==='goal';
+  $('#parentField').classList.toggle('hidden',isGoal);
+  if(isGoal){$('#parent').value='';$('#quickGoalBox').classList.add('hidden')}
+  if(!$('#itemId').value)$('#formTitle').textContent=isGoal?'מטרה / פרויקט חדש':'משימה חדשה';
+}
 function openItem(kind='task',id=''){
   const x=items.find(y=>y.id===id);
   fillSelects({parent:x?.parent_id||'',owner:x?.owner_id||''});
@@ -423,6 +435,8 @@ function openItem(kind='task',id=''){
   $('#formTitle').textContent=x?'עריכת פריט':(kind==='goal'?'מטרה / פרויקט חדש':'משימה חדשה');
   $('#deleteItem').classList.toggle('hidden',!x);
   $('#quickPersonBox').classList.add('hidden');$('#quickPersonName').value='';
+  $('#quickGoalBox').classList.add('hidden');$('#quickGoalName').value='';
+  typeChanged();
   $('#itemDialog').showModal();
 }
 
@@ -496,6 +510,18 @@ $('#saveItem').onclick=async e=>{
 $('#deleteItem').onclick=async()=>{
   const {error}=await db.from('items').delete().eq('id',$('#itemId').value);
   if(error){alert(heb(error));return} await loadSpace();$('#itemDialog').close();
+};
+$('#itemType').onchange=typeChanged;
+$('#quickGoal').onclick=()=>{$('#quickGoalBox').classList.toggle('hidden');$('#quickGoalName').focus()};
+$('#quickGoalSave').onclick=async()=>{
+  const title=$('#quickGoalName').value.trim();if(!title||!space)return;
+  const {data,error}=await db.from('items').insert({space_id:space.id,title,type:'goal',created_by:user.id}).select();
+  if(error){alert(heb(error));return}
+  const made=one(data);
+  const owner=$('#owner').value;
+  await loadSpace();
+  fillSelects({parent:(made&&made.id)||(items.find(x=>x.type==='goal'&&x.title===title)||{}).id||'',owner});
+  $('#quickGoalBox').classList.add('hidden');$('#quickGoalName').value='';
 };
 $('#quickPerson').onclick=()=>{$('#quickPersonBox').classList.toggle('hidden');$('#quickPersonName').focus()};
 $('#quickPersonSave').onclick=async()=>{
