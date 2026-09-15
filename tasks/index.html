@@ -219,6 +219,16 @@ dialog::backdrop{background:#0e1a3388}
     <section id="teamView" class="hidden">
       <div id="teamNeedsSpace" class="empty hidden">מסך הצוות שייך לאזור אחד. בחרו אזור מסוים בראש המסך כדי לנהל את החברים והאנשים שלו.</div>
       <div id="teamPanels">
+      <div class="panel" id="spacePanel">
+        <h2>הגדרות האזור</h2>
+        <div class="muted">שם האזור וניהולו. רק בעל האזור יכול לשנות.</div>
+        <div class="inline" style="margin-top:14px">
+          <label style="flex:1">שם האזור<input id="spaceRename" class="control"></label>
+          <button id="renameSpaceBtn" class="btn primary">שמירת שם</button>
+          <button id="delSpaceBtn" class="btn danger">מחיקת האזור</button>
+        </div>
+        <div id="spaceMsg" class="msg hidden" style="margin:14px 0 0"></div>
+      </div>
       <div class="panel">
         <h2>חברים באזור</h2>
         <div class="muted">מי שיכול להיכנס לאזור הזה ולראות את המשימות שבו. חייב להיות רשום במערכת.</div>
@@ -309,7 +319,7 @@ const db=window.supabase.createClient(cfg.url,cfg.publishableKey);
 let user=null,me=null,spaces=[],space=null,items=[],people=[],members=[],users=[],view='board';
 let lastParent='',lastOwner='',allMode=false;
 const ALL='__all__';
-const spaceName=id=>(spaces.find(s=>s.id===id)||{}).name||'';
+const spaceName=id=>{const s=spaces.find(x=>x.id===id)||{};return s.label||s.name||''};
 
 const heb=e=>{const s=(e&&e.message)||String(e||'');
  if(/Invalid login credentials/i.test(s))return 'המייל או הסיסמה שגויים.';
@@ -330,13 +340,21 @@ const one=d=>Array.isArray(d)?d[0]:d;
 
 /* ============ טעינה ============ */
 async function loadSpaces(){
-  const {data,error}=await db.from('spaces').select('id,name,kind,owner_id').order('kind').order('created_at');
-  if(error){alert(heb(error));return}
-  spaces=data||[];
+  // my_spaces מחזירה גם את שם הבעלים, כדי להבדיל בין שני אזורים באותו שם.
+  // אם המיגרציה טרם רצה — נופלים חזרה לקריאה הישירה.
+  let rows=null;
+  const rpc=await db.rpc('my_spaces');
+  if(!rpc.error&&rpc.data) rows=rpc.data;
+  else {
+    const q=await db.from('spaces').select('id,name,kind,owner_id').order('kind').order('created_at');
+    if(q.error){alert(heb(q.error));return}
+    rows=(q.data||[]).map(s=>({...s,owner_name:'',is_owner:s.owner_id===user.id}));
+  }
+  spaces=rows.map(s=>({...s,label:s.is_owner?s.name:s.name+' · '+(s.owner_name||'משותף')}));
   const keep=localStorage.getItem('myos_space');
   space=keep===ALL?null:(spaces.find(s=>s.id===keep)||spaces[0]||null);
   if(keep===ALL)allMode=true;
-  $('#spaceSel').innerHTML=spaces.map(s=>`<option value="${s.id}" ${!allMode&&space&&s.id===space.id?'selected':''}>${esc(s.name)}</option>`).join('')
+  $('#spaceSel').innerHTML=spaces.map(s=>`<option value="${s.id}" ${!allMode&&space&&s.id===space.id?'selected':''}>${esc(s.label||s.name)}</option>`).join('')
     +`<option value="${ALL}" ${allMode?'selected':''}>כל האזורים</option>`;
 }
 async function loadSpace(){
@@ -353,6 +371,12 @@ async function showTeam(){
   $('#teamNeedsSpace').classList.toggle('hidden',!allMode);
   $('#teamPanels').classList.toggle('hidden',allMode);
   if(allMode)return;
+  const owner=!!(space&&space.owner_id===user.id);
+  $('#spaceRename').value=space?space.name:'';
+  $('#spaceRename').disabled=!owner;
+  $('#renameSpaceBtn').disabled=!owner;
+  $('#delSpaceBtn').classList.toggle('hidden',!owner||!space||space.kind==='personal');
+  $('#spaceMsg').classList.add('hidden');
   await loadTeam();
 }
 async function loadTeam(){
@@ -519,10 +543,15 @@ document.addEventListener('click',async e=>{
     if(error){alert(heb(error));return} await loadSpace();
   }
   if(b.dataset.rmperson){
+    const per=people.find(x=>x.id===b.dataset.rmperson)||{};
+    const used=items.filter(x=>x.owner_id===per.id).length;
+    if(!confirm(`למחוק את "${per.name}" מרשימת האנשים של האזור?`+(used?`\n${used} משימות משויכות אליו ויישארו ללא אחראי.`:'')))return;
     const {error}=await db.from('people').delete().eq('id',b.dataset.rmperson);
     if(error){alert(heb(error));return} await loadSpace();await showTeam();
   }
   if(b.dataset.rmmember){
+    const mem=members.find(x=>x.user_id===b.dataset.rmmember)||{};
+    if(!confirm(`להסיר את ${mem.full_name||mem.email} מהאזור "${space.name}"?\nהוא יפסיק לראות את המשימות שבו.`))return;
     const {error}=await db.from('space_members').delete().eq('space_id',space.id).eq('user_id',b.dataset.rmmember);
     if(error){alert(heb(error));return} await loadTeam();
   }
@@ -543,6 +572,29 @@ $('#spaceSel').onchange=async e=>{
   space=allMode?null:(spaces.find(s=>s.id===e.target.value)||null);
   await loadSpace();
   if(view==='team')await showTeam();
+};
+$('#renameSpaceBtn').onclick=async()=>{
+  const name=$('#spaceRename').value.trim();
+  if(!name||!space)return;
+  const {error}=await db.from('spaces').update({name}).eq('id',space.id);
+  if(error){msg(heb(error),'err','#spaceMsg');$('#spaceMsg').classList.remove('hidden');return}
+  await loadSpaces();space=spaces.find(s=>s.id===space.id)||space;$('#spaceSel').value=space.id;
+  msg('השם עודכן.','ok','#spaceMsg');$('#spaceMsg').classList.remove('hidden');
+  const t={board:['לוח עבודה','המשימות הפתוחות'],all:['ניהול משימות','כל המטרות והמשימות'],
+           team:['האזור',space.name+' — צוות ואנשים'],admin:['ניהול מערכת','מי רשום למערכת']}[view];
+  $('#title').textContent=t[1];
+};
+$('#delSpaceBtn').onclick=async()=>{
+  if(!space||space.kind==='personal')return;
+  const n=items.length;
+  if(!confirm(`למחוק את האזור "${space.name}"?\nכל התוכן שלו יימחק — ${n} מטרות ומשימות, רשימת האנשים והחברוּת של כולם. הפעולה אינה הפיכה.`))return;
+  if(!confirm('אישור אחרון: המחיקה סופית.'))return;
+  const {error}=await db.from('spaces').delete().eq('id',space.id);
+  if(error){msg(heb(error),'err','#spaceMsg');$('#spaceMsg').classList.remove('hidden');return}
+  localStorage.removeItem('myos_space');
+  await loadSpaces();space=spaces[0]||null;allMode=false;
+  if(space)$('#spaceSel').value=space.id;
+  await loadSpace();await showTeam();
 };
 $('#newSpaceBtn').onclick=()=>{$('#spaceName').value='';$('#spaceDialog').showModal()};
 $('#saveSpace').onclick=async()=>{
@@ -572,6 +624,9 @@ $('#saveItem').onclick=async()=>{
   await loadSpace();$('#itemDialog').close();
 };
 $('#deleteItem').onclick=async()=>{
+  const cur=items.find(x=>x.id===$('#itemId').value)||{};
+  const kids=items.filter(x=>x.parent_id===cur.id).length;
+  if(!confirm(`למחוק את "${cur.title}"? הפעולה אינה הפיכה.`+(kids?`\n${kids} משימות משויכות אליה יישארו ללא שיוך.`:'')))return;
   const {error}=await db.from('items').delete().eq('id',$('#itemId').value);
   if(error){alert(heb(error));return} await loadSpace();$('#itemDialog').close();
 };
@@ -631,6 +686,14 @@ $('#addMemberBtn').onclick=async()=>{
   msg(m[0],m[1],'#memberMsg');$('#memberMsg').classList.remove('hidden');
   if(data==='ok'){$('#memberEmail').value='';await loadTeam()}
 };
+const onEnter=(sel,fn)=>{const el=$(sel);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fn()}})};
+onEnter('#personName',()=>$('#addPersonBtn').click());
+onEnter('#memberEmail',()=>$('#addMemberBtn').click());
+onEnter('#spaceRename',()=>$('#renameSpaceBtn').click());
+onEnter('#quickGoalName',()=>$('#quickGoalSave').click());
+onEnter('#quickPersonName',()=>$('#quickPersonSave').click());
+onEnter('#spaceName',()=>$('#saveSpace').click());
+onEnter('#itemTitle',()=>$('#saveItem').click());
 $('#search').oninput=render;$('#filter').onchange=render;
 $('#logoutBtn').onclick=async()=>{localStorage.removeItem('myos_space');await db.auth.signOut();location.reload()};
 
@@ -666,7 +729,8 @@ async function enter(){
   $('#loginMessage').classList.remove('hidden');
   if(!me||!me.approved){
     $('#loginChoices').classList.add('hidden');
-    msg('<b>ההתחברות הצליחה.</b><br>החשבון <b>'+esc(user.email)+'</b> ממתין לאישור מנהל המערכת.<br>מיד כשהחשבון יאושר תוכלו להיכנס ולראות את המשימות.<br><a href="#" id="pendingLogout">התנתקות מהחשבון</a>','wait');
+    msg('<b>ההתחברות הצליחה.</b><br>החשבון <b>'+esc(user.email)+'</b> ממתין לאישור מנהל המערכת.<br>מיד כשהחשבון יאושר תוכלו להיכנס ולראות את המשימות.<br><a href="#" id="pendingRetry">בדיקה חוזרת</a> · <a href="#" id="pendingLogout">התנתקות מהחשבון</a>','wait');
+    $('#pendingRetry').onclick=ev=>{ev.preventDefault();location.reload()};
     $('#pendingLogout').onclick=async ev=>{ev.preventDefault();await db.auth.signOut();location.reload()};
     return;
   }
