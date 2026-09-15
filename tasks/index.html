@@ -42,6 +42,7 @@ nav{display:flex;gap:4px;margin-inline-start:auto;flex-wrap:wrap}
 nav button{border:0;background:transparent;color:#aebbcd;padding:9px 14px;border-radius:10px;cursor:pointer}
 nav button:hover{color:#e9eef6}
 nav button.active{background:var(--navy2);color:#fff;box-shadow:inset 0 -2px 0 var(--turq)}
+nav .badge{display:inline-block;min-width:19px;padding:1px 6px;margin-inline-start:6px;border-radius:999px;background:#d8552b;color:#fff;font-size:12px;font-weight:700;line-height:17px;text-align:center}
 .who{display:flex;align-items:center;gap:10px;font-size:13px;color:#aebbcd}
 
 /* ---------- פריסה ---------- */
@@ -64,6 +65,11 @@ nav button.active{background:var(--navy2);color:#fff;box-shadow:inset 0 -2px 0 v
 .stat strong{display:block;font-size:26px;line-height:1.2}
 .stat span{color:var(--muted);font-size:13px}
 
+.spaceblock{margin-bottom:34px}
+.spacehead{display:flex;align-items:center;gap:12px;margin:0 0 16px;padding-bottom:9px;border-bottom:2px solid var(--accent)}
+.spacehead h2{margin:0;font-size:20px;color:var(--accent)}
+.spacehead .count{color:var(--muted);font-size:13px;margin-inline-start:auto}
+.spaceblock .group{margin-inline-start:4px}
 .group{margin-bottom:30px}
 .grouphead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .grouphead h2{margin:0;font-size:18px}
@@ -178,7 +184,7 @@ dialog::backdrop{background:#0e1a3388}
         <button data-view="board" class="active">לוח עבודה</button>
         <button data-view="all">כל המשימות</button>
         <button data-view="team">צוות האזור</button>
-        <button data-view="admin" id="adminBtn" class="hidden">משתמשים</button>
+        <button data-view="admin" id="adminBtn" class="hidden">משתמשים<span id="pendingBadge" class="badge hidden">0</span></button>
       </nav>
       <div class="who"><span id="whoAmI"></span><button id="logoutBtn" class="iconbtn">יציאה</button></div>
     </div>
@@ -207,10 +213,12 @@ dialog::backdrop{background:#0e1a3388}
         <input id="search" class="control" placeholder="חיפוש לפי שם, פעולה או אחראי">
         <select id="filter" class="control"><option value="open">פתוחים בלבד</option><option value="all">הכול</option><option value="active">פעיל</option><option value="waiting">ממתין</option><option value="done">הסתיים</option></select>
       </div>
-      <div class="tablebox"><table><thead><tr><th>שם</th><th>סוג</th><th>שייך ל</th><th>הפעולה הבאה</th><th>אחראי</th><th>יעד</th><th>מצב</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+      <div class="tablebox"><table><thead><tr><th id="spaceCol" class="hidden">אזור</th><th>שם</th><th>סוג</th><th>שייך ל</th><th>הפעולה הבאה</th><th>אחראי</th><th>יעד</th><th>מצב</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
     </section>
 
     <section id="teamView" class="hidden">
+      <div id="teamNeedsSpace" class="empty hidden">מסך הצוות שייך לאזור אחד. בחרו אזור מסוים בראש המסך כדי לנהל את החברים והאנשים שלו.</div>
+      <div id="teamPanels">
       <div class="panel">
         <h2>חברים באזור</h2>
         <div class="muted">מי שיכול להיכנס לאזור הזה ולראות את המשימות שבו. חייב להיות רשום במערכת.</div>
@@ -231,6 +239,7 @@ dialog::backdrop{background:#0e1a3388}
           <button id="addPersonBtn" class="btn primary">הוספה</button>
         </div>
       </div>
+      </div>
     </section>
 
     <section id="adminView" class="hidden">
@@ -246,32 +255,33 @@ dialog::backdrop{background:#0e1a3388}
   <div class="muted">מגדירים את הצעד הבא שמקדם אותה.</div>
   <div class="form">
     <input type="hidden" id="itemId">
-    <label>שם<input id="itemTitle" class="control" required></label>
+    <label id="itemSpaceField" class="hidden">אזור<select id="itemSpace" class="control"></select></label>
+    <label>שם<input id="itemTitle" class="control"></label>
     <div class="two">
       <label>סוג<select id="itemType" class="control"><option value="task">משימה</option><option value="goal">מטרה / פרויקט</option></select></label>
       <label id="parentField">שייך למטרה / פרויקט
-        <div class="inline"><select id="parent" class="control"></select><button type="button" id="quickGoal" class="btn small" title="מטרה חדשה">＋</button></div>
+        <select id="parent" class="control"></select>
       </label>
     </div>
     <div id="quickGoalBox" class="inline hidden">
-      <label style="flex:1">שם המטרה / הפרויקט החדש<input id="quickGoalName" class="control" placeholder="למשל: פרויקט מגדל צפת"></label>
-      <button type="button" id="quickGoalSave" class="btn primary">הוספה לאזור</button>
+      <label style="flex:1">שם המטרה או הפרויקט<input id="quickGoalName" class="control" placeholder="למשל: פרויקט מגדל צפת"></label>
+      <button type="button" id="quickGoalSave" class="btn primary">הוספה</button>
     </div>
     <label>הפעולה הבאה<input id="action" class="control" placeholder="למשל: להתקשר לעירייה"></label>
     <div class="two">
       <label>אחראי
-        <div class="inline"><select id="owner" class="control"></select><button type="button" id="quickPerson" class="btn small" title="הוספת אדם חדש">＋</button></div>
+        <select id="owner" class="control"></select>
       </label>
       <label>תאריך יעד<input id="due" type="date" class="control"></label>
     </div>
     <div id="quickPersonBox" class="inline hidden">
-      <label style="flex:1">שם האדם החדש<input id="quickPersonName" class="control"></label>
-      <button type="button" id="quickPersonSave" class="btn primary">הוספה לאזור</button>
+      <label style="flex:1">שם האדם החדש<input id="quickPersonName" class="control" placeholder="למשל: יוסי / נהג"></label>
+      <button type="button" id="quickPersonSave" class="btn primary">הוספה</button>
     </div>
     <label>מצב<select id="itemStatus" class="control"><option value="active">פעיל</option><option value="waiting">ממתין</option><option value="done">הסתיים</option></select></label>
     <div class="modalfoot">
       <button type="button" id="deleteItem" class="btn danger hidden">מחיקה</button><span></span>
-      <div class="actions"><button value="cancel" class="btn">ביטול</button><button value="default" id="saveItem" class="btn primary">שמירה</button></div>
+      <div class="actions"><button type="button" id="cancelItem" class="btn">ביטול</button><button type="button" id="saveItem" class="btn primary">שמירה</button></div>
     </div>
   </div>
 </form></dialog>
@@ -281,7 +291,7 @@ dialog::backdrop{background:#0e1a3388}
   <div class="muted">אזור הוא עולם נפרד: המשימות, האנשים והחברים שלו לא נראים באזורים אחרים.</div>
   <div class="form">
     <label>שם האזור<input id="spaceName" class="control" placeholder="המשרד / רעיונות / הכנסות והוצאות"></label>
-    <div class="modalfoot"><span></span><div class="actions"><button value="cancel" class="btn">ביטול</button><button value="default" id="saveSpace" class="btn primary">יצירה</button></div></div>
+    <div class="modalfoot"><span></span><div class="actions"><button type="button" id="cancelSpace" class="btn">ביטול</button><button type="button" id="saveSpace" class="btn primary">יצירה</button></div></div>
   </div>
 </form></dialog>
 
@@ -297,6 +307,9 @@ if(!cfg.url||!cfg.publishableKey||cfg.publishableKey.includes('PASTE_')){msg('י
 const db=window.supabase.createClient(cfg.url,cfg.publishableKey);
 
 let user=null,me=null,spaces=[],space=null,items=[],people=[],members=[],users=[],view='board';
+let lastParent='',lastOwner='',allMode=false;
+const ALL='__all__';
+const spaceName=id=>(spaces.find(s=>s.id===id)||{}).name||'';
 
 const heb=e=>{const s=(e&&e.message)||String(e||'');
  if(/Invalid login credentials/i.test(s))return 'המייל או הסיסמה שגויים.';
@@ -321,27 +334,44 @@ async function loadSpaces(){
   if(error){alert(heb(error));return}
   spaces=data||[];
   const keep=localStorage.getItem('myos_space');
-  space=spaces.find(s=>s.id===keep)||spaces[0]||null;
-  $('#spaceSel').innerHTML=spaces.map(s=>`<option value="${s.id}" ${space&&s.id===space.id?'selected':''}>${esc(s.name)}</option>`).join('');
+  space=keep===ALL?null:(spaces.find(s=>s.id===keep)||spaces[0]||null);
+  if(keep===ALL)allMode=true;
+  $('#spaceSel').innerHTML=spaces.map(s=>`<option value="${s.id}" ${!allMode&&space&&s.id===space.id?'selected':''}>${esc(s.name)}</option>`).join('')
+    +`<option value="${ALL}" ${allMode?'selected':''}>כל האזורים</option>`;
 }
 async function loadSpace(){
-  if(!space){items=[];people=[];render();return}
-  localStorage.setItem('myos_space',space.id);
-  const [a,b]=await Promise.all([
-    db.from('items').select('*').eq('space_id',space.id).order('created_at',{ascending:false}),
-    db.from('people').select('*').eq('space_id',space.id).order('name')]);
+  if(!allMode&&!space){items=[];people=[];render();return}
+  localStorage.setItem('myos_space',allMode?ALL:space.id);
+  let iq=db.from('items').select('*').order('created_at',{ascending:false});
+  let pq=db.from('people').select('*').order('name');
+  if(!allMode){iq=iq.eq('space_id',space.id);pq=pq.eq('space_id',space.id)}
+  const [a,b]=await Promise.all([iq,pq]);
   if(a.error||b.error){alert(heb(a.error||b.error));return}
   items=a.data||[];people=b.data||[];render()
 }
+async function showTeam(){
+  $('#teamNeedsSpace').classList.toggle('hidden',!allMode);
+  $('#teamPanels').classList.toggle('hidden',allMode);
+  if(allMode)return;
+  await loadTeam();
+}
 async function loadTeam(){
+  if(!space)return;
   const {data,error}=await db.rpc('space_member_list',{p_space:space.id});
   if(error){alert(heb(error));return}
   members=data||[];renderTeam()
 }
+async function refreshPending(){
+  if(!me||me.role!=='admin')return;
+  const {data}=await db.from('task_users').select('id').eq('approved',false);
+  const n=(data||[]).length;const el=$('#pendingBadge');
+  el.textContent=n;el.classList.toggle('hidden',n===0);
+  $('#adminBtn').title=n?`${n} משתמשים ממתינים לאישור`:'';
+}
 async function loadUsers(){
   const {data,error}=await db.from('task_users').select('id,email,full_name,role,approved,created_at').order('created_at');
   if(error){alert(heb(error));return}
-  users=data||[];renderUsers()
+  users=data||[];users.sort((a,b)=>(a.approved?1:0)-(b.approved?1:0));renderUsers();await refreshPending()
 }
 
 /* ============ לוח העבודה ============ */
@@ -352,25 +382,34 @@ function render(){
   $('#goalCount').textContent=goals.length;
   $('#lateCount').textContent=open.filter(x=>x.due_date&&x.due_date<today()).length;
 
-  const groups=goals.map(g=>({goal:g,list:tasks.filter(t=>t.parent_id===g.id)}));
-  const loose=tasks.filter(t=>!t.parent_id||!goals.some(g=>g.id===t.parent_id));
-  if(loose.length||!groups.length)groups.push({goal:null,list:loose});
+  const blocks=allMode
+    ? spaces.filter(s=>open.some(i=>i.space_id===s.id)).map(s=>({sp:s,list:open.filter(i=>i.space_id===s.id)}))
+    : [{sp:null,list:open}];
 
-  $('#board').innerHTML=(open.length?groups.map(gr=>`
-    <div class="group">
-      <div class="grouphead">
-        ${gr.goal?`<span class="goaltag">מטרה</span><h2>${esc(gr.goal.title)}</h2>${statusTag(gr.goal.status)}<button class="btn small" data-edit="${gr.goal.id}">עריכה</button>`
-                :`<h2>${groups.length>1?'ללא שיוך':'המשימות שלי'}</h2>`}
-      </div>
-      ${gr.list.length?`<div class="grid">${gr.list.map(card).join('')}</div>`
-        :`<div class="muted" style="padding:6px 2px">אין משימות פתוחות ${gr.goal?'במטרה הזו':''}</div>`}
-    </div>`).join('')
-    :'<div class="empty">אין עדיין משימות באזור הזה. אפשר להתחיל מ«משימה חדשה».</div>');
+  $('#board').innerHTML=(open.length?blocks.map(bl=>{
+    const bt=bl.list.filter(x=>x.type==='task'), bg=bl.list.filter(x=>x.type==='goal');
+    const groups=bg.map(g=>({goal:g,list:bt.filter(x=>x.parent_id===g.id)}));
+    const loose=bt.filter(x=>!x.parent_id||!bg.some(g=>g.id===x.parent_id));
+    if(loose.length||!groups.length)groups.push({goal:null,list:loose});
+    const head=bl.sp?`<div class="spacehead"><h2>${esc(bl.sp.name)}</h2><span class="count">${bt.length} משימות · ${bg.length} מטרות</span></div>`:'';
+    return `<div class="spaceblock">${head}`+groups.map(gr=>`
+      <div class="group">
+        <div class="grouphead">
+          ${gr.goal?`<span class="goaltag">מטרה</span><h2>${esc(gr.goal.title)}</h2>${statusTag(gr.goal.status)}<button class="btn small" data-edit="${gr.goal.id}">עריכה</button>`
+                  :`<h2>${groups.length>1?'ללא שיוך':(allMode?'משימות בודדות':'המשימות שלי')}</h2>`}
+        </div>
+        ${gr.list.length?`<div class="grid">${gr.list.map(card).join('')}</div>`
+          :`<div class="muted" style="padding:6px 2px">אין משימות פתוחות ${gr.goal?'במטרה הזו':''}</div>`}
+      </div>`).join('')+`</div>`;
+  }).join('')
+    :`<div class="empty">אין עדיין משימות ${allMode?'באף אזור':'באזור הזה'}. אפשר להתחיל מ«משימה חדשה».</div>`);
 
   const q=$('#search').value.trim(), f=$('#filter').value;
   const filtered=items.filter(x=>(f==='all'||(f==='open'?x.status!=='done':x.status===f))
     &&(!q||[x.title,x.action_title,personName(x.owner_id)].some(v=>(v||'').includes(q))));
+  $('#spaceCol').classList.toggle('hidden',!allMode);
   $('#rows').innerHTML=filtered.map(x=>`<tr>
+    ${allMode?`<td>${esc(spaceName(x.space_id))}</td>`:''}
     <td><b>${esc(x.title)}</b></td>
     <td>${x.type==='goal'?'מטרה':'משימה'}</td>
     <td>${esc(items.find(y=>y.id===x.parent_id)?.title||'—')}</td>
@@ -379,7 +418,7 @@ function render(){
     <td>${x.due_date?fmt(x.due_date):'—'}</td>
     <td>${statusTag(x.status)}</td>
     <td><button class="btn small" data-edit="${x.id}">עריכה</button></td></tr>`).join('')
-    ||'<tr><td colspan="8" style="text-align:center;padding:40px">לא נמצאו פריטים</td></tr>';
+    ||`<tr><td colspan="${allMode?9:8}" style="text-align:center;padding:40px">לא נמצאו פריטים</td></tr>`;
 }
 const card=x=>`<article class="card">
   <div class="cardtop"><div>${statusTag(x.status)}<h3 style="margin-top:8px">${esc(x.title)}</h3></div>
@@ -405,7 +444,7 @@ function renderTeam(){
   $('#personUser').innerHTML='<option value="">ללא חשבון</option>'+members.map(m=>`<option value="${m.user_id}">${esc(m.full_name||m.email)}</option>`).join('');
 }
 function renderUsers(){
-  $('#userRows').innerHTML=users.map(u=>{const self=u.id===user.id;return `<tr>
+  $('#userRows').innerHTML=users.map(u=>{const self=u.id===user.id;return `<tr${u.approved?'':' style="background:#fdf6e6"'}>
     <td><b>${esc(u.full_name||'—')}</b>${self?' <span class="muted">(אני)</span>':''}</td>
     <td>${esc(u.email||'—')}</td><td>${fmt((u.created_at||'').slice(0,10))}</td>
     <td>${u.approved?'<span class="status">● מאושר</span>':'<span class="status waiting">● ממתין</span>'}</td>
@@ -416,10 +455,17 @@ function renderUsers(){
 }
 
 /* ============ דיאלוג פריט ============ */
+const NEW='__new__';
+const dlgSpace=()=>$('#itemSpace').value||(space&&space.id)||'';
 function fillSelects(sel={}){
-  const goals=items.filter(x=>x.type==='goal');
-  $('#parent').innerHTML='<option value="">ללא שיוך</option>'+goals.map(g=>`<option value="${g.id}" ${g.id===sel.parent?'selected':''}>${esc(g.title)}</option>`).join('');
-  $('#owner').innerHTML='<option value="">ללא אחראי</option>'+people.map(p=>`<option value="${p.id}" ${p.id===sel.owner?'selected':''}>${esc(p.name)}</option>`).join('');
+  const sid=dlgSpace();
+  const goals=items.filter(x=>x.type==='goal'&&x.space_id===sid);
+  $('#parent').innerHTML='<option value="">ללא שיוך</option>'
+    +goals.map(g=>`<option value="${g.id}" ${g.id===sel.parent?'selected':''}>${esc(g.title)}</option>`).join('')
+    +`<option value="${NEW}">＋ מטרה / פרויקט חדש…</option>`;
+  $('#owner').innerHTML='<option value="">ללא אחראי</option>'
+    +people.filter(p=>p.space_id===sid).map(p=>`<option value="${p.id}" ${p.id===sel.owner?'selected':''}>${esc(p.name)}</option>`).join('')
+    +`<option value="${NEW}">＋ אדם חדש…</option>`;
 }
 function typeChanged(){
   const isGoal=$('#itemType').value==='goal';
@@ -429,7 +475,16 @@ function typeChanged(){
 }
 function openItem(kind='task',id=''){
   const x=items.find(y=>y.id===id);
-  fillSelects({parent:x?.parent_id||'',owner:x?.owner_id||''});
+  const showSpace=allMode&&!x;
+  $('#itemSpaceField').classList.toggle('hidden',!showSpace);
+  if(showSpace){
+    const keep=$('#itemSpace').value;
+    $('#itemSpace').innerHTML=spaces.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+    if(keep&&spaces.some(s=>s.id===keep))$('#itemSpace').value=keep;
+  }else if(x){$('#itemSpace').innerHTML=`<option value="${x.space_id}">${esc(spaceName(x.space_id))}</option>`}
+  else if(space){$('#itemSpace').innerHTML=`<option value="${space.id}">${esc(space.name)}</option>`}
+  lastParent=x?.parent_id||'';lastOwner=x?.owner_id||'';
+  fillSelects({parent:lastParent,owner:lastOwner});
   $('#itemId').value=x?.id||'';$('#itemTitle').value=x?.title||'';$('#itemType').value=x?.type||kind;
   $('#action').value=x?.action_title||'';$('#due').value=x?.due_date||'';$('#itemStatus').value=x?.status||'active';
   $('#formTitle').textContent=x?'עריכת פריט':(kind==='goal'?'מטרה / פרויקט חדש':'משימה חדשה');
@@ -452,9 +507,9 @@ document.addEventListener('click',async e=>{
     $('#adminView').classList.toggle('hidden',view!=='admin');
     $('#newActions').classList.toggle('hidden',view==='team'||view==='admin');
     const t={board:['לוח עבודה','המשימות הפתוחות'],all:['ניהול משימות','כל המטרות והמשימות'],
-             team:['האזור',(space?space.name:'')+' — צוות ואנשים'],admin:['ניהול מערכת','מי רשום למערכת']}[view];
+             team:['האזור',(space?space.name+' — צוות ואנשים':'צוות ואנשים')],admin:['ניהול מערכת','מי רשום למערכת']}[view];
     $('#eyebrow').textContent=t[0];$('#title').textContent=t[1];
-    if(view==='team')await loadTeam();
+    if(view==='team')await showTeam();
     if(view==='admin')await loadUsers();
   }
   if(b.dataset.new)openItem(b.dataset.new);
@@ -465,7 +520,7 @@ document.addEventListener('click',async e=>{
   }
   if(b.dataset.rmperson){
     const {error}=await db.from('people').delete().eq('id',b.dataset.rmperson);
-    if(error){alert(heb(error));return} await loadSpace();await loadTeam();
+    if(error){alert(heb(error));return} await loadSpace();await showTeam();
   }
   if(b.dataset.rmmember){
     const {error}=await db.from('space_members').delete().eq('space_id',space.id).eq('user_id',b.dataset.rmmember);
@@ -483,10 +538,17 @@ document.addEventListener('click',async e=>{
   }
 });
 
-$('#spaceSel').onchange=async e=>{space=spaces.find(s=>s.id===e.target.value)||null;await loadSpace();if(view==='team')await loadTeam()};
+$('#spaceSel').onchange=async e=>{
+  allMode=e.target.value===ALL;
+  space=allMode?null:(spaces.find(s=>s.id===e.target.value)||null);
+  await loadSpace();
+  if(view==='team')await showTeam();
+};
 $('#newSpaceBtn').onclick=()=>{$('#spaceName').value='';$('#spaceDialog').showModal()};
-$('#saveSpace').onclick=async e=>{
-  e.preventDefault();const name=$('#spaceName').value.trim();if(!name)return;
+$('#saveSpace').onclick=async()=>{
+  const name=$('#spaceName').value.trim();
+  if(!name){$('#spaceName').focus();$('#spaceName').style.borderColor='#a3251c';return}
+  $('#spaceName').style.borderColor='';
   const {data,error}=await db.from('spaces').insert({name,owner_id:user.id}).select();
   if(error){alert(heb(error));return}
   const made=one(data);
@@ -495,10 +557,12 @@ $('#saveSpace').onclick=async e=>{
   $('#spaceSel').value=space.id;await loadSpace();
 };
 
-$('#saveItem').onclick=async e=>{
-  e.preventDefault();
-  if(!$('#itemTitle').value.trim()||!space)return;
-  const row={space_id:space.id,title:$('#itemTitle').value.trim(),type:$('#itemType').value,
+$('#saveItem').onclick=async()=>{
+  if(!$('#itemTitle').value.trim()){$('#itemTitle').focus();$('#itemTitle').style.borderColor='#a3251c';return}
+  $('#itemTitle').style.borderColor='';
+  const sid=dlgSpace();
+  if(!sid)return;
+  const row={space_id:sid,title:$('#itemTitle').value.trim(),type:$('#itemType').value,
     parent_id:$('#parent').value||null,action_title:$('#action').value.trim(),
     owner_id:$('#owner').value||null,due_date:$('#due').value||null,status:$('#itemStatus').value};
   const id=$('#itemId').value;
@@ -512,33 +576,50 @@ $('#deleteItem').onclick=async()=>{
   if(error){alert(heb(error));return} await loadSpace();$('#itemDialog').close();
 };
 $('#itemType').onchange=typeChanged;
-$('#quickGoal').onclick=()=>{$('#quickGoalBox').classList.toggle('hidden');$('#quickGoalName').focus()};
+$('#itemSpace').onchange=()=>{lastParent='';lastOwner='';fillSelects({})};
+$('#cancelItem').onclick=()=>$('#itemDialog').close();
+$('#cancelSpace').onclick=()=>$('#spaceDialog').close();
+$('#parent').onchange=e=>{
+  if(e.target.value!==NEW){lastParent=e.target.value;return}
+  e.target.value=lastParent;
+  $('#quickGoalBox').classList.remove('hidden');$('#quickGoalName').focus();
+};
+$('#owner').onchange=e=>{
+  if(e.target.value!==NEW){lastOwner=e.target.value;return}
+  e.target.value=lastOwner;
+  $('#quickPersonBox').classList.remove('hidden');$('#quickPersonName').focus();
+};
 $('#quickGoalSave').onclick=async()=>{
-  const title=$('#quickGoalName').value.trim();if(!title||!space)return;
-  const {data,error}=await db.from('items').insert({space_id:space.id,title,type:'goal',created_by:user.id}).select();
+  const title=$('#quickGoalName').value.trim();const sid=dlgSpace();if(!title||!sid)return;
+  const {data,error}=await db.from('items').insert({space_id:sid,title,type:'goal',created_by:user.id}).select();
   if(error){alert(heb(error));return}
   const made=one(data);
   const owner=$('#owner').value;
   await loadSpace();
-  fillSelects({parent:(made&&made.id)||(items.find(x=>x.type==='goal'&&x.title===title)||{}).id||'',owner});
+  lastParent=(made&&made.id)||(items.find(x=>x.type==='goal'&&x.title===title)||{}).id||'';
+  lastOwner=owner;
+  fillSelects({parent:lastParent,owner});
   $('#quickGoalBox').classList.add('hidden');$('#quickGoalName').value='';
 };
-$('#quickPerson').onclick=()=>{$('#quickPersonBox').classList.toggle('hidden');$('#quickPersonName').focus()};
 $('#quickPersonSave').onclick=async()=>{
-  const name=$('#quickPersonName').value.trim();if(!name||!space)return;
-  const {data,error}=await db.from('people').insert({space_id:space.id,name}).select();
+  const name=$('#quickPersonName').value.trim();const sid=dlgSpace();if(!name||!sid)return;
+  const {data,error}=await db.from('people').insert({space_id:sid,name}).select();
   if(error){alert(heb(error));return}
   const added=one(data);
-  const {data:fresh}=await db.from('people').select('*').eq('space_id',space.id).order('name');
+  let fq=db.from('people').select('*').order('name');
+  if(!allMode)fq=fq.eq('space_id',sid);
+  const {data:fresh}=await fq;
   people=fresh||people;
-  fillSelects({parent:$('#parent').value,owner:(added&&added.id)||(people.find(x=>x.name===name)||{}).id||''});
+  lastParent=$('#parent').value;
+  lastOwner=(added&&added.id)||(people.find(x=>x.name===name)||{}).id||'';
+  fillSelects({parent:lastParent,owner:lastOwner});
   $('#quickPersonBox').classList.add('hidden');$('#quickPersonName').value='';
 };
 $('#addPersonBtn').onclick=async()=>{
   const name=$('#personName').value.trim();if(!name||!space)return;
   const {error}=await db.from('people').insert({space_id:space.id,name,user_id:$('#personUser').value||null});
   if(error){alert(heb(error));return}
-  $('#personName').value='';$('#personUser').value='';await loadSpace();await loadTeam();
+  $('#personName').value='';$('#personUser').value='';await loadSpace();await showTeam();
 };
 $('#addMemberBtn').onclick=async()=>{
   const email=$('#memberEmail').value.trim();if(!email)return;
@@ -592,6 +673,7 @@ async function enter(){
   $('#loginScreen').classList.add('hidden');$('#appShell').classList.remove('hidden');
   $('#whoAmI').textContent=me.full_name||user.email;
   $('#adminBtn').classList.toggle('hidden',me.role!=='admin');
+  refreshPending();
   await loadSpaces();await loadSpace();
 }
 db.auth.onAuthStateChange((_e,session)=>{if(session)setTimeout(enter,0)});
