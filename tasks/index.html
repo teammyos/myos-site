@@ -1,235 +1,74 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MyOS משימות</title>
-<meta name="robots" content="noindex">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='6 -9 88 103'%3E%3Crect x='6' y='-9' width='88' height='103' fill='%230E1A33'/%3E%3Cpath d='M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 24 L76 38 L76 62 L62 76 L38 76 L24 62 L24 38 L38 24 Z' fill='%23eff3fa'/%3E%3Cpath d='M46 -9 L54 -9 L58 -5 L58 30 L50 38 L42 30 L42 -5 Z' fill='%232ff0e6'/%3E%3C/svg%3E">
-<style>
-  *{box-sizing:border-box;margin:0}
-  :root{
-    --navy:#0E1A33; --navy2:#0b1428; --card:#16264a; --line:#26375c;
-    --text:#cfd8ea; --dim:#9aa8c4; --heading:#eef3fb;
-    --accent:#2ff0e6; --accent2:#8dfff4;
-  }
-  body{
-    min-height:100svh;display:flex;flex-direction:column;align-items:center;
-    background:radial-gradient(120% 80% at 50% -10%, #12233f 0%, var(--navy) 55%, var(--navy2) 100%);
-    color:var(--text);font-family:'Heebo',system-ui,'Segoe UI',Arial,sans-serif;line-height:1.6;
-  }
-  .wrap{width:min(40rem,100%);padding:2rem 1.3rem 3rem;flex:1;display:flex;flex-direction:column;}
-  header.bar{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.4rem 0 1.5rem;}
-  .logo{display:inline-flex;align-items:baseline;gap:.04em;direction:ltr;font-size:1.7rem;line-height:1.2}
-  .logo .my,.logo .sc{
-    background:linear-gradient(122deg,#13a8bd 0%,#2ff0e6 55%,#8dfff4 100%);
-    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;
-  }
-  .logo .o{display:block;width:.72em;height:.826em;align-self:center;flex:none}
-  .logo .o svg{width:100%;height:100%;display:block;overflow:visible}
-  .logo .ring{fill:#eff3fa} .logo .stem{fill:#2ff0e6}
-  .logo .pt{font-size:.62em;color:#dbe4f5;font-weight:600;margin-inline-start:.4em;align-self:center}
-  .who{font-size:.85rem;color:var(--dim);display:flex;align-items:center;gap:.6rem}
-  .who button{background:none;border:1px solid var(--line);color:var(--dim);border-radius:.5rem;padding:.3rem .7rem;cursor:pointer;font:inherit;font-size:.82rem}
-  .who button:hover{border-color:var(--accent);color:var(--accent)}
-
-  .panel{background:rgba(22,38,74,.55);border:1px solid var(--line);border-radius:1.2rem;
-         padding:clamp(1.5rem,4vw,2.6rem);backdrop-filter:blur(4px);}
-  .center{text-align:center;margin:auto 0;}
-  h1{color:var(--heading);font-size:clamp(1.5rem,4vw,2rem);margin-bottom:.5rem}
-  .sub{color:var(--dim);margin-bottom:1.6rem}
-  .badge{display:inline-block;font-size:.75rem;letter-spacing:.12em;color:var(--accent);
-         background:rgba(47,240,230,.1);border:1px solid rgba(47,240,230,.3);border-radius:999px;padding:.3rem .9rem;margin-bottom:1.1rem}
-
-  .gbtn{display:inline-flex;align-items:center;gap:.7rem;background:#fff;color:#1f2430;
-        font:inherit;font-weight:600;font-size:1.02rem;border:0;border-radius:.7rem;
-        padding:.85rem 1.6rem;cursor:pointer;text-decoration:none;transition:transform .15s ease,box-shadow .15s ease;
-        box-shadow:0 8px 24px rgba(0,0,0,.3)}
-  .gbtn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,.4)}
-  .gbtn svg{width:1.2rem;height:1.2rem}
-
-  .note{margin-top:1.3rem;font-size:.85rem;color:var(--dim)}
-  .spinner{width:2.4rem;height:2.4rem;margin:1rem auto;border-radius:50%;
-           border:3px solid var(--line);border-top-color:var(--accent);animation:spin .9s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-
-  .pending-ico{width:3.4rem;height:3.4rem;margin:0 auto 1rem;border-radius:50%;
-    display:grid;place-items:center;background:rgba(47,240,230,.1);border:1px solid rgba(47,240,230,.3);color:var(--accent);font-size:1.6rem}
-
-  h2{color:var(--heading);font-size:1.15rem;margin:0 0 .8rem}
-  .list{display:flex;flex-direction:column;gap:.6rem;margin-top:.4rem}
-  .row{display:flex;align-items:center;justify-content:space-between;gap:.8rem;
-       background:var(--card);border:1px solid var(--line);border-radius:.7rem;padding:.7rem .9rem}
-  .row .info{min-width:0}
-  .row .nm{color:var(--heading);font-weight:600;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .row .em{color:var(--dim);font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .row .acts{display:flex;gap:.5rem;flex:none}
-  .row label{display:flex;align-items:center;gap:.3rem;font-size:.8rem;color:var(--dim)}
-  .approve{background:var(--accent);color:#04121a;border:0;border-radius:.55rem;padding:.45rem .9rem;cursor:pointer;font:inherit;font-weight:600;font-size:.85rem}
-  .approve:hover{background:var(--accent2)}
-  .empty{color:var(--dim);font-size:.9rem;padding:.6rem 0}
-  .placeholder{margin-top:1.2rem;padding:1.1rem;border:1px dashed var(--line);border-radius:.8rem;color:var(--dim);font-size:.9rem;text-align:center}
-  .err{color:#ffb4b4;font-size:.88rem;margin-top:.8rem}
-  .hidden{display:none!important}
-  footer{color:var(--dim);font-size:.78rem;padding:1rem;text-align:center}
-  footer a{color:var(--dim)}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>מטרות ומשימות</title>
+  <style>
+    :root{--ink:#162231;--navy:#173854;--gold:#c99516;--bg:#f4f7fa;--line:#dce4eb;--muted:#718092;--white:#fff}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,"Noto Sans Hebrew",sans-serif;font-size:16px}
+    button,input,select{font:inherit}.top{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line)}
+    .topin,.wrap{max-width:1400px;margin:auto;padding:18px 28px}.topin{display:flex;align-items:center;justify-content:space-between;gap:18px}
+    .brand{display:flex;align-items:center;gap:12px}.logo{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--navy);color:#fff;font-size:22px}.brand b{font-size:20px}.muted{color:var(--muted);font-size:14px}
+    nav{display:flex;gap:5px;background:#eef3f7;padding:4px;border-radius:13px}nav button{border:0;background:transparent;padding:10px 15px;border-radius:10px;cursor:pointer;color:#536476}nav button.active{background:white;color:var(--navy);box-shadow:0 1px 4px #ccd5dd}
+    .wrap{padding-top:36px}.heading{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:24px}.eyebrow{color:#a87909;font-weight:700;font-size:14px}.heading h1{margin:5px 0 0;font-size:32px}.actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{border:1px solid var(--navy);border-radius:10px;padding:11px 17px;background:white;color:var(--navy);font-weight:700;cursor:pointer}.btn.primary{background:var(--navy);color:white}.btn.small{padding:8px 11px;font-size:14px}.btn.danger{border-color:#b42318;color:#b42318}
+    .summary{display:grid;grid-template-columns:repeat(2,minmax(0,210px));gap:12px;margin-bottom:24px}.stat{background:white;border:1px solid var(--line);border-radius:16px;padding:17px}.stat strong{display:block;font-size:25px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .card{background:white;border:1px solid var(--line);border-radius:18px;padding:21px;box-shadow:0 8px 24px rgba(23,56,84,.06)}.cardtop{display:flex;justify-content:space-between;gap:12px}.card h2{font-size:20px;margin:10px 0 0}.next{background:#f3f7fa;border-radius:12px;padding:15px;margin:20px 0}.next b{display:block;margin-top:6px}.meta{display:flex;gap:22px;flex-wrap:wrap;color:#607083;font-size:14px}
+    .status{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:5px 10px;background:#e8f6ee;color:#217a49;font-size:13px;font-weight:700}.status.waiting{background:#fff6df;color:#8a6509}.status.done{background:#edf1f4;color:#586776}
+    .filters{display:flex;gap:10px;background:white;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:16px}.filters input{flex:1}.control{width:100%;border:1px solid #cdd8e1;border-radius:9px;padding:10px;background:white}
+    .tablebox{overflow:auto;background:white;border:1px solid var(--line);border-radius:16px}table{border-collapse:collapse;width:100%;min-width:840px}th,td{text-align:right;padding:14px;border-bottom:1px solid #e6edf2}th{background:#f8fafb;color:#536476}.empty{text-align:center;background:white;border:1px dashed #aebdca;border-radius:18px;padding:55px;color:var(--muted)}
+    dialog{border:0;border-radius:18px;width:min(560px,calc(100% - 28px));padding:0;box-shadow:0 25px 80px #172b3e55}dialog::backdrop{background:#10203077}.modal{padding:24px}.modal h2{margin:0 0 6px}.form{display:grid;gap:14px;margin-top:22px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:grid;gap:7px;font-weight:700;font-size:14px}.modalfoot{display:flex;justify-content:space-between;gap:8px;margin-top:8px}.hidden{display:none!important}
+    @media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}@media(max-width:650px){.topin,.wrap{padding-right:16px;padding-left:16px}.topin,.heading{align-items:stretch;flex-direction:column}.grid{grid-template-columns:1fr}.summary{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr}.filters{flex-direction:column}.heading h1{font-size:27px}}
+  </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="bar">
-    <span class="logo" dir="ltr" role="img" aria-label="MyOS משימות">
-      <span class="my" aria-hidden="true">My</span>
-      <span class="o" aria-hidden="true"><svg viewBox="6 -7 88 101" focusable="false"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg></span>
-      <span class="sc" aria-hidden="true">S</span>
-      <span class="pt">משימות</span>
-    </span>
-    <span class="who hidden" id="who">
-      <span id="whoName"></span>
-      <button id="logoutBtn" type="button">התנתקות</button>
-    </span>
-  </header>
-
-  <!-- טעינה -->
-  <section class="panel center" id="v-loading">
-    <div class="spinner"></div>
-    <p class="sub" style="margin:0">טוען…</p>
-  </section>
-
-  <!-- לא מחובר -->
-  <section class="panel center hidden" id="v-signedout">
-    <span class="badge">מערכת ניהול משימות</span>
-    <h1>ברוכים הבאים ל-MyOS משימות</h1>
-    <p class="sub">התחברו עם חשבון Google כדי להיכנס.</p>
-    <button class="gbtn" id="googleBtn" type="button">
-      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      התחברות עם Google
-    </button>
-    <p class="note">הגישה למערכת מאושרת ידנית. לאחר ההתחברות הראשונה חשבונך ימתין לאישור מנהל.</p>
-    <p class="err hidden" id="signedoutErr"></p>
-  </section>
-
-  <!-- ממתין לאישור -->
-  <section class="panel center hidden" id="v-pending">
-    <div class="pending-ico">⏳</div>
-    <h1>ממתינים לאישור</h1>
-    <p class="sub">חשבונך (<span id="pendingEmail"></span>) התקבל. מנהל צריך לאשר אותך לפני שתוכל להיכנס למערכת. ננסה שוב מאוחר יותר, או פנה למנהל.</p>
-    <button class="gbtn" id="recheckBtn" type="button" style="background:var(--accent);color:#04121a">בדוק שוב</button>
-  </section>
-
-  <!-- איש שטח -->
-  <section class="panel hidden" id="v-worker">
-    <h1 style="margin-bottom:.3rem">שלום, <span id="workerName"></span> 👋</h1>
-    <p class="sub">לוח העבודה שלך — התחנות שבאחריותך.</p>
-    <div class="placeholder">🚧 לוח איש-השטח נמצא בבנייה (שלב 1). כאן יופיעו התחנות הפעילות שלך, עם כפתור "סיימתי" ואנימציית העברת המקל.</div>
-  </section>
-
-  <!-- מנהל -->
-  <section class="panel hidden" id="v-admin">
-    <h1 style="margin-bottom:.3rem">שלום, <span id="adminName"></span> 👋</h1>
-    <p class="sub">ממשק ניהול MyOS משימות.</p>
-
-    <div style="margin:.4rem 0 1.4rem">
-      <a class="gbtn" href="admin.html" style="background:var(--accent);color:#04121a">🎯 פתח קנבס מנהל — יצירת משימות</a>
+  <section id="loginScreen" class="wrap" style="max-width:480px;padding-top:80px">
+    <div class="card"><div class="brand" style="margin-bottom:24px"><div class="logo">✓</div><div><b>כניסה למערכת המשימות</b><div class="muted">באמצעות כתובת מייל וסיסמה</div></div></div>
+      <form id="loginForm" class="form"><label>דואר אלקטרוני<input id="loginEmail" type="email" class="control" required></label><label>סיסמה<input id="loginPassword" type="password" class="control" minlength="6" required></label><div id="loginMessage" class="muted"></div><button class="btn primary">כניסה</button><button type="button" id="signupBtn" class="btn">פתיחת משתמש חדש</button></form>
     </div>
-
-    <h2>משתמשים שממתינים לאישור</h2>
-    <div class="list" id="pendingList"><p class="empty">טוען…</p></div>
-
-    <div class="placeholder">🚧 לוח איש-השטח (שלב 1) ואנימציית העברת המקל ייבנו בהמשך.</div>
   </section>
-
-</div>
-<footer>MyOS משימות · <a href="https://myos.co.il/">myos.co.il</a></footer>
-
-<script src="../js/supabase.umd.js"></script>
-<script src="config.js"></script>
-<script>
-(function(){
-  var cfg = window.MYOS_TASKS || {};
-  if(!window.supabase || !cfg.SUPABASE_URL){ console.error('Supabase config missing'); }
-  var sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON);
-
-  var views = ['loading','signedout','pending','worker','admin'];
-  function show(name, ctx){
-    ctx = ctx || {};
-    views.forEach(function(v){ document.getElementById('v-'+v).classList.toggle('hidden', v!==name); });
-    var who = document.getElementById('who');
-    who.classList.toggle('hidden', !(name==='worker'||name==='admin'||name==='pending'));
-    if(ctx.name){ document.getElementById('whoName').textContent = ctx.name; }
-  }
-
-  function fail(msg){
-    var e = document.getElementById('signedoutErr');
-    e.textContent = msg; e.classList.remove('hidden');
-    show('signedout');
-  }
-
-  async function route(){
-    var res = await sb.auth.getSession();
-    var session = res.data.session;
-    if(!session){ show('signedout'); return; }
-
-    var email = session.user.email || '';
-    var q = await sb.from('task_users').select('approved, role, full_name').eq('id', session.user.id).maybeSingle();
-    if(q.error){ fail('שגיאה בטעינת ההרשאות: ' + q.error.message); return; }
-    var u = q.data;
-    var name = (u && u.full_name) || email;
-
-    if(!u || !u.approved){
-      document.getElementById('pendingEmail').textContent = email;
-      show('pending', {name:name});
-      return;
+  <div id="appShell" class="hidden">
+  <header class="top"><div class="topin"><div class="brand"><div class="logo">✓</div><div><b>מטרות ומשימות</b><div class="muted">מה מקדמים עכשיו</div></div></div><nav><button data-view="board" class="active">לוח עבודה</button><button data-view="all">כל המשימות</button><button id="teamBtn">צוות</button><button id="logoutBtn" title="יציאה">יציאה</button></nav></div></header>
+  <main class="wrap">
+    <div class="heading"><div><div class="eyebrow" id="eyebrow">לוח עבודה</div><h1 id="title">המשימות הפתוחות</h1></div><div class="actions"><button class="btn primary" data-new="task">＋ משימה חדשה</button><button class="btn" data-new="goal">＋ פרויקט חדש</button></div></div>
+    <section id="boardView"><div class="summary"><div class="stat"><strong id="taskCount">0</strong><span class="muted">משימות פתוחות</span></div><div class="stat"><strong id="goalCount">0</strong><span class="muted">מטרות פעילות</span></div></div><div id="cards" class="grid"></div></section>
+    <section id="allView" class="hidden"><div class="filters"><input id="search" class="control" placeholder="חיפוש לפי משימה, מטרה או אחראי"><select id="filter" class="control" style="max-width:190px"><option value="all">כל המצבים</option><option value="active">פעיל</option><option value="waiting">ממתין</option><option value="done">הסתיים</option></select></div><div class="tablebox"><table><thead><tr><th>שם</th><th>סוג</th><th>שייך ל</th><th>פעולה נוכחית</th><th>אחראי</th><th>מצב</th><th></th></tr></thead><tbody id="rows"></tbody></table></div></section>
+  </main>
+  </div>
+  <dialog id="itemDialog"><form method="dialog" class="modal" id="itemForm"><h2 id="formTitle">משימה חדשה</h2><div class="muted">מגדירים רק את הצעד הבא שמקדם את המשימה.</div><div class="form"><input type="hidden" id="itemId"><label>שם<input id="itemTitle" class="control" required></label><div class="row"><label>סוג<select id="itemType" class="control"><option value="task">משימה</option><option value="goal">מטרה/פרויקט</option></select></label><label>שייך למטרה/פרויקט<select id="parent" class="control"></select></label></div><label>הפעולה הבאה<input id="action" class="control"></label><div class="row"><label>אחראי<select id="owner" class="control"></select></label><label>תאריך יעד<input id="due" type="date" class="control"></label></div><label>מצב<select id="itemStatus" class="control"><option value="active">פעיל</option><option value="waiting">ממתין</option><option value="done">הסתיים</option></select></label><div class="modalfoot"><button type="button" id="deleteItem" class="btn danger hidden">מחיקה</button><span></span><div class="actions"><button value="cancel" class="btn">ביטול</button><button value="default" id="saveItem" class="btn primary">שמירה</button></div></div></div></form></dialog>
+  <dialog id="teamDialog"><form method="dialog" class="modal"><h2>ניהול צוות</h2><div class="muted">השמות יופיעו ברשימת האחראים.</div><div class="form"><div class="row"><input id="memberName" class="control" placeholder="שם איש צוות"><button type="button" id="addMember" class="btn primary">הוספה</button></div><div id="members"></div><div class="modalfoot"><span></span><button class="btn">סגירה</button></div></div></form></dialog>
+  <script src="../js/supabase.umd.js"></script>
+  <script src="config.js"></script>
+  <script>
+  (async()=>{
+    const cfg=window.MYOS_SUPABASE||{};
+    if(!cfg.url||!cfg.publishableKey||cfg.publishableKey.includes('PASTE_')){document.querySelector('#loginMessage').textContent='יש להשלים את פרטי Supabase בקובץ config.js';return}
+    const db=window.supabase.createClient(cfg.url,cfg.publishableKey);
+    let items=[], team=[], view='board', user=null;
+    const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    async function load(){const [{data:a,error:e1},{data:t,error:e2}]=await Promise.all([db.from('items').select('*').order('created_at',{ascending:false}),db.from('team_members').select('*').order('name')]);if(e1||e2){alert((e1||e2).message);return}items=(a||[]).map(x=>({id:x.id,title:x.title,type:x.type,parent:x.parent_id||'',action:x.action_title||'',owner:x.action_owner||'',due:x.due_date||'',status:x.status}));team=(t||[]).map(x=>x.name);render()}
+    const save=()=>render();
+    const label=s=>({active:'פעיל',waiting:'ממתין',done:'הסתיים'}[s]||s), date=s=>s?s.split('-').reverse().join('/'):'ללא תאריך';
+    function status(s){return `<span class="status ${esc(s)}">● ${label(s)}</span>`}
+    function render(){
+      const open=items.filter(x=>x.type==='task'&&x.status!=='done'), goals=items.filter(x=>x.type==='goal'&&x.status==='active');
+      $('#taskCount').textContent=open.length;$('#goalCount').textContent=goals.length;
+      $('#cards').innerHTML=open.length?open.map(x=>`<article class="card"><div class="cardtop"><div>${status(x.status)}<h2>${esc(x.title)}</h2></div><button class="btn small" data-complete="${x.id}">✓ סמן כבוצע</button></div><div class="next"><span class="muted">הפעולה הבאה</span><b>${esc(x.action||'לא הוגדרה פעולה')}</b></div><div class="meta"><span>👤 ${esc(x.owner||'ללא אחראי')}</span><span>🗓 ${date(x.due)}</span><button class="btn small" data-edit="${x.id}">עריכה</button></div></article>`).join(''):'<div class="empty">אין כרגע משימות פתוחות</div>';
+      const q=$('#search').value.trim(), f=$('#filter').value; const filtered=items.filter(x=>(f==='all'||x.status===f)&&(!q||[x.title,x.action,x.owner].some(v=>(v||'').includes(q))));
+      $('#rows').innerHTML=filtered.map(x=>`<tr><td><b>${esc(x.title)}</b></td><td>${x.type==='goal'?'מטרה/פרויקט':'משימה'}</td><td>${esc(items.find(y=>y.id===x.parent)?.title||'—')}</td><td>${esc(x.action||'—')}</td><td>${esc(x.owner||'—')}</td><td>${status(x.status)}</td><td><button class="btn small" data-edit="${x.id}">עריכה</button></td></tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:40px">לא נמצאו פריטים</td></tr>';
     }
-    // מאושר — עוברים למסך העבודה הראשי "מטרות ומשימות"
-    location.href = 'app.html';
-  }
-
-  async function loadPending(){
-    var box = document.getElementById('pendingList');
-    var q = await sb.from('task_users').select('id,email,full_name,created_at')
-              .eq('approved', false).order('created_at', {ascending:true});
-    if(q.error){ box.innerHTML = '<p class="empty">שגיאה: '+q.error.message+'</p>'; return; }
-    var rows = q.data || [];
-    if(!rows.length){ box.innerHTML = '<p class="empty">אין בקשות ממתינות.</p>'; return; }
-    box.innerHTML = '';
-    rows.forEach(function(r){
-      var el = document.createElement('div'); el.className='row';
-      el.innerHTML =
-        '<div class="info"><div class="nm">'+(r.full_name||'—')+'</div><div class="em">'+(r.email||'')+'</div></div>'+
-        '<div class="acts"><label><input type="checkbox" class="isadmin"> מנהל</label>'+
-        '<button class="approve">אשר</button></div>';
-      var btn = el.querySelector('.approve');
-      var chk = el.querySelector('.isadmin');
-      btn.addEventListener('click', function(){
-        btn.disabled = true; btn.textContent = 'מאשר…';
-        approve(r.id, chk.checked, el, btn);
-      });
-      box.appendChild(el);
-    });
-  }
-
-  async function approve(id, asAdmin, el, btn){
-    var patch = { approved:true };
-    if(asAdmin) patch.role = 'admin';
-    var q = await sb.from('task_users').update(patch).eq('id', id);
-    if(q.error){ btn.disabled=false; btn.textContent='אשר'; alert('שגיאה: '+q.error.message); return; }
-    el.remove();
-    var box = document.getElementById('pendingList');
-    if(!box.children.length){ box.innerHTML = '<p class="empty">אין בקשות ממתינות.</p>'; }
-  }
-
-  document.getElementById('googleBtn').addEventListener('click', function(){
-    sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin + '/tasks/' } });
-  });
-  document.getElementById('recheckBtn').addEventListener('click', route);
-  document.getElementById('logoutBtn').addEventListener('click', async function(){
-    await sb.auth.signOut(); location.reload();
-  });
-
-  sb.auth.onAuthStateChange(function(_evt, _session){ route(); });
-  route();
-})();
-</script>
+    function options(selected=''){const goals=items.filter(x=>x.type==='goal');$('#parent').innerHTML='<option value="">ללא שיוך</option>'+goals.map(x=>`<option value="${x.id}" ${x.id===selected?'selected':''}>${esc(x.title)}</option>`).join('');$('#owner').innerHTML='<option value="">ללא אחראי</option>'+team.map(n=>`<option ${n===selected?'selected':''}>${esc(n)}</option>`).join('')}
+    function openItem(kind='task',id=''){const x=items.find(y=>y.id===id);options(x?.parent||'');$('#itemId').value=x?.id||'';$('#itemTitle').value=x?.title||'';$('#itemType').value=x?.type||kind;$('#action').value=x?.action||'';$('#owner').value=x?.owner||'';$('#due').value=x?.due||'';$('#itemStatus').value=x?.status||'active';$('#formTitle').textContent=x?'עריכת פריט':kind==='goal'?'פרויקט חדש':'משימה חדשה';$('#deleteItem').classList.toggle('hidden',!x);$('#itemDialog').showModal()}
+    document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.view){view=b.dataset.view;document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===view));$('#boardView').classList.toggle('hidden',view!=='board');$('#allView').classList.toggle('hidden',view!=='all');$('#eyebrow').textContent=view==='board'?'לוח עבודה':'ניהול';$('#title').textContent=view==='board'?'המשימות הפתוחות':'כל המטרות והמשימות'}if(b.dataset.new)openItem(b.dataset.new);if(b.dataset.edit)openItem('',b.dataset.edit);if(b.dataset.complete){const {error}=await db.from('items').update({status:'done',updated_at:new Date().toISOString()}).eq('id',b.dataset.complete);if(error){alert(error.message);return}await load()}});
+    $('#saveItem').addEventListener('click',async e=>{e.preventDefault();if(!$('#itemTitle').value.trim())return;const id=$('#itemId').value;const row={title:$('#itemTitle').value.trim(),type:$('#itemType').value,parent_id:$('#parent').value||null,action_title:$('#action').value.trim(),action_owner:$('#owner').value,due_date:$('#due').value||null,status:$('#itemStatus').value,updated_at:new Date().toISOString()};const q=id?db.from('items').update(row).eq('id',id):db.from('items').insert({...row,created_by:user.id});const {error}=await q;if(error){alert(error.message);return}await load();$('#itemDialog').close()});
+    $('#deleteItem').onclick=async()=>{const {error}=await db.from('items').delete().eq('id',$('#itemId').value);if(error){alert(error.message);return}await load();$('#itemDialog').close()};$('#search').oninput=render;$('#filter').onchange=render;$('#teamBtn').onclick=()=>{$('#members').innerHTML=team.map((n,i)=>`<div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee"><span>${esc(n)}</span><button type="button" class="btn small danger" data-member="${i}">מחיקה</button></div>`).join('')||'<div class="muted">טרם נוספו עובדים</div>';$('#teamDialog').showModal()};
+    $('#addMember').onclick=async()=>{const n=$('#memberName').value.trim();if(n&&!team.includes(n)){const {error}=await db.from('team_members').insert({name:n,created_by:user.id});if(error){alert(error.message);return}$('#memberName').value='';await load();$('#teamDialog').close();$('#teamBtn').click()}};$('#members').onclick=async e=>{const b=e.target.closest('[data-member]');if(b){const {error}=await db.from('team_members').delete().eq('name',team[Number(b.dataset.member)]);if(error){alert(error.message);return}await load();$('#teamDialog').close();$('#teamBtn').click()}};
+    async function enter(){const {data}=await db.auth.getUser();user=data.user;if(!user)return;const {data:tu}=await db.from('task_users').select('approved').eq('id',user.id).maybeSingle();if(!tu||!tu.approved){$('#loginMessage').innerHTML='החשבון <b>'+esc(user.email)+'</b> נוצר וממתין לאישור מנהל. <a href="#" id="pendingLogout">התנתקות</a>';$('#pendingLogout').onclick=async e=>{e.preventDefault();await db.auth.signOut();location.reload()};return}$('#loginScreen').classList.add('hidden');$('#appShell').classList.remove('hidden');await load()}
+    $('#logoutBtn').onclick=async()=>{await db.auth.signOut();location.reload()};
+    $('#loginForm').onsubmit=async e=>{e.preventDefault();$('#loginMessage').textContent='מתחבר...';const {error}=await db.auth.signInWithPassword({email:$('#loginEmail').value,password:$('#loginPassword').value});$('#loginMessage').textContent=error?error.message:'';if(!error)await enter()};
+    $('#signupBtn').onclick=async()=>{const {error}=await db.auth.signUp({email:$('#loginEmail').value,password:$('#loginPassword').value});$('#loginMessage').textContent=error?error.message:'נשלח מייל לאימות החשבון.'};await enter();
+  })();
+  </script>
 </body>
 </html>
