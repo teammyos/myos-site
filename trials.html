@@ -139,6 +139,7 @@
   table.ut .devline .dmeta{font-size:.68rem}
   table.ut .miniadd{padding:.25rem .55rem;font-size:.74rem}
   table.ut .acts{justify-content:flex-start;flex-wrap:nowrap}
+  table.ut .noexp{color:#ffb3a4;font-size:.82rem}
   table.ut .idx{color:var(--dim);font-size:.74rem;width:2rem}
   table.ut .empty{padding:.8rem}
   .hidden{display:none}
@@ -192,14 +193,14 @@
     <h2 style="margin-top:0">ממתינים לאישור</h2>
     <div class="tblwrap"><table class="ut pend"><thead><tr>
       <th class="ns idx">#</th><th data-k="name">שם / מייל</th><th data-k="created_at">נרשם</th>
-      <th data-k="last_sign_in_at">התחברות אחרונה</th><th class="ns">רישיון</th><th class="ns">אישור מנוי</th><th class="ns">פעולות</th>
-    </tr></thead><tbody id="pending"><tr><td colspan="7" class="empty">טוען…</td></tr></tbody></table></div>
+      <th data-k="last_sign_in_at">התחברות אחרונה</th><th data-k="export_count">ייצואים</th><th class="ns">רישיון</th><th class="ns">אישור מנוי</th><th class="ns">פעולות</th>
+    </tr></thead><tbody id="pending"><tr><td colspan="8" class="empty">טוען…</td></tr></tbody></table></div>
     <h2>מנויים פעילים</h2>
     <div class="tblwrap"><table class="ut"><thead><tr>
       <th class="ns idx">#</th><th data-k="name">שם / מייל</th><th data-k="status">סטטוס</th><th data-k="valid_until">בתוקף עד</th>
-      <th data-k="last_sign_in_at">התחברות אחרונה</th><th class="ns">חידוש — נספר מסוף התוקף הנוכחי</th>
+      <th data-k="last_sign_in_at">התחברות אחרונה</th><th data-k="export_count">ייצואים</th><th class="ns">חידוש — נספר מסוף התוקף הנוכחי</th>
       <th data-k="devices">מחשבים</th><th class="ns">פעולות</th>
-    </tr></thead><tbody id="active"><tr><td colspan="8" class="empty">טוען…</td></tr></tbody></table></div>
+    </tr></thead><tbody id="active"><tr><td colspan="9" class="empty">טוען…</td></tr></tbody></table></div>
     <p class="msg" id="boardMsg" role="status"></p>
   </div>
 
@@ -288,16 +289,16 @@
 
   var sortKey={pending:'created_at',active:'valid_until'}, sortDir={pending:-1,active:1};
   function loadingRows(){
-    $('pending').innerHTML='<tr><td colspan="7" class="empty">טוען…</td></tr>';
-    $('active').innerHTML='<tr><td colspan="8" class="empty">טוען…</td></tr>';
+    $('pending').innerHTML='<tr><td colspan="8" class="empty">טוען…</td></tr>';
+    $('active').innerHTML='<tr><td colspan="9" class="empty">טוען…</td></tr>';
   }
   async function load(){
     loadingRows();
     var r=await fn('list');
     if(r.status===403){ $('board').classList.add('hidden'); $('loginCard').classList.remove('hidden'); $('loginMsg').className='msg err'; $('loginMsg').textContent='החשבון הזה אינו מנהל.'; return; }
     if(!r.j.ok){
-      $('pending').innerHTML='<tr><td colspan="7" class="empty">—</td></tr>';
-      $('active').innerHTML='<tr><td colspan="8" class="empty">—</td></tr>';
+      $('pending').innerHTML='<tr><td colspan="8" class="empty">—</td></tr>';
+      $('active').innerHTML='<tr><td colspan="9" class="empty">—</td></tr>';
       $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status);
       return;
     }
@@ -315,6 +316,7 @@
     if(k==='status') return u.valid_until?1:0;            /* לצמיתות אחרון */
     if(k==='valid_until') return u.valid_until?new Date(u.valid_until).getTime():8.64e15;
     if(k==='devices') return (u.device_count||0);
+    if(k==='export_count') return (u.export_count||0);
     return u[k]?new Date(u[k]).getTime():0;
   }
   function sorted(list,which){
@@ -328,7 +330,8 @@
     var active=users.filter(function(u){return u.active;});
     renderPending(sorted(pending,'pending')); renderActive(sorted(active,'active'));
     $('cnt').textContent=(q?'מוצגים '+users.length+' מתוך '+allUsers.length:allUsers.length+' נרשמים')+' · '+
-                         allUsers.filter(function(u){return u.active;}).length+' פעילים';
+                         allUsers.filter(function(u){return u.active;}).length+' פעילים · '+
+                         allUsers.filter(function(u){return (u.export_count||0)>0;}).length+' ייצאו לפחות פעם אחת';
     document.querySelectorAll('table.ut th[data-k]').forEach(function(th){
       var which=th.closest('table').classList.contains('pend')?'pending':'active';
       var a=th.querySelector('.arr'); if(a) a.remove();
@@ -350,13 +353,18 @@
     var cls=days<0?' expired':days<=3?' expiring':'';
     return '<td class="nw'+cls+'">'+esc(fmtDate(u.valid_until))+(days<0?' (פג)':days<=7?' ('+days+' ימים)':'')+'</td>';
   }
+  function exportCell(u){
+    var n=u.export_count||0;
+    if(!n) return '<td class="nw"><span class="noexp">0 — לא התחיל</span></td>';
+    return '<td class="nw"><b>'+n+'</b> <span class="ls">· אחרון: '+esc(fmtDateTime(u.last_export_at))+'</span></td>';
+  }
   function lastCell(u){
     return '<td class="nw"><span class="ls">'+(u.last_sign_in_at?esc(fmtDateTime(u.last_sign_in_at)):'טרם התחבר')+'</span></td>';
   }
 
   function renderPending(list){
     var box=$('pending');
-    if(!list.length){ box.innerHTML='<tr><td colspan="7" class="empty">אין נרשמים ממתינים.</td></tr>'; return; }
+    if(!list.length){ box.innerHTML='<tr><td colspan="8" class="empty">אין נרשמים ממתינים.</td></tr>'; return; }
     box.innerHTML='';
     list.forEach(function(u,i){
       var blocked = u.license_status==='blocked';
@@ -365,6 +373,7 @@
                    '<td class="nmcell">'+nameHtml(u)+'</td>'+
                    '<td class="nw">'+esc(fmtDate(u.created_at))+'</td>'+
                    lastCell(u)+
+                   exportCell(u)+
                    '<td class="nw">'+(blocked?'<span class="pill susp">מושהה</span>':esc(u.license_status||'—'))+'</td>'+
                    '<td>'+(blocked ? '—' : rangeHtml('אשר'))+'</td>'+
                    '<td><div class="acts">'+
@@ -379,7 +388,7 @@
   }
   function renderActive(list){
     var box=$('active');
-    if(!list.length){ box.innerHTML='<tr><td colspan="8" class="empty">אין מנויים פעילים.</td></tr>'; return; }
+    if(!list.length){ box.innerHTML='<tr><td colspan="9" class="empty">אין מנויים פעילים.</td></tr>'; return; }
     box.innerHTML='';
     list.forEach(function(u,i){
       var max=u.max_devices==null?1:u.max_devices, cnt=u.device_count||0, full=cnt>=max;
@@ -400,6 +409,7 @@
         '<td class="nw">'+(unlimited?'<span class="pill life">לצמיתות</span>':'<span class="pill active">פעיל</span>')+'</td>'+
         validCell(u)+
         lastCell(u)+
+        exportCell(u)+
         '<td>'+rangeHtml('חדש')+'</td>'+
         '<td class="devcell">'+
           '<div class="devsum"><span class="cnt'+(full?' full':'')+'">מחשבים: <b>'+cnt+' / '+max+'</b></span>'+
@@ -498,10 +508,10 @@
   function csvCell(v){ v=String(v==null?'':v); return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
   $('csvBtn').addEventListener('click', function(){
     if(!allUsers.length){ $('boardMsg').className='msg'; $('boardMsg').textContent='אין נתונים לייצוא'; return; }
-    var head=['שם','אימייל','תאריך הרשמה','התחברות אחרונה','סטטוס רישיון','בתוקף עד','פעיל'];
+    var head=['שם','אימייל','תאריך הרשמה','התחברות אחרונה','ייצואים','ייצוא אחרון','סטטוס רישיון','בתוקף עד','פעיל'];
     var lines=[head.map(csvCell).join(',')];
     allUsers.forEach(function(u){
-      lines.push([u.full_name||'', u.email||'', fmtDateTime(u.created_at), fmtDateTime(u.last_sign_in_at), u.license_status||'', u.valid_until?fmtDate(u.valid_until):(u.active?'ללא הגבלה':''), u.active?'כן':'לא'].map(csvCell).join(','));
+      lines.push([u.full_name||'', u.email||'', fmtDateTime(u.created_at), fmtDateTime(u.last_sign_in_at), u.export_count||0, u.last_export_at?fmtDateTime(u.last_export_at):'', u.license_status||'', u.valid_until?fmtDate(u.valid_until):(u.active?'ללא הגבלה':''), u.active?'כן':'לא'].map(csvCell).join(','));
     });
     var csv='\uFEFF'+lines.join('\r\n');
     var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
