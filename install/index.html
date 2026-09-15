@@ -341,6 +341,45 @@
     document.getElementById('s1done').textContent = '✓ בוצע — אתם כבר מחוברים לחשבון ' + email + '. ממשיכים לצעד 2.';
   } catch (e) { /* בלי חיבור — הדף נשאר כרגיל */ }
 })();
+
+/* ---------- 1.0.5: שואלים את התוסף "מותקן? מחובר?" ומסמנים ✓ בצעדים 2 ו-4 ----------
+ * עובד רק מ-myos.co.il (externally_connectable ב-manifest). מחזיר גרסה + מצב חיבור
+ * בלבד. בגרסאות ישנות / בלי התקנה — אין תשובה, והדף נשאר בדיוק כמו שהוא. */
+(function () {
+  var EXT_ID = 'dhckckgcpgjoolkneobojaikigmimnaa';
+  function markDone(cardId, numId, textId, text) {
+    var card = document.getElementById(cardId);
+    if (!card) return;
+    card.classList.add('done');
+    var n = document.getElementById(numId) || card.querySelector('.n');
+    if (n) n.textContent = '✓';
+    var small = document.getElementById(textId) || card.querySelector('small');
+    if (small) small.textContent = text;
+    var cta = card.querySelector('.cta'); if (cta) cta.style.display = 'none';
+    var after = card.querySelector('.after'); if (after) after.style.display = 'none';
+  }
+  function markSection(secId, text) {
+    var sec = document.getElementById(secId);
+    if (!sec) return;
+    sec.classList.add('done');
+    var n = sec.querySelector('h2 .n'); if (n) n.textContent = '✓';
+    var note = document.createElement('span');
+    note.className = 'donenote'; note.style.display = 'block'; note.textContent = text;
+    var h = sec.querySelector('h2'); if (h && h.nextSibling) h.parentNode.insertBefore(note, h.nextSibling);
+  }
+  try {
+    if (!window.chrome || !chrome.runtime || !chrome.runtime.sendMessage) return;
+    chrome.runtime.sendMessage(EXT_ID, { type: 'MYOS_PING' }, function (r) {
+      if (chrome.runtime.lastError || !r || !r.installed) return;   /* לא מותקן / גרסה ישנה */
+      markDone('flow2', 'flow2n', null, 'בוצע — התוסף מותקן (גרסה ' + (r.version || '') + ')');
+      markSection('s2', '✓ בוצע — התוסף כבר מותקן בדפדפן הזה.');
+      if (r.loggedIn) {
+        markDone('flow4', null, null, 'בוצע — התוסף מחובר לחשבון');
+        markSection('s4', '✓ בוצע — התוסף כבר מחובר. אפשר להתחיל לעבוד.');
+      }
+    });
+  } catch (e) { /* דפדפן בלי chrome.runtime — מתעלמים */ }
+})();
 </script>
 </body>
 </html>
