@@ -278,12 +278,14 @@ dialog::backdrop{background:#0e1a3388}
           <label style="flex:1">שם האזור<input id="spaceRename" class="control"></label>
           <button id="renameSpaceBtn" class="btn primary">שמירת שם</button>
           <button id="delSpaceBtn" class="btn danger">מחיקת האזור</button>
+          <button id="leaveSpaceBtn" class="btn danger hidden">יציאה מהאזור</button>
         </div>
+        <div id="spaceHint" class="muted" style="margin-top:10px"></div>
         <div id="spaceMsg" class="msg hidden" style="margin:14px 0 0"></div>
       </div>
       <div class="panel">
         <h2>חברים באזור</h2>
-        <div class="muted">מי שיכול להיכנס לאזור הזה ולראות את המשימות שבו. חייב להיות רשום במערכת. <b>המערכת לא שולחת לו הודעה</b> — האזור פשוט יופיע לו ברשימה בכניסה הבאה, אז כדאי לעדכן אותו.</div>
+        <div class="muted">מי שיכול להיכנס לאזור הזה ולראות את המשימות שבו. חייב להיות רשום במערכת. ההוספה שולחת לו <b>הזמנה במייל</b>, והאזור נפתח לו רק אחרי שאישר — עד אז הוא מופיע כאן כ"ממתין לאישור".</div>
         <div id="memberList" style="margin-top:14px"></div>
         <div class="inline" id="addMemberBox" style="margin-top:16px">
           <label style="flex:1">הוספת חבר לפי כתובת מייל<input id="memberEmail" class="control" type="email" placeholder="name@example.com"></label>
@@ -429,7 +431,19 @@ async function showTeam(){
   $('#spaceRename').value=space?space.name:'';
   $('#spaceRename').disabled=!owner;
   $('#renameSpaceBtn').disabled=!owner;
-  $('#delSpaceBtn').classList.toggle('hidden',!owner||!space||space.kind==='personal');
+  // מחיקה: כל אזור שאתה הבעלים שלו, כולל האישי — אבל לא האחרון שנשאר,
+  // כי מסך בלי שום אזור הוא מסך שבור. מי שאינו הבעלים יכול לצאת מהאזור.
+  const only=spaces.length<2;
+  $('#delSpaceBtn').classList.toggle('hidden',!owner||!space);
+  $('#delSpaceBtn').disabled=only;
+  $('#leaveSpaceBtn').classList.toggle('hidden',owner||!space);
+  $('#leaveSpaceBtn').disabled=only;
+  $('#spaceHint').textContent=!space?''
+    :only?'זה האזור היחיד שלך. כדי למחוק אותו או לצאת ממנו, צריך שיהיה לך עוד אזור אחד לפחות.'
+    :owner?(space.kind==='personal'
+        ?'מחיקת האזור האישי אפשרית — הוא לא נוצר מחדש בכניסה הבאה.'
+        :'מחיקת האזור מוחקת גם את כל המשימות, האנשים והחברוּת שבו.')
+    :'אתה חבר באזור הזה, לא הבעלים. יציאה מהאזור לא מוחקת ממנו כלום.';
   $('#spaceMsg').classList.add('hidden');
   await loadTeam();
 }
@@ -773,17 +787,29 @@ $('#renameSpaceBtn').onclick=async()=>{
            team:['האזור',space.name+' — צוות ואנשים'],admin:['ניהול מערכת','מי רשום למערכת']}[view];
   $('#title').textContent=t[1];
 };
+/** אחרי מחיקת אזור או יציאה ממנו — לעבור לאזור אחר ולרענן את המסך */
+async function afterSpaceGone(){
+  localStorage.removeItem('myos_space');
+  await loadSpaces();space=spaces[0]||null;allMode=false;
+  if(space)$('#spaceSel').value=space.id;
+  await loadSpace();await showTeam();
+}
 $('#delSpaceBtn').onclick=async()=>{
-  if(!space||space.kind==='personal')return;
+  if(!space||spaces.length<2)return;
   const n=items.length;
   if(!confirm(`למחוק את האזור "${space.name}"?\nכל התוכן שלו יימחק — ${n} מטרות ומשימות, רשימת האנשים והחברוּת של כולם. הפעולה אינה הפיכה.`))return;
   if(!confirm('אישור אחרון: המחיקה סופית.'))return;
   const {error}=await db.from('spaces').delete().eq('id',space.id);
   if(error){msg(heb(error),'err','#spaceMsg');$('#spaceMsg').classList.remove('hidden');return}
-  localStorage.removeItem('myos_space');
-  await loadSpaces();space=spaces[0]||null;allMode=false;
-  if(space)$('#spaceSel').value=space.id;
-  await loadSpace();await showTeam();
+  await afterSpaceGone();
+};
+$('#leaveSpaceBtn').onclick=async()=>{
+  if(!space||spaces.length<2)return;
+  if(!confirm(`לצאת מהאזור "${space.name}"?\nלא תראה יותר את המשימות שבו. התוכן עצמו נשאר אצל בעל האזור, והוא יוכל לצרף אותך שוב.`))return;
+  const {data,error}=await db.rpc('leave_space',{p_space:space.id});
+  if(error){msg(heb(error),'err','#spaceMsg');$('#spaceMsg').classList.remove('hidden');return}
+  if(data==='owner'){msg('אתה בעל האזור — מחיקה, לא יציאה.','err','#spaceMsg');$('#spaceMsg').classList.remove('hidden');return}
+  await afterSpaceGone();
 };
 $('#newSpaceBtn').onclick=()=>{$('#spaceName').value='';$('#spaceDialog').showModal()};
 $('#saveSpace').onclick=async()=>{
