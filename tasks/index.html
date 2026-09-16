@@ -306,7 +306,7 @@ dialog::backdrop{background:#0e1a3388}
       </div>
       <div class="panel">
         <h2>אנשים</h2>
-        <div class="muted">כל מי שאפשר לשייך אליו משימה. אפשר לקשר אדם לחשבון קיים, או פשוט לרשום שם — נהג, מזכירות, ספק — בלי חשבון.</div>
+        <div class="muted">כל מי שאפשר לשייך אליו משימה. <b>חברי האזור מופיעים כאן מעצמם</b> ברגע שהצטרפו. כאן מוסיפים את מי שאין לו חשבון — נהג, מזכירות, ספק — או מקשרים אדם קיים לחשבון.</div>
         <div id="peopleList" style="margin-top:14px"></div>
         <div class="inline" style="margin-top:16px">
           <label style="flex:1">שם<input id="personName" class="control" placeholder="למשל: פייגי / נהג"></label>
@@ -783,7 +783,10 @@ function openItem(kind='task',id=''){
     if(keep&&spaces.some(s=>s.id===keep))$('#itemSpace').value=keep;
   }else if(x){$('#itemSpace').innerHTML=`<option value="${x.space_id}">${esc(spaceName(x.space_id))}</option>`}
   else if(space){$('#itemSpace').innerHTML=`<option value="${space.id}">${esc(space.name)}</option>`}
-  lastParent=x?.parent_id||'';lastOwner=x?.owner_id||'';
+  // משימה חדשה — האחראי ברירת המחדל הוא אני, אם אני ברשימת האנשים של האזור
+  const meHere=(()=>{const sid=x?x.space_id:(space?space.id:'');
+    const p=people.find(q=>q.user_id===user.id&&q.space_id===sid);return p?p.id:''})();
+  lastParent=x?.parent_id||'';lastOwner=x?x.owner_id||'':meHere;
   fillSelects({parent:lastParent,owner:lastOwner});
   $('#itemId').value=x?.id||'';$('#itemTitle').value=x?.title||'';$('#itemType').value=x?.type||kind;
   $('#action').value=x?.action_title||'';$('#due').value=x?.due_date||'';$('#itemStatus').value=x?.status||'active';
