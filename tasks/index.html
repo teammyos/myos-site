@@ -78,6 +78,7 @@ nav .badge{display:inline-block;min-width:19px;padding:1px 6px;margin-inline-sta
 
 .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px}
 .card h3{margin:0;font-size:17px}
+.cardnotes{background:var(--alt);border-inline-start:3px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13px;line-height:1.6;color:#4a5a6e;white-space:pre-wrap}
 .cardtop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.cardtop>div{min-width:0}.cardtop .btn{flex:none}
 .next{background:var(--alt);border-radius:11px;padding:12px}
 .next span{color:var(--muted);font-size:12px}
@@ -88,6 +89,36 @@ nav .badge{display:inline-block;min-width:19px;padding:1px 6px;margin-inline-sta
 .status.waiting{background:var(--waitbg);color:var(--wait)}
 .status.done{background:#e7e9ec;color:#55616f}
 .empty{background:var(--surface);border:1px dashed #b6ab98;border-radius:16px;padding:44px;text-align:center;color:var(--muted)}
+
+/* ---------- לוח שנה ---------- */
+.calbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.calbar h2{margin:0;font-size:20px;min-width:180px}
+.seg{display:flex;background:var(--alt);border:1px solid var(--line);border-radius:11px;padding:3px;gap:3px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:7px 13px;border-radius:9px;cursor:pointer;font-size:14px}
+.seg button.on{background:var(--surface);color:var(--accent);font-weight:700;box-shadow:0 1px 3px #0e1a3318}
+.calgrid{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.calhead,.calweek{display:grid;grid-template-columns:repeat(7,1fr)}
+.calhead div{padding:10px 8px;text-align:center;font-size:13px;font-weight:600;color:var(--muted);background:var(--alt);border-bottom:1px solid var(--line)}
+.calcell{min-height:104px;border-inline-start:1px solid #eceae4;border-bottom:1px solid #eceae4;padding:7px;display:flex;flex-direction:column;gap:4px;cursor:pointer}
+.calcell:first-child{border-inline-start:0}
+.calweek:last-child .calcell{border-bottom:0}
+.calcell:hover{background:#faf8f4}
+.calcell.out{background:var(--alt);color:#a8b0ba}
+.calcell.today{background:#eaf4f5}
+.calnum{display:flex;align-items:baseline;gap:5px;align-self:stretch;justify-content:space-between}
+.calnum b{font-size:13px;font-weight:700;color:var(--muted)}
+.calnum .heb{font-size:11px;color:#9aa4b0;font-weight:600}
+.calcell.today .calnum b{background:var(--accent);color:#fff;border-radius:999px;min-width:22px;height:22px;display:grid;place-items:center;padding:0 5px}
+.calcell.today .calnum .heb{color:var(--accent)}
+.calsub{font-size:13px;color:var(--muted);font-weight:600}
+.chip{display:block;width:100%;text-align:start;border:0;border-inline-start:3px solid var(--accent);background:#eaf2f3;color:var(--ink);border-radius:6px;padding:3px 7px;font-size:12px;line-height:1.35;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip:hover{background:#ddeaec}
+.chip.goal{border-inline-start-color:#8a6509;background:#fbf3e2}
+.chip.done{border-inline-start-color:#9aa4b0;background:#eef0f2;color:#77818d;text-decoration:line-through}
+.chip.late{border-inline-start-color:var(--danger);background:#fdeceb;color:#8d2018}
+.calmore{font-size:11px;color:var(--muted);padding-inline-start:4px}
+.callist .rowline{cursor:pointer}
+@media(max-width:700px){.calcell{min-height:72px;padding:4px}.chip{font-size:11px;padding:2px 5px}.calbar h2{min-width:0}}
 
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:18px}
 .panel h2{margin:0 0 4px;font-size:18px}
@@ -125,6 +156,9 @@ dialog::backdrop{background:#0e1a3388}
 .msg.ok{background:var(--okbg);color:var(--ok)}
 .msg.wait{background:var(--waitbg);color:var(--wait)}
 .msg a{color:inherit}
+.invite{background:#fff6df;border:1px solid #e8d49a;border-radius:14px;padding:16px 18px;margin-bottom:22px}
+.invite b{font-size:15px}
+.invite .actions{margin-top:12px}
 
 /* ---------- מסך כניסה ---------- */
 .login{max-width:430px;margin:0 auto;padding:64px 20px}
@@ -182,6 +216,7 @@ dialog::backdrop{background:#0e1a3388}
       </div>
       <nav>
         <button data-view="board" class="active">לוח עבודה</button>
+        <button data-view="cal">לוח שנה</button>
         <button data-view="all">כל המשימות</button>
         <button data-view="team">צוות האזור</button>
         <button data-view="admin" id="adminBtn" class="hidden">משתמשים<span id="pendingBadge" class="badge hidden">0</span></button>
@@ -191,6 +226,7 @@ dialog::backdrop{background:#0e1a3388}
   </header>
 
   <main class="wrap">
+    <div id="inviteBox"></div>
     <div class="heading">
       <div><div class="eyebrow" id="eyebrow">לוח עבודה</div><h1 id="title">המשימות הפתוחות</h1></div>
       <div class="actions" id="newActions">
@@ -206,6 +242,22 @@ dialog::backdrop{background:#0e1a3388}
         <div class="stat"><strong id="lateCount">0</strong><span>עברו את תאריך היעד</span></div>
       </div>
       <div id="board"></div>
+    </section>
+
+    <section id="calView" class="hidden">
+      <div class="calbar">
+        <button class="btn small" id="calPrev" title="חודש קודם">›</button>
+        <h2 id="calTitle"></h2>
+        <button class="btn small" id="calNext" title="חודש הבא">‹</button>
+        <button class="btn small" id="calToday">היום</button>
+        <div class="seg" id="calScope" style="margin-inline-start:auto">
+          <button data-scope="mine" class="on">המשימות שלי</button>
+          <button data-scope="all">כל האזור</button>
+        </div>
+      </div>
+      <div id="calHint" class="msg hidden"></div>
+      <div class="calgrid"><div class="calhead"><div>א</div><div>ב</div><div>ג</div><div>ד</div><div>ה</div><div>ו</div><div>ש</div></div><div id="calBody"></div></div>
+      <div class="muted" style="margin-top:12px">לחיצה על יום פותחת משימה חדשה עם התאריך שלו · לחיצה על פריט פותחת אותו לעריכה · פריטים בלי תאריך יעד לא מופיעים כאן.</div>
     </section>
 
     <section id="allView" class="hidden">
@@ -288,6 +340,7 @@ dialog::backdrop{background:#0e1a3388}
       <label style="flex:1">שם האדם החדש<input id="quickPersonName" class="control" placeholder="למשל: יוסי / נהג"></label>
       <button type="button" id="quickPersonSave" class="btn primary">הוספה</button>
     </div>
+    <label>הערות<textarea id="notes" class="control" rows="3" placeholder="פרטים, מספרי טלפון, מה סוכם…"></textarea></label>
     <label>מצב<select id="itemStatus" class="control"><option value="active">פעיל</option><option value="waiting">ממתין</option><option value="done">הסתיים</option></select></label>
     <div class="modalfoot">
       <button type="button" id="deleteItem" class="btn danger hidden">מחיקה</button><span></span>
@@ -318,6 +371,7 @@ const db=window.supabase.createClient(cfg.url,cfg.publishableKey);
 
 let user=null,me=null,spaces=[],space=null,items=[],people=[],members=[],users=[],view='board';
 let lastParent='',lastOwner='',allMode=false;
+let calMonth=new Date(),calScope='mine',invites=[];
 const ALL='__all__';
 const spaceName=id=>{const s=spaces.find(x=>x.id===id)||{};return s.label||s.name||''};
 
@@ -379,6 +433,18 @@ async function showTeam(){
   $('#spaceMsg').classList.add('hidden');
   await loadTeam();
 }
+async function loadInvites(){
+  const {data,error}=await db.rpc('my_invites');
+  if(error){invites=[];$('#inviteBox').innerHTML='';return}   // המיגרציה אולי טרם רצה
+  invites=data||[];
+  $('#inviteBox').innerHTML=invites.map(v=>`<div class="invite">
+    <b>הוזמנת לאזור «${esc(v.space_name)}»</b>
+    <div class="muted" style="margin-top:4px">${v.invited_by?esc(v.invited_by)+' הזמין אותך. ':''}עד שתאשרו, האזור והמשימות שבו לא מוצגים לכם.</div>
+    <div class="actions">
+      <button class="btn primary" data-invite="${v.space_id}" data-accept="1">הצטרפות לאזור</button>
+      <button class="btn" data-invite="${v.space_id}" data-accept="0">דחייה</button>
+    </div></div>`).join('');
+}
 async function loadTeam(){
   if(!space)return;
   const {data,error}=await db.rpc('space_member_list',{p_space:space.id});
@@ -432,6 +498,7 @@ function render(){
   const filtered=items.filter(x=>(f==='all'||(f==='open'?x.status!=='done':x.status===f))
     &&(!q||[x.title,x.action_title,personName(x.owner_id)].some(v=>(v||'').includes(q))));
   $('#spaceCol').classList.toggle('hidden',!allMode);
+  renderCal();
   $('#rows').innerHTML=filtered.map(x=>`<tr>
     ${allMode?`<td>${esc(spaceName(x.space_id))}</td>`:''}
     <td><b>${esc(x.title)}</b></td>
@@ -449,13 +516,96 @@ const card=x=>`<article class="card">
     <button class="btn small" data-complete="${x.id}">✓ בוצע</button></div>
   <div class="next"><span>הפעולה הבאה</span><b>${esc(x.action_title||'לא הוגדרה פעולה')}</b></div>
   <div class="meta"><span>👤 ${esc(personName(x.owner_id)||'ללא אחראי')}</span>
-    <span${x.due_date&&x.due_date<today()?' style="color:#a3251c;font-weight:600"':''}>🗓 ${fmt(x.due_date)}</span>
-    <button class="btn small sp" data-edit="${x.id}">עריכה</button></div></article>`;
+    <span${x.due_date&&x.due_date<today()?' style="color:#a3251c;font-weight:600"':''}>🗓 ${fmt(x.due_date)}${x.due_date?` · ${esc(hebFull(new Date(x.due_date)))}`:''}</span>
+    <button class="btn small sp" data-edit="${x.id}">עריכה</button></div>
+  ${x.notes?`<div class="cardnotes">${esc(x.notes)}</div>`:''}</article>`;
+
+/* ============ לוח שנה ============ */
+/* ---------- תאריך עברי ---------- */
+const HUN=['','ק','ר','ש','ת','תק','תר','תש','תת','תתק'];
+const TEN=['','י','כ','ל','מ','נ','ס','ע','פ','צ'];
+const ONE=['','א','ב','ג','ד','ה','ו','ז','ח','ט'];
+/** מספר לגימטריה, עם ט"ו/ט"ז וגרש/גרשיים */
+function gem(n){
+  n=Math.floor(n)%1000;
+  const h=HUN[Math.floor(n/100)]||'';
+  const r=n%100;
+  const rest=(r===15?'טו':r===16?'טז':(TEN[Math.floor(r/10)]||'')+(ONE[r%10]||''));
+  const s=h+rest;
+  if(!s)return '';
+  return s.length===1 ? s+'׳' : s.slice(0,-1)+'״'+s.slice(-1);
+}
+const HEB_CAL='he-u-ca-hebrew';
+const hebParts=d=>{
+  const f=new Intl.DateTimeFormat(HEB_CAL,{day:'numeric',month:'long',year:'numeric'}).formatToParts(d);
+  const get=k=>(f.find(x=>x.type===k)||{}).value||'';
+  return {day:Number(get('day')),month:get('month'),year:Number(String(get('year')).replace(/\D/g,''))};
+};
+const hebDay=d=>gem(hebParts(d).day);
+const hebFull=d=>{const h=hebParts(d);return `${gem(h.day)} ב${h.month} ${gem(h.year)}`};
+/** טווח החודשים העבריים שהחודש הלועזי נופל עליהם */
+function hebMonthSpan(first,last){
+  const a=hebParts(first), b=hebParts(last);
+  if(a.month===b.month&&a.year===b.year)return `${a.month} ${gem(a.year)}`;
+  if(a.year===b.year)return `${a.month}–${b.month} ${gem(a.year)}`;
+  return `${a.month} ${gem(a.year)} – ${b.month} ${gem(b.year)}`;
+}
+
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const myPersonIds=()=>people.filter(p=>p.user_id===user.id).map(p=>p.id);
+function calItems(){
+  const dated=items.filter(x=>x.due_date);
+  if(calScope!=='mine')return dated;
+  const mine=myPersonIds();
+  return dated.filter(x=>mine.includes(x.owner_id));
+}
+function renderCal(){
+  document.querySelectorAll('#calScope button').forEach(b=>b.classList.toggle('on',b.dataset.scope===calScope));
+  const mFirst=new Date(calMonth.getFullYear(),calMonth.getMonth(),1);
+  const mLast=new Date(calMonth.getFullYear(),calMonth.getMonth()+1,0);
+  $('#calTitle').innerHTML=esc(calMonth.toLocaleDateString('he-IL',{month:'long',year:'numeric'}))
+    +` <span class="calsub">· ${esc(hebMonthSpan(mFirst,mLast))}</span>`;
+
+  const list=calItems();
+  const mine=myPersonIds();
+  const hasAny=items.some(x=>x.due_date);
+  if(calScope==='mine'&&!list.length&&hasAny){
+    msg(mine.length
+      ? 'אין משימות עם תאריך יעד שמשויכות אליך. אפשר לעבור ל«כל האזור».'
+      : 'אף אדם באזור לא מקושר לחשבון שלך, ולכן אין משימות «שלי». אפשר לקשר במסך «צוות האזור», או לעבור ל«כל האזור».','wait','#calHint');
+    $('#calHint').classList.remove('hidden');
+  } else $('#calHint').classList.add('hidden');
+
+  const byDay={};
+  list.forEach(x=>{(byDay[x.due_date]=byDay[x.due_date]||[]).push(x)});
+
+  const first=new Date(calMonth.getFullYear(),calMonth.getMonth(),1);
+  const start=new Date(first); start.setDate(1-first.getDay());   // ראשון שלפני
+  const t0=iso(new Date());
+  let html='',d=new Date(start);
+  for(let w=0;w<6;w++){
+    html+='<div class="calweek">';
+    for(let i=0;i<7;i++){
+      const key=iso(d), out=d.getMonth()!==calMonth.getMonth(), dd=new Date(d);
+      const day=(byDay[key]||[]).slice(0,3), extra=(byDay[key]||[]).length-day.length;
+      html+=`<div class="calcell${out?' out':''}${key===t0?' today':''}" data-newday="${key}" title="${esc(hebFull(dd))}">
+        <span class="calnum"><b>${d.getDate()}</b><span class="heb">${esc(hebDay(d))}</span></span>
+        ${day.map(x=>`<button class="chip ${x.type==='goal'?'goal':''} ${x.status==='done'?'done':(key<t0?'late':'')}" data-edit="${x.id}" title="${esc(x.title)}">${esc(x.title)}</button>`).join('')}
+        ${extra>0?`<span class="calmore">ועוד ${extra}</span>`:''}
+      </div>`;
+      d.setDate(d.getDate()+1);
+    }
+    html+='</div>';
+    if(d.getMonth()!==calMonth.getMonth()&&w>=4)break;
+  }
+  $('#calBody').innerHTML=html;
+}
 
 function renderTeam(){
   const owner=space&&members.some(m=>m.user_id===user.id&&m.role==='owner');
   $('#memberList').innerHTML=members.map(m=>`<div class="rowline">
     <div class="grow"><b>${esc(m.full_name||m.email)}</b><div class="muted">${esc(m.email)}</div></div>
+    ${m.status==='invited'?'<span class="tag" style="background:var(--waitbg);color:var(--wait);border-color:#e8d49a">ממתין לאישור</span>':''}
     <span class="tag">${m.role==='owner'?'בעלים':'חבר'}</span>
     ${owner&&m.role!=='owner'?`<button class="btn small danger" data-rmmember="${m.user_id}">הסרה</button>`:''}
   </div>`).join('')||'<div class="muted">אין חברים נוספים.</div>';
@@ -474,7 +624,8 @@ function renderUsers(){
     <td>${u.approved?'<span class="status">● מאושר</span>':'<span class="status waiting">● ממתין</span>'}</td>
     <td>${u.role==='admin'?'מנהל':'עובד'}</td>
     <td style="white-space:nowrap"><button class="btn small" data-approve="${u.id}" ${self?'disabled':''}>${u.approved?'ביטול גישה':'אישור'}</button>
-    <button class="btn small" data-role="${u.id}" ${self?'disabled':''}>${u.role==='admin'?'הפוך לעובד':'הפוך למנהל'}</button></td></tr>`}).join('')
+    <button class="btn small" data-role="${u.id}" ${self?'disabled':''}>${u.role==='admin'?'הפוך לעובד':'הפוך למנהל'}</button>
+    <button class="btn small danger" data-deluser="${u.id}" ${self?'disabled title="אי אפשר למחוק את עצמך"':''}>מחיקה</button></td></tr>`}).join('')
     ||'<tr><td colspan="6" style="text-align:center;padding:40px">אין משתמשים</td></tr>';
 }
 
@@ -511,6 +662,7 @@ function openItem(kind='task',id=''){
   fillSelects({parent:lastParent,owner:lastOwner});
   $('#itemId').value=x?.id||'';$('#itemTitle').value=x?.title||'';$('#itemType').value=x?.type||kind;
   $('#action').value=x?.action_title||'';$('#due').value=x?.due_date||'';$('#itemStatus').value=x?.status||'active';
+  $('#notes').value=x?.notes||'';
   $('#formTitle').textContent=x?'עריכת פריט':(kind==='goal'?'מטרה / פרויקט חדש':'משימה חדשה');
   $('#deleteItem').classList.toggle('hidden',!x);
   $('#quickPersonBox').classList.add('hidden');$('#quickPersonName').value='';
@@ -521,21 +673,55 @@ function openItem(kind='task',id=''){
 
 /* ============ אירועים ============ */
 document.addEventListener('click',async e=>{
-  const b=e.target.closest('button'); if(!b)return;
+  const cell=e.target.closest('[data-newday]');
+  const b=e.target.closest('button')||cell; if(!b)return;
   if(b.dataset.view){
     view=b.dataset.view;
     document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
     $('#boardView').classList.toggle('hidden',view!=='board');
+    $('#calView').classList.toggle('hidden',view!=='cal');
     $('#allView').classList.toggle('hidden',view!=='all');
     $('#teamView').classList.toggle('hidden',view!=='team');
     $('#adminView').classList.toggle('hidden',view!=='admin');
     $('#newActions').classList.toggle('hidden',view==='team'||view==='admin');
+    if(view==='cal')renderCal();
     const t={board:['לוח עבודה','המשימות הפתוחות'],all:['ניהול משימות','כל המטרות והמשימות'],
+             cal:['לוח שנה','מתי כל דבר צריך לקרות'],
              team:['האזור',(space?space.name+' — צוות ואנשים':'צוות ואנשים')],admin:['ניהול מערכת','מי רשום למערכת']}[view];
     $('#eyebrow').textContent=t[0];$('#title').textContent=t[1];
     if(view==='team')await showTeam();
     if(view==='admin')await loadUsers();
   }
+  if(b.dataset.invite){
+    const accept=b.dataset.accept==='1';
+    const name=(invites.find(v=>v.space_id===b.dataset.invite)||{}).space_name||'';
+    if(!accept&&!confirm(`לדחות את ההזמנה לאזור «${name}»?`))return;
+    const {data,error}=await db.rpc('respond_invite',{p_space:b.dataset.invite,p_accept:accept});
+    if(error){alert(heb(error));return}
+    await loadInvites();
+    if(data==='joined'){await loadSpaces();space=spaces.find(s=>s.id===b.dataset.invite)||space;
+      if(space)$('#spaceSel').value=space.id;await loadSpace()}
+    return;
+  }
+  if(b.dataset.deluser){
+    const u=users.find(x=>x.id===b.dataset.deluser)||{};
+    let extra='';
+    const {data:imp}=await db.rpc('user_delete_impact',{p_user:u.id});
+    const i=Array.isArray(imp)?imp[0]:imp;
+    if(i&&i.spaces_owned)extra='\n\nשים לב: '
+      +(i.spaces_owned===1?'אזור אחד שהוא הבעלים שלו יימחק יחד איתו'
+                          :`${i.spaces_owned} אזורים שהוא הבעלים שלהם יימחקו יחד איתו`)
+      +', ואיתם '
+      +(i.items_in_them===1?'משימה אחת שבתוכם.':`${i.items_in_them} מטרות ומשימות שבתוכם.`);
+    if(!confirm(`למחוק לצמיתות את ${u.full_name||u.email}?\nהחשבון והגישה שלו יימחקו ולא ניתן לשחזר.${extra}`))return;
+    if(!confirm('אישור אחרון: המחיקה סופית.'))return;
+    const {data,error}=await db.functions.invoke('admin-users',{body:{user_id:u.id}});
+    if(error||(data&&data.ok===false)){alert('המחיקה נכשלה: '+heb((data&&data.error)||error));return}
+    await loadUsers();
+    return;
+  }
+  if(b.dataset.scope){calScope=b.dataset.scope;renderCal();return}
+  if(b.dataset.newday&&!b.dataset.edit){openItem('task');$('#due').value=b.dataset.newday;return}
   if(b.dataset.new)openItem(b.dataset.new);
   if(b.dataset.edit)openItem('',b.dataset.edit);
   if(b.dataset.complete){
@@ -567,6 +753,9 @@ document.addEventListener('click',async e=>{
   }
 });
 
+$('#calPrev').onclick=()=>{calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()-1,1);renderCal()};
+$('#calNext').onclick=()=>{calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+1,1);renderCal()};
+$('#calToday').onclick=()=>{calMonth=new Date();renderCal()};
 $('#spaceSel').onchange=async e=>{
   allMode=e.target.value===ALL;
   space=allMode?null:(spaces.find(s=>s.id===e.target.value)||null);
@@ -616,7 +805,8 @@ $('#saveItem').onclick=async()=>{
   if(!sid)return;
   const row={space_id:sid,title:$('#itemTitle').value.trim(),type:$('#itemType').value,
     parent_id:$('#parent').value||null,action_title:$('#action').value.trim(),
-    owner_id:$('#owner').value||null,due_date:$('#due').value||null,status:$('#itemStatus').value};
+    owner_id:$('#owner').value||null,due_date:$('#due').value||null,status:$('#itemStatus').value,
+    notes:$('#notes').value.trim()||null};
   const id=$('#itemId').value;
   const {error}=id? await db.from('items').update(row).eq('id',id)
                   : await db.from('items').insert({...row,created_by:user.id});
@@ -680,7 +870,7 @@ $('#addMemberBtn').onclick=async()=>{
   const email=$('#memberEmail').value.trim();if(!email)return;
   const {data,error}=await db.rpc('add_space_member',{p_space:space.id,p_email:email});
   if(error){msg(heb(error),'err','#memberMsg');$('#memberMsg').classList.remove('hidden');return}
-  const m={ok:['נוסף לאזור.','ok'],exists:['המשתמש כבר חבר באזור הזה.','wait'],
+  const m={ok:['ההזמנה נשלחה. האזור יופיע אצלו רק אחרי שיאשר אותה.','ok'],exists:['המשתמש כבר חבר באזור הזה או שההזמנה ממתינה.','wait'],
     not_found:['אין משתמש רשום עם הכתובת הזו. הוא צריך להירשם קודם ב-myos.co.il/tasks/ ולקבל אישור.','err'],
     denied:['רק בעל האזור יכול להוסיף חברים.','err']}[data]||['לא ידוע','err'];
   msg(m[0],m[1],'#memberMsg');$('#memberMsg').classList.remove('hidden');
@@ -738,6 +928,7 @@ async function enter(){
   $('#whoAmI').textContent=me.full_name||user.email;
   $('#adminBtn').classList.toggle('hidden',me.role!=='admin');
   refreshPending();
+  await loadInvites();
   await loadSpaces();await loadSpace();
 }
 db.auth.onAuthStateChange((_e,session)=>{if(session)setTimeout(enter,0)});
