@@ -105,12 +105,23 @@ nav .badge{display:inline-block;min-width:19px;padding:1px 6px;margin-inline-sta
 .calcell:hover{background:#faf8f4}
 .calcell.out{background:var(--alt);color:#a8b0ba}
 .calcell.today{background:#eaf4f5}
-.calnum{display:flex;align-items:baseline;gap:5px;align-self:stretch;justify-content:space-between}
-.calnum b{font-size:13px;font-weight:700;color:var(--muted)}
-.calnum .heb{font-size:11px;color:#9aa4b0;font-weight:600}
-.calcell.today .calnum b{background:var(--accent);color:#fff;border-radius:999px;min-width:22px;height:22px;display:grid;place-items:center;padding:0 5px}
-.calcell.today .calnum .heb{color:var(--accent)}
-.calsub{font-size:13px;color:var(--muted);font-weight:600}
+.calnum{display:flex;align-items:baseline;gap:6px;align-self:stretch}
+/* התאריך העברי והלועזי באותו גודל ובאותו משקל — שניהם תאריך, לא הערת שוליים */
+.calnum b,.calnum .heb{font-size:13.5px;font-weight:700;line-height:1.5}
+.calnum b{color:var(--muted)}
+.calnum .heb{color:var(--accent)}
+.calcell.today .calnum{background:var(--accent);color:#fff;border-radius:999px;padding:1px 9px;align-self:flex-start}
+.calcell.today .calnum b,.calcell.today .calnum .heb{color:#fff}
+.calhol{font-size:11.5px;font-weight:600;line-height:1.35;border-radius:5px;padding:1px 5px;
+  align-self:stretch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+.calhol.chag{background:#f6e3b8;color:#6d4f04}
+.calhol.moed{background:#fbf1dc;color:#8a6509}
+.calhol.day {background:#e6f0f2;color:#0a5766}
+.calhol.fast{background:#efeef2;color:#4d5566;border:1px solid #ddd9e4;padding:0 4px}
+.calhol.rosh{background:transparent;color:#9aa4b0;padding:0 2px}
+/* החודש העברי בגודל של הלועזי — רק בצבע אחר, לא בגודל אחר */
+.calsub{font-size:inherit;font-weight:inherit;color:var(--accent)}
+.calsep{color:var(--line);font-weight:400;margin:0 2px}
 .chip{display:block;width:100%;text-align:start;border:0;border-inline-start:3px solid var(--accent);background:#eaf2f3;color:var(--ink);border-radius:6px;padding:3px 7px;font-size:12px;line-height:1.35;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chip:hover{background:#ddeaec}
 .chip.goal{border-inline-start-color:#8a6509;background:#fbf3e2}
@@ -531,6 +542,7 @@ const card=x=>`<article class="card">
   <div class="next"><span>הפעולה הבאה</span><b>${esc(x.action_title||'לא הוגדרה פעולה')}</b></div>
   <div class="meta"><span>👤 ${esc(personName(x.owner_id)||'ללא אחראי')}</span>
     <span${x.due_date&&x.due_date<today()?' style="color:#a3251c;font-weight:600"':''}>🗓 ${fmt(x.due_date)}${x.due_date?` · ${esc(hebFull(new Date(x.due_date)))}`:''}</span>
+    ${x.due_date&&holidayText(new Date(x.due_date))?`<span class="tag" style="background:#fbf1dc;color:#8a6509;border-color:#eddcb8">${esc(holidayText(new Date(x.due_date)))}</span>`:''}
     <button class="btn small sp" data-edit="${x.id}">עריכה</button></div>
   ${x.notes?`<div class="cardnotes">${esc(x.notes)}</div>`:''}</article>`;
 
@@ -549,14 +561,111 @@ function gem(n){
   if(!s)return '';
   return s.length===1 ? s+'׳' : s.slice(0,-1)+'״'+s.slice(-1);
 }
+// התאריך העברי מגיע מ-Intl. שני פורמטרים: אחד לתצוגה בעברית, ואחד באנגלית
+// ששמות החודשים שלו קבועים (Tishri, Adar I…) ומשמשים כמפתח לטבלת החגים.
 const HEB_CAL='he-u-ca-hebrew';
-const hebParts=d=>{
-  const f=new Intl.DateTimeFormat(HEB_CAL,{day:'numeric',month:'long',year:'numeric'}).formatToParts(d);
-  const get=k=>(f.find(x=>x.type===k)||{}).value||'';
-  return {day:Number(get('day')),month:get('month'),year:Number(String(get('year')).replace(/\D/g,''))};
-};
+const FMT_HE=new Intl.DateTimeFormat(HEB_CAL,{day:'numeric',month:'long',year:'numeric'});
+const FMT_EN=new Intl.DateTimeFormat('en-u-ca-hebrew',{day:'numeric',month:'long',year:'numeric'});
+const partsOf=(f,d)=>{const p=f.formatToParts(d),g=k=>(p.find(x=>x.type===k)||{}).value||'';
+  return {day:Number(g('day')),month:g('month'),year:Number(String(g('year')).replace(/\D/g,''))}};
+const hebParts=d=>partsOf(FMT_HE,d);
+/** {day, he: 'תשרי', key: 'Tishri', year} */
+const hebOf=d=>{const a=partsOf(FMT_HE,d),b=partsOf(FMT_EN,d);
+  return {day:a.day,he:a.month,key:b.month.replace(/‎/g,'').trim(),year:a.year}};
 const hebDay=d=>gem(hebParts(d).day);
 const hebFull=d=>{const h=hebParts(d);return `${gem(h.day)} ב${h.month} ${gem(h.year)}`};
+
+/* ============ חגים ומועדים ============
+   אנשים מתכננים לפי "לפני החגים" ו"אחרי החגים", ולכן הלוח מסמן אותם.
+   כל התאריכים לפי מנהג ארץ ישראל (יום טוב אחד).
+   דחיות הצומות מחושבות מיום השבוע, ולא מוקשחות לשנה מסוימת. */
+const H_CHAG='chag', H_MOED='moed', H_FAST='fast', H_DAY='day', H_ROSH='rosh';
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+
+/** צום שנדחה ממוצאי שבת ליום ראשון (גדליה, י״ז בתמוז, ט׳ באב) */
+function fastOn(d,h,key,day){
+  if(h.key!==key)return false;
+  if(h.day===day)return d.getDay()!==6;      // בשבת לא צמים
+  return h.day===day+1&&d.getDay()===0;      // ולכן נדחה ליום ראשון
+}
+/** באיזה יום בחודש נופל בפועל מועד שנקבע ליום N, לפי כללי הדחייה */
+function observed(d,h,nominal,rule){
+  const wd=(d.getDay()+(nominal-h.day))%7;   // יום השבוע של היום הנומינלי
+  return rule((wd+7)%7);
+}
+function holidaysOf(d){
+  const h=hebOf(d), out=[], add=(name,type)=>out.push({name,type});
+  const k=h.key, n=h.day;
+
+  // ---- חנוכה: נספר אחורה עד כ״ה בכסלו, כדי לא להיתקע באורך כסלו ----
+  for(let i=0;i<8;i++){const b=hebOf(addDays(d,-i));
+    if(b.key==='Kislev'&&b.day===25){add(`חנוכה · נר ${gem(i+1)}`,H_MOED);break}}
+
+  if(k==='Elul'&&n===29) add('ערב ראש השנה',H_DAY);
+
+  if(k==='Tishri'){
+    if(n===1||n===2) add('ראש השנה',H_CHAG);
+    if(n===9) add('ערב יום כיפור',H_DAY);
+    if(n===10) add('יום כיפור',H_CHAG);
+    if(n===14) add('ערב סוכות',H_DAY);
+    if(n===15) add('סוכות',H_CHAG);
+    if(n>=16&&n<=20) add('חול המועד סוכות',H_MOED);
+    if(n===21) add('הושענא רבה',H_MOED);
+    if(n===22) add('שמחת תורה',H_CHAG);
+  }
+  if(fastOn(d,h,'Tishri',3)) add('צום גדליה',H_FAST);
+  if(k==='Tevet'&&n===10) add('עשרה בטבת',H_FAST);     // לעולם לא בשבת
+  if(k==='Shevat'&&n===15) add('ט״ו בשבט',H_DAY);
+
+  // ---- אדר: בשנה מעוברת פורים באדר ב׳; באדר א׳ פורים קטן ----
+  const isAdarB=(k==='Adar'||k==='Adar II');
+  if(isAdarB){
+    if(n===13&&d.getDay()!==6) add('תענית אסתר',H_FAST);
+    if(n===11&&d.getDay()===4) add('תענית אסתר (הקדמה)',H_FAST); // י״ג בשבת
+    if(n===14) add('פורים',H_MOED);
+    if(n===15) add('שושן פורים',H_MOED);
+  }
+  if(k==='Adar I'){
+    if(n===14) add('פורים קטן',H_DAY);
+    if(n===15) add('שושן פורים קטן',H_DAY);
+  }
+
+  if(k==='Nisan'){
+    if(n===14) add('ערב פסח',H_DAY);
+    if(n===15) add('פסח',H_CHAG);
+    if(n>=16&&n<=20) add('חול המועד פסח',H_MOED);
+    if(n===21) add('שביעי של פסח',H_CHAG);
+    // יום השואה: כ״ז בניסן; בשישי מקדימים ליום חמישי, בראשון דוחים לשני
+    if(n>=26&&n<=28){
+      const obs=observed(d,h,27,w=>w===5?26:w===0?28:27);
+      if(n===obs) add('יום הזיכרון לשואה',H_DAY);
+    }
+  }
+  if(k==='Iyar'){
+    // יום העצמאות: ה׳ באייר; בשישי/שבת מקדימים לחמישי, בשני דוחים לשלישי
+    if(n>=2&&n<=6){
+      const obs=observed(d,h,5,w=>w===5?4:w===6?3:w===1?6:5);
+      if(n===obs) add('יום העצמאות',H_DAY);
+      if(n===obs-1) add('יום הזיכרון',H_DAY);
+    }
+    if(n===18) add('ל״ג בעומר',H_DAY);
+    if(n===28) add('יום ירושלים',H_DAY);
+  }
+  if(k==='Sivan'){
+    if(n===5) add('ערב שבועות',H_DAY);
+    if(n===6) add('שבועות',H_CHAG);
+  }
+  if(fastOn(d,h,'Tamuz',17)) add('צום י״ז בתמוז',H_FAST);
+  if(k==='Av'){
+    if(fastOn(d,h,'Av',9)) add('תשעה באב',H_FAST);
+    if(n===15) add('ט״ו באב',H_DAY);
+  }
+
+  // ראש חודש אחרון ברשימה — הוא הפחות "חוסם" מבחינת תכנון
+  if((n===30||(n===1&&k!=='Tishri'))&&!out.length) add('ראש חודש '+(n===30?hebOf(addDays(d,1)).he:h.he),H_ROSH);
+  return out;
+}
+const holidayText=d=>holidaysOf(d).map(x=>x.name).join(' · ');
 /** טווח החודשים העבריים שהחודש הלועזי נופל עליהם */
 function hebMonthSpan(first,last){
   const a=hebParts(first), b=hebParts(last);
@@ -578,7 +687,7 @@ function renderCal(){
   const mFirst=new Date(calMonth.getFullYear(),calMonth.getMonth(),1);
   const mLast=new Date(calMonth.getFullYear(),calMonth.getMonth()+1,0);
   $('#calTitle').innerHTML=esc(calMonth.toLocaleDateString('he-IL',{month:'long',year:'numeric'}))
-    +` <span class="calsub">· ${esc(hebMonthSpan(mFirst,mLast))}</span>`;
+    +`<span class="calsep"> · </span><span class="calsub">${esc(hebMonthSpan(mFirst,mLast))}</span>`;
 
   const list=calItems();
   const mine=myPersonIds();
@@ -602,8 +711,10 @@ function renderCal(){
     for(let i=0;i<7;i++){
       const key=iso(d), out=d.getMonth()!==calMonth.getMonth(), dd=new Date(d);
       const day=(byDay[key]||[]).slice(0,3), extra=(byDay[key]||[]).length-day.length;
-      html+=`<div class="calcell${out?' out':''}${key===t0?' today':''}" data-newday="${key}" title="${esc(hebFull(dd))}">
+      const hol=holidaysOf(dd), holTxt=hol.map(x=>x.name).join(' · ');
+      html+=`<div class="calcell${out?' out':''}${key===t0?' today':''}" data-newday="${key}" title="${esc(hebFull(dd)+(holTxt?' · '+holTxt:''))}">
         <span class="calnum"><b>${d.getDate()}</b><span class="heb">${esc(hebDay(d))}</span></span>
+        ${hol.length?`<span class="calhol ${hol[0].type}" title="${esc(holTxt)}">${esc(holTxt)}</span>`:''}
         ${day.map(x=>`<button class="chip ${x.type==='goal'?'goal':''} ${x.status==='done'?'done':(key<t0?'late':'')}" data-edit="${x.id}" title="${esc(x.title)}">${esc(x.title)}</button>`).join('')}
         ${extra>0?`<span class="calmore">ועוד ${extra}</span>`:''}
       </div>`;
