@@ -346,7 +346,16 @@
  * עובד רק מ-myos.co.il (externally_connectable ב-manifest). מחזיר גרסה + מצב חיבור
  * בלבד. בגרסאות ישנות / בלי התקנה — אין תשובה, והדף נשאר בדיוק כמו שהוא. */
 (function () {
-  var EXT_ID = 'dhckckgcpgjoolkneobojaikigmimnaa';
+  /* מזהה התוסף בחנות. לבדיקה מקומית (טעינה unpacked מקבלת מזהה אחר):
+   * myos.co.il/install/?extid=<המזהה מ-chrome://extensions> — נשמר לדפדפן הזה. */
+  var STORE_ID = 'dhckckgcpgjoolkneobojaikigmimnaa';
+  var EXT_IDS = [STORE_ID];
+  try {
+    var q = new URLSearchParams(location.search).get('extid');
+    if (q) { localStorage.setItem('myosExtId', q); }
+    var dev = localStorage.getItem('myosExtId');
+    if (dev && dev !== STORE_ID) EXT_IDS.push(dev);
+  } catch (e) {}
   function markDone(cardId, numId, textId, text) {
     var card = document.getElementById(cardId);
     if (!card) return;
@@ -369,14 +378,19 @@
   }
   try {
     if (!window.chrome || !chrome.runtime || !chrome.runtime.sendMessage) return;
-    chrome.runtime.sendMessage(EXT_ID, { type: 'MYOS_PING' }, function (r) {
-      if (chrome.runtime.lastError || !r || !r.installed) return;   /* לא מותקן / גרסה ישנה */
+    var done = false;
+    function onReply(r) {
+      if (done || chrome.runtime.lastError || !r || !r.installed) return;   /* לא מותקן / גרסה ישנה */
+      done = true;
       markDone('flow2', 'flow2n', null, 'בוצע — התוסף מותקן (גרסה ' + (r.version || '') + ')');
       markSection('s2', '✓ בוצע — התוסף כבר מותקן בדפדפן הזה.');
       if (r.loggedIn) {
         markDone('flow4', null, null, 'בוצע — התוסף מחובר לחשבון');
         markSection('s4', '✓ בוצע — התוסף כבר מחובר. אפשר להתחיל לעבוד.');
       }
+    }
+    EXT_IDS.forEach(function (id) {
+      try { chrome.runtime.sendMessage(id, { type: 'MYOS_PING' }, onReply); } catch (e) {}
     });
   } catch (e) { /* דפדפן בלי chrome.runtime — מתעלמים */ }
 })();
