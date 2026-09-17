@@ -123,6 +123,7 @@
   details.more[open]>summary::before{transform:rotate(90deg)}
   details.more>summary:hover{background:rgba(47,240,230,.08)}
   details.more .morebody{margin-top:.8rem}
+  .flow .fc.here{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,240,230,.18)}
   .gblue{display:inline-block;background:#1a73e8;color:#fff;font-weight:700;border-radius:.35rem;padding:.05rem .5rem;font-size:.8rem}
   .flow .arr{color:var(--accent);font-size:1.6rem;line-height:1;padding:.15rem 0}
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -392,6 +393,22 @@
     EXT_IDS.forEach(function (id) {
       try { chrome.runtime.sendMessage(id, { type: 'MYOS_PING' }, onReply); } catch (e) {}
     });
+    /* הגיעו לכאן מיד אחרי ההתקנה (?installed=1): אומרים "הותקן" וגוללים לצעד הבא */
+    setTimeout(function () {
+      try {
+        if (!new URLSearchParams(location.search).has('installed')) return;
+        var next = ['flow1', 'flow2', 'flow3', 'flow4'].map(function (id) { return document.getElementById(id); })
+          .filter(Boolean).filter(function (c) { return !c.classList.contains('done'); })[0];
+        if (!next) next = document.getElementById('flowW');
+        if (!next) return;
+        next.classList.add('here');
+        var tag = document.createElement('small');
+        tag.className = 'after strong';
+        tag.textContent = '👈 כאן אתם — הצעד הבא';
+        var body = next.querySelector('.body'); if (body) body.appendChild(tag);
+        next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch (e) {}
+    }, 600);
   } catch (e) { /* דפדפן בלי chrome.runtime — מתעלמים */ }
 })();
 </script>
