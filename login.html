@@ -119,6 +119,7 @@
     <h1 id="doneTitle">מחוברים לחשבון</h1>
     <p class="next" id="doneSub" style="margin:-.4rem 0 .9rem"></p>
     <div class="who"><span class="dot"></span><span id="doneEmail"></span></div>
+    <p class="next hidden" id="autoNext" style="margin:.2rem 0 .7rem">ממשיכים להדרכת ההתקנה בעוד <b id="autoCount">5</b>… · <a id="autoStop">להישאר כאן</a></p>
     <a class="btnlink" href="/install/">התקנה ותחילת עבודה — צעד אחר צעד</a>
     <p class="links" style="margin-top:1.2rem"><a id="doneLogout">להתנתק</a></p>
   </div>
@@ -251,7 +252,7 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     $(id).textContent = text;
   }
   /* מסך "מחוברים" — כשמתחברים מהאתר (לא מתוך התוסף) */
-  function showDone(email, title, sub) {
+  function showDone(email, title, sub, autoNext) {
     ['loginForm', 'registerForm', 'contactForm', 'switchCard'].forEach(function (id) { var el = $(id); if (el) el.classList.add('hidden'); });
     $('doneTitle').textContent = title || 'מחוברים לחשבון';
     $('doneSub').textContent = sub || '';
@@ -259,6 +260,28 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     $('doneEmail').textContent = email || '';
     $('doneCard').classList.remove('hidden');
     $('main').focus();
+    if (autoNext) startAutoNext();
+  }
+
+  /* אחרי הרשמה: לא עוצרים כאן. סופרים 5 שניות וממשיכים להדרכת ההתקנה,
+     עם אפשרות לעצור. (רבים נרשמו — וזהו; הצעד הבא הוא ההתקנה.) */
+  var autoTimer = null;
+  function startAutoNext() {
+    var box = $('autoNext');
+    if (!box) { location.href = '/install/'; return; }
+    box.classList.remove('hidden');
+    var left = 5;
+    function tick() {
+      $('autoCount').textContent = left;
+      if (left <= 0) { location.href = '/install/'; return; }
+      left--;
+      autoTimer = setTimeout(tick, 1000);
+    }
+    tick();
+    $('autoStop').addEventListener('click', function () {
+      clearTimeout(autoTimer);
+      box.classList.add('hidden');
+    });
   }
   $('doneLogout').addEventListener('click', async function () {
     await client.auth.signOut();
@@ -404,7 +427,7 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     if (sess && back) { forwardToExt(sess, back); return; }
     $('registerForm').reset();
     if (sess) {
-      showDone(email, 'נרשמת בהצלחה!', 'שבוע הניסיון פעיל ואתם כבר מחוברים. הצעד הבא:');
+      showDone(email, 'נרשמת בהצלחה!', 'שבוע הניסיון פעיל ואתם כבר מחוברים. הצעד הבא:', true);
     } else {
       /* אימות מייל פעיל: קודם מאשרים בקישור שנשלח, ואז מתחברים */
       $('rStatus').className = 'msg ok';
