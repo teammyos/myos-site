@@ -386,6 +386,11 @@
       markDone('flow2', 'flow2n', null, 'בוצע — התוסף מותקן (גרסה ' + (r.version || '') + ')');
       markSection('s2', '✓ בוצע — התוסף כבר מותקן בדפדפן הזה.');
       if (r.loggedIn) {
+        /* מחובר => המשתמש כבר פתח את החלונית, כלומר מצא את האייקון. ההצמדה
+         * עצמה לא ניתנת לזיהוי (אין API בכרום), אבל להשאיר את צעד 3 פתוח
+         * כששלב 4 כבר ✓ זה פשוט מבלבל. לכן מסמנים גם אותו. */
+        markDone('flow3', null, null, 'בוצע — כבר עבדתם דרך החלונית');
+        markSection('s3', '✓ בוצע — כבר הגעתם לחלונית. אם האייקון עדיין לא בסרגל, אפשר להצמיד בכל רגע.');
         markDone('flow4', null, null, 'בוצע — התוסף מחובר לחשבון');
         markSection('s4', '✓ בוצע — התוסף כבר מחובר. אפשר להתחיל לעבוד.');
       }
@@ -399,12 +404,14 @@
         if (!new URLSearchParams(location.search).has('installed')) return;
         var next = ['flow1', 'flow2', 'flow3', 'flow4'].map(function (id) { return document.getElementById(id); })
           .filter(Boolean).filter(function (c) { return !c.classList.contains('done'); })[0];
+        var allDone = !next;
         if (!next) next = document.getElementById('flowW');
         if (!next) return;
         next.classList.add('here');
         var tag = document.createElement('small');
         tag.className = 'after strong';
-        tag.textContent = '👈 כאן אתם — הצעד הבא';
+        /* כשכל הצעדים סומנו — זו כבר לא "הצעד הבא" אלא "סיימתם, קדימה לעבודה" */
+        tag.textContent = allDone ? '👈 הכול מוכן — אפשר להתחיל לעבוד' : '👈 כאן אתם — הצעד הבא';
         var body = next.querySelector('.body'); if (body) body.appendChild(tag);
         next.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } catch (e) {}
