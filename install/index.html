@@ -377,15 +377,102 @@
     note.className = 'donenote'; note.style.display = 'block'; note.textContent = text;
     var h = sec.querySelector('h2'); if (h && h.nextSibling) h.parentNode.insertBefore(note, h.nextSibling);
   }
+  /* ---------- חץ "סמל התוספים כאן למעלה" (צעד 3) ----------
+   * מוצג רק כשהמשתמש באמת בצעד 3: רשום (צעד 1 ✓) + התוסף מותקן (צעד 2 ✓) +
+   * עוד לא התחבר בתוסף. בכרום בעברית סרגל הכלים הפוך, וסמל הפאזל בצד שמאל
+   * למעלה — לכן החץ בשמאל ומצביע מעלה, אל מחוץ לדף. במחשב בלבד (במסך צר
+   * אין סרגל תוספים); ✕ סוגר עד סוף הביקור. בלי אנימציה למי שביקש פחות תנועה. */
+  var ARROW_KEY = 'myosPinHintClosed';
+  var arrowEl = null;
+  function arrowClosed() { try { return sessionStorage.getItem(ARROW_KEY) === '1'; } catch (e) { return false; } }
+  function buildArrow() {
+    if (arrowEl) return arrowEl;
+    var css = document.createElement('style');
+    css.textContent =
+      '.pinhint{position:fixed;top:2px;left:52px;z-index:9999;display:flex;flex-direction:column;align-items:flex-start;' +
+      'pointer-events:none;font-family:inherit;direction:ltr}' +
+      '.pinhint .arr{width:46px;height:54px;margin-left:14px;color:#2ff0e6;' +
+      'filter:drop-shadow(0 0 10px rgba(47,240,230,.75));animation:pinBlink 1.1s ease-in-out infinite}' +
+      '.pinhint .bub{pointer-events:auto;margin-top:2px;display:flex;align-items:center;gap:.5rem;direction:rtl;' +
+      'background:#16264a;color:#eef3fb;border:1.5px solid #2ff0e6;border-radius:.7rem;' +
+      'padding:.5rem .6rem .5rem .8rem;font-size:.9rem;font-weight:600;line-height:1.35;' +
+      'box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 0 4px rgba(47,240,230,.12);max-width:15.5rem}' +
+      '.pinhint .bub .pz{width:1.05rem;height:1.05rem;flex:none;vertical-align:-.15em;color:#ffffff}' +
+      '.pinhint .bub button{flex:none;background:none;border:0;color:#9aa8c4;cursor:pointer;font:inherit;' +
+      'font-size:1rem;line-height:1;padding:.15rem .3rem;border-radius:.35rem}' +
+      '.pinhint .bub button:hover{color:#fff;background:rgba(255,255,255,.08)}' +
+      '.pinhint .bub button:focus-visible{outline:2px solid #2ff0e6;outline-offset:1px}' +
+      '@keyframes pinBlink{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(-9px);opacity:.3}}' +
+      '@media (prefers-reduced-motion:reduce){.pinhint .arr{animation:none}}' +
+      '@media (max-width:760px){.pinhint{display:none!important}}';
+    document.head.appendChild(css);
+    var el = document.createElement('div');
+    el.className = 'pinhint'; el.id = 'pinHint';
+    el.setAttribute('role', 'note');
+    el.innerHTML =
+      '<svg class="arr" viewBox="0 0 46 54" aria-hidden="true"><path fill="currentColor" ' +
+      'd="M23 2 L44 25 H31 V52 H15 V25 H2 Z"/></svg>' +
+      '<div class="bub"><span>סמל התוספים <svg class="pz" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" ' +
+      'd="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 ' +
+      '2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 ' +
+      '0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg> נמצא כאן למעלה — לחצו עליו והצמידו את MyOS</span>' +
+      '<button type="button" aria-label="סגירת הרמז">✕</button></div>';
+    el.querySelector('button').onclick = function () {
+      try { sessionStorage.setItem(ARROW_KEY, '1'); } catch (e) {}
+      hideArrow();
+    };
+    document.body.appendChild(el);
+    arrowEl = el;
+    /* תג "מחובר ✓" של האתר יושב בדיוק מתחת לסמל הפאזל (שמאל למעלה), והחץ היה
+     * מכסה אותו — ונראה כאילו הוא מצביע עליו. בזמן שהחץ מוצג מסתירים את התג
+     * (visibility, בלי קפיצת פריסה). אותו מידע מופיע ממילא בכרטיס של צעד 1. */
+    var acct = document.getElementById('acct'); if (acct) acct.style.visibility = 'hidden';
+    return el;
+  }
+  function hideArrow() {
+    if (arrowEl && arrowEl.parentNode) arrowEl.parentNode.removeChild(arrowEl);
+    arrowEl = null;
+    var acct = document.getElementById('acct'); if (acct) acct.style.visibility = '';
+  }
+  function isDone(id) { var e = document.getElementById(id); return !!(e && e.classList.contains('done')); }
+
+  /* "כאן אתם": מסמנים את הכרטיס הבא שלא הושלם (רק אחרי התקנה — ?installed=1) */
+  var HERE_MODE = false;
+  try { HERE_MODE = new URLSearchParams(location.search).has('installed'); } catch (e) {}
+  function placeHere(scroll) {
+    if (!HERE_MODE) return;
+    var old = document.querySelector('.flow .fc.here');
+    if (old) { old.classList.remove('here'); var ot = old.querySelector('.heretag'); if (ot) ot.remove(); }
+    var next = ['flow1', 'flow2', 'flow3', 'flow4'].map(function (id) { return document.getElementById(id); })
+      .filter(Boolean).filter(function (c) { return !c.classList.contains('done'); })[0];
+    var allDone = !next;
+    if (!next) next = document.getElementById('flowW');
+    if (!next) return;
+    next.classList.add('here');
+    var tag = document.createElement('small');
+    tag.className = 'after strong heretag';
+    /* כשכל הצעדים סומנו — זו כבר לא "הצעד הבא" אלא "סיימתם, קדימה לעבודה" */
+    tag.textContent = allDone ? '👈 הכול מוכן — אפשר להתחיל לעבוד' : '👈 כאן אתם — הצעד הבא';
+    var body = next.querySelector('.body'); if (body) body.appendChild(tag);
+    if (scroll) next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   try {
     if (!window.chrome || !chrome.runtime || !chrome.runtime.sendMessage) return;
-    var done = false;
+    var installedOnce = false, loggedOnce = false;
+    function maybeShowArrow() {
+      /* צעד 3 = רשום + מותקן + עוד לא מחובר בתוסף */
+      if (installedOnce && !loggedOnce && isDone('flow1') && !arrowClosed()) buildArrow();
+    }
     function onReply(r) {
-      if (done || chrome.runtime.lastError || !r || !r.installed) return;   /* לא מותקן / גרסה ישנה */
-      done = true;
-      markDone('flow2', 'flow2n', null, 'בוצע — התוסף מותקן (גרסה ' + (r.version || '') + ')');
-      markSection('s2', '✓ בוצע — התוסף כבר מותקן בדפדפן הזה.');
-      if (r.loggedIn) {
+      if (chrome.runtime.lastError || !r || !r.installed) return;   /* לא מותקן / גרסה ישנה */
+      if (!installedOnce) {
+        installedOnce = true;
+        markDone('flow2', 'flow2n', null, 'בוצע — התוסף מותקן (גרסה ' + (r.version || '') + ')');
+        markSection('s2', '✓ בוצע — התוסף כבר מותקן בדפדפן הזה.');
+      }
+      if (r.loggedIn && !loggedOnce) {
+        loggedOnce = true;
         /* מחובר => המשתמש כבר פתח את החלונית, כלומר מצא את האייקון. ההצמדה
          * עצמה לא ניתנת לזיהוי (אין API בכרום), אבל להשאיר את צעד 3 פתוח
          * כששלב 4 כבר ✓ זה פשוט מבלבל. לכן מסמנים גם אותו. */
@@ -393,29 +480,29 @@
         markSection('s3', '✓ בוצע — כבר הגעתם לחלונית. אם האייקון עדיין לא בסרגל, אפשר להצמיד בכל רגע.');
         markDone('flow4', null, null, 'בוצע — התוסף מחובר לחשבון');
         markSection('s4', '✓ בוצע — התוסף כבר מחובר. אפשר להתחיל לעבוד.');
+        hideArrow();
+        if (placedOnce) placeHere(false);      /* התחבר בזמן שהדף פתוח — מזיזים את "כאן אתם" */
       }
+      if (!loggedOnce) maybeShowArrow();
     }
-    EXT_IDS.forEach(function (id) {
-      try { chrome.runtime.sendMessage(id, { type: 'MYOS_PING' }, onReply); } catch (e) {}
-    });
+    function ping() {
+      EXT_IDS.forEach(function (id) {
+        try { chrome.runtime.sendMessage(id, { type: 'MYOS_PING' }, onReply); } catch (e) {}
+      });
+    }
+    ping();
+    /* חוזרים ללשונית אחרי שהצמידו והתחברו בחלון התוסף — שואלים שוב, והדף
+     * מתעדכן לבד (✓ בצעדים 3–4, החץ נעלם) בלי שצריך לרענן. */
+    function recheck() { if (installedOnce && !loggedOnce) ping(); }
+    window.addEventListener('focus', recheck);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) recheck(); });
+    /* צעד 1 מסומן לפי ההתחברות לאתר — בדיקה אסינכרונית שיכולה להסתיים אחרי
+     * תשובת התוסף. לכן בודקים שוב את תנאי החץ עוד כמה רגעים. */
+    setTimeout(maybeShowArrow, 900);
+    setTimeout(maybeShowArrow, 2200);
     /* הגיעו לכאן מיד אחרי ההתקנה (?installed=1): אומרים "הותקן" וגוללים לצעד הבא */
-    setTimeout(function () {
-      try {
-        if (!new URLSearchParams(location.search).has('installed')) return;
-        var next = ['flow1', 'flow2', 'flow3', 'flow4'].map(function (id) { return document.getElementById(id); })
-          .filter(Boolean).filter(function (c) { return !c.classList.contains('done'); })[0];
-        var allDone = !next;
-        if (!next) next = document.getElementById('flowW');
-        if (!next) return;
-        next.classList.add('here');
-        var tag = document.createElement('small');
-        tag.className = 'after strong';
-        /* כשכל הצעדים סומנו — זו כבר לא "הצעד הבא" אלא "סיימתם, קדימה לעבודה" */
-        tag.textContent = allDone ? '👈 הכול מוכן — אפשר להתחיל לעבוד' : '👈 כאן אתם — הצעד הבא';
-        var body = next.querySelector('.body'); if (body) body.appendChild(tag);
-        next.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      } catch (e) {}
-    }, 600);
+    var placedOnce = false;
+    setTimeout(function () { try { placeHere(true); placedOnce = true; } catch (e) {} }, 600);
   } catch (e) { /* דפדפן בלי chrome.runtime — מתעלמים */ }
 })();
 </script>
