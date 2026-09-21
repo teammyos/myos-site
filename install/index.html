@@ -380,7 +380,9 @@
   /* ---------- חץ "סמל התוספים כאן למעלה" (צעד 3) ----------
    * מוצג רק כשהמשתמש באמת בצעד 3: רשום (צעד 1 ✓) + התוסף מותקן (צעד 2 ✓) +
    * עוד לא התחבר בתוסף. בכרום בעברית סרגל הכלים הפוך, וסמל הפאזל בצד שמאל
-   * למעלה — לכן החץ בשמאל ומצביע מעלה, אל מחוץ לדף. במחשב בלבד (במסך צר
+   * למעלה — לכן החץ בשמאל ומצביע מעלה, אל מחוץ לדף. מרכז החץ ב-183px: נמדד
+   * מהקלטה של מיכאל (21.9) — קבוע בכל רוחב חלון, אבל תלוי במה שמשמאל לפאזל:
+   * תג פרופיל עם שם + סמל הורדות (כמו אצלו) ≈183; פרופיל יחיד בלי הורדות ≈90. במחשב בלבד (במסך צר
    * אין סרגל תוספים); ✕ סוגר עד סוף הביקור. בלי אנימציה למי שביקש פחות תנועה. */
   var ARROW_KEY = 'myosPinHintClosed';
   var arrowEl = null;
@@ -389,14 +391,14 @@
     if (arrowEl) return arrowEl;
     var css = document.createElement('style');
     css.textContent =
-      '.pinhint{position:fixed;top:2px;left:52px;z-index:9999;display:flex;flex-direction:column;align-items:flex-start;' +
+      '.pinhint{position:fixed;top:2px;left:146px;z-index:9999;display:flex;flex-direction:column;align-items:flex-start;' +
       'pointer-events:none;font-family:inherit;direction:ltr}' +
       '.pinhint .arr{width:46px;height:54px;margin-left:14px;color:#2ff0e6;' +
       'filter:drop-shadow(0 0 10px rgba(47,240,230,.75));animation:pinBlink 1.1s ease-in-out infinite}' +
       '.pinhint .bub{pointer-events:auto;margin-top:2px;display:flex;align-items:center;gap:.5rem;direction:rtl;' +
       'background:#16264a;color:#eef3fb;border:1.5px solid #2ff0e6;border-radius:.7rem;' +
       'padding:.5rem .6rem .5rem .8rem;font-size:.9rem;font-weight:600;line-height:1.35;' +
-      'box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 0 4px rgba(47,240,230,.12);max-width:15.5rem}' +
+      'box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 0 4px rgba(47,240,230,.12);max-width:12.5rem}' +
       '.pinhint .bub .pz{width:1.05rem;height:1.05rem;flex:none;vertical-align:-.15em;color:#ffffff}' +
       '.pinhint .bub button{flex:none;background:none;border:0;color:#9aa8c4;cursor:pointer;font:inherit;' +
       'font-size:1rem;line-height:1;padding:.15rem .3rem;border-radius:.35rem}' +
@@ -404,6 +406,9 @@
       '.pinhint .bub button:focus-visible{outline:2px solid #2ff0e6;outline-offset:1px}' +
       '@keyframes pinBlink{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(-9px);opacity:.3}}' +
       '@media (prefers-reduced-motion:reduce){.pinhint .arr{animation:none}}' +
+      /* במסכים של 761–1300px הכותרת הממורכזת מתחילה מספיק שמאלה כדי שהבועה תכסה
+       * אותה. בזמן שהרמז מוצג מורידים את פתיח הדף מתחת לבועה (רק שם, רק אז). */
+      '@media (min-width:761px) and (max-width:1300px){html.pinhint-on .hero{padding-top:92px}}' +
       '@media (max-width:760px){.pinhint{display:none!important}}';
     document.head.appendChild(css);
     var el = document.createElement('div');
@@ -415,7 +420,7 @@
       '<div class="bub"><span>סמל התוספים <svg class="pz" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" ' +
       'd="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 ' +
       '2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 ' +
-      '0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg> נמצא כאן למעלה — לחצו עליו והצמידו את MyOS</span>' +
+      '0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg> נמצא כאן למעלה — לחצו עליו, הצמידו את MyOS ובצעו התחברות</span>' +
       '<button type="button" aria-label="סגירת הרמז">✕</button></div>';
     el.querySelector('button').onclick = function () {
       try { sessionStorage.setItem(ARROW_KEY, '1'); } catch (e) {}
@@ -427,12 +432,14 @@
      * מכסה אותו — ונראה כאילו הוא מצביע עליו. בזמן שהחץ מוצג מסתירים את התג
      * (visibility, בלי קפיצת פריסה). אותו מידע מופיע ממילא בכרטיס של צעד 1. */
     var acct = document.getElementById('acct'); if (acct) acct.style.visibility = 'hidden';
+    document.documentElement.classList.add('pinhint-on');
     return el;
   }
   function hideArrow() {
     if (arrowEl && arrowEl.parentNode) arrowEl.parentNode.removeChild(arrowEl);
     arrowEl = null;
     var acct = document.getElementById('acct'); if (acct) acct.style.visibility = '';
+    document.documentElement.classList.remove('pinhint-on');
   }
   function isDone(id) { var e = document.getElementById(id); return !!(e && e.classList.contains('done')); }
 
