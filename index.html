@@ -664,23 +664,9 @@ strong{color:var(--heading);font-weight:600;}
 @media (min-width:1000px){
   #advantage .adv-cards{grid-template-columns:repeat(4,1fr);align-items:stretch;}
 }
-/* סמן עכבר דקורטיבי שנע מכרטיס לכרטיס (דסקטופ בלבד, aria-hidden, לא תופס אירועים).
-   המיקום מחושב ב-JS לפי מרכז כל כרטיס; המעבר עצמו ב-CSS transition.
-   הכרטיס ש"נלחץ" מקבל .is-poked — אותה הרמה כמו בריחוף. */
-#advantage .adv-cards{position:relative;}
-.adv-cursor{
-  position:absolute;top:0;left:0;width:1.35rem;height:1.35rem;z-index:3;
-  pointer-events:none;display:none;opacity:0;
-  transform:translate(0,0);
-  transition:transform .45s ease-in-out,opacity .4s ease;
-  filter:drop-shadow(0 2px 3px rgba(2,6,20,.45));
-}
-.adv-cursor.is-on{opacity:1;}
-.adv-cursor svg{width:100%;height:100%;display:block;overflow:visible;}
-.adv-cursor path{fill:#ffffff;stroke:#0E1A33;stroke-width:1.4;stroke-linejoin:round;}
+/* "גל" הרמה על הכרטיסים: ה-JS מסמן כרטיס אחר כרטיס ב-.is-poked (1→2→3→4→1…),
+   אותה הרמה כמו בריחוף. דסקטופ בלבד, לא בצמצום תנועה. */
 .card.is-poked{transform:translateY(-3px);}
-@media (min-width:1000px){body:not(.no-motion) .adv-cursor{display:block;}}
-@media (prefers-reduced-motion:reduce){.adv-cursor{display:none !important;}}
 
 /* הטקסט של "מה אנחנו עושים" בעמודה קריאה */
 #hook .inner>div:not(.hook-cta){max-width:52rem;}
@@ -1377,9 +1363,6 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
       <h2 id="advTitle">היתרון של <span class="h2-logo" dir="ltr" role="img" aria-label="MyOS"><span class="my" aria-hidden="true">My</span><span class="o" aria-hidden="true"><svg class="mark" viewBox="6 -7 88 101" focusable="false"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"></path><path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"></path></svg></span><span class="s" aria-hidden="true">S</span></span></h2>
 
       <div class="cards adv-cards">
-        <div class="adv-cursor" aria-hidden="true">
-          <svg viewBox="0 0 24 24" focusable="false"><path d="M5 3 L19 12 L12.5 13.4 L16.2 20.2 L13.6 21.5 L9.9 14.6 L5 19.2 Z"/></svg>
-        </div>
         <article class="card">
           <div class="ico" aria-hidden="true">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8 21 21"/><path d="M8.6 11h4.8M11 8.6v4.8"/></svg>
@@ -2053,50 +2036,34 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
     }
   })();
 
-  /* ---------- היתרונות: סמן עכבר שנע מכרטיס לכרטיס ----------
-     דקורטיבי בלבד. רצף קבוע 1→2→3→4→1… בקצב אחיד; כשהשורה יוצאת מהמסך
-     הלולאה מושהית (בלי איפוס), ובחזרה ממשיכה מאותו כרטיס. */
+  /* ---------- היתרונות: גל הרמה על הכרטיסים ----------
+     דקורטיבי בלבד. כרטיס אחר כרטיס 1→2→3→4→1… בקצב אחיד; כשהשורה יוצאת
+     מהמסך הלולאה מושהית (בלי איפוס). דסקטופ (≥1000px) בלבד, לא בצמצום תנועה. */
   (function () {
     var grid = document.querySelector('#advantage .adv-cards');
-    var cur = grid && grid.querySelector('.adv-cursor');
-    if (!grid || !cur) return;
+    if (!grid) return;
     var cards = Array.prototype.slice.call(grid.querySelectorAll('.card'));
     if (!cards.length) return;
-    var MOVE_MS = 450;             /* משך הנסיעה בין כרטיסים (תואם ל-transition ב-CSS) */
-    var HOLD_MS = 900;             /* שהייה על הכרטיס אחרי שהסמן הגיע */
-    var i = 0, timer = null, pokeTimer = null, visible = false;
-    function active() {
-      return visible && !reducedMotion() && window.getComputedStyle(cur).display !== 'none';
-    }
+    var HOLD_MS = 1100;            /* כמה זמן כל כרטיס מורם לפני שהבא מתרומם */
+    var i = 0, timer = null, visible = false;
+    var wide = window.matchMedia ? window.matchMedia('(min-width:1000px)') : { matches: true };
+    function active() { return visible && wide.matches && !reducedMotion(); }
     function poke(idx) { cards.forEach(function (c, k) { c.classList.toggle('is-poked', k === idx); }); }
-    function place(idx, instant) {
-      var g = grid.getBoundingClientRect(), c = cards[idx].getBoundingClientRect();
-      var x = c.left - g.left + c.width * 0.5, y = c.top - g.top + c.height * 0.36;
-      if (instant) { cur.style.transition = 'none'; }
-      cur.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
-      if (instant) { void cur.offsetWidth; cur.style.transition = ''; }
-      /* הכרטיס מתרומם רק כשהסמן מגיע אליו — לא לפני */
-      clearTimeout(pokeTimer);
-      poke(-1);
-      pokeTimer = setTimeout(function () { poke(idx); }, instant ? 0 : MOVE_MS);
-    }
     function tick() {
       timer = null;
       if (!active()) { pause(); return; }
       i = (i + 1) % cards.length;
-      place(i, false);
-      timer = setTimeout(tick, MOVE_MS + HOLD_MS);
+      poke(i);
+      timer = setTimeout(tick, HOLD_MS);
     }
     function resume() {
       if (timer || !active()) return;
-      place(i, true);                 /* מתייצב על הכרטיס הנוכחי בלי מעבר */
-      cur.classList.add('is-on');
+      poke(i);
       timer = setTimeout(tick, HOLD_MS);
     }
     function pause() {
-      clearTimeout(timer); timer = null; clearTimeout(pokeTimer);
-      cur.classList.remove('is-on');
-      cards.forEach(function (c) { c.classList.remove('is-poked'); });
+      clearTimeout(timer); timer = null;
+      poke(-1);
     }
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (es) {
@@ -2104,11 +2071,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
         if (visible) resume(); else pause();
       }, { threshold: 0.35 }).observe(grid);
     } else { visible = true; resume(); }
-    var rt = null;
-    window.addEventListener('resize', function () {
-      clearTimeout(rt);
-      rt = setTimeout(function () { if (timer) place(i, true); else resume(); }, 200);
-    });
+    if (wide.addEventListener) wide.addEventListener('change', function () { if (active()) resume(); else pause(); });
     /* כפתור "צמצום תנועה" בתפריט הנגישות */
     new MutationObserver(function () { if (!active()) pause(); else resume(); })
       .observe(body, { attributes: true, attributeFilter: ['class'] });
