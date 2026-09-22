@@ -69,14 +69,14 @@ window.addEventListener('pageshow',function(){
   --glow-1:rgba(47,240,230,.022);
   --glow-2:rgba(20,60,90,.07);
 
-  --hero-text:#737c95;     /* 4.9:1 — עמום בכוונה */
+  --hero-text:#737c95;     /* 4.9:1 מול #02040a בלבד! מול #0E1A33 = 4.16:1 (נכשל AA) — אם רקע ההירו משתנה: ≥#8a93ab */
   --mark:#525c7e;          /* 3.1:1 — גרפיקה מהותית */
   --stem:#525c7e;
 
-  --text:#cfd8ea;          /* 14.3:1 */
-  --text-dim:#9aa8c4;      /* 7.9:1  */
+  --text:#cfd8ea;          /* 12.1:1 (על כרטיס 10.4:1) */
+  --text-dim:#9aa8c4;      /* 7.2:1 (על כרטיס 6.2:1) */
   --heading:#eef3fb;
-  --accent:#2ff0e6;        /* 13.4:1 */
+  --accent:#2ff0e6;        /* 12.1:1 — הדגשה בלבד */
   --accent-soft:#8dfff4;
   --surface:#16264a;
   --surface-2:#0b1428;
@@ -115,7 +115,7 @@ body.lights-on{
   --text-dim:#55617d;      /* 5.3:1  */
   --heading:#16181a;       /* 15.1:1 */
   --accent:#0a5766;        /* 6.9:1  */
-  --accent-soft:#12879b;
+  --accent-soft:#12879b;   /* גרפיקה בלבד — כטקסט 4.23:1 על לבן, 4.09:1 על נייבי (נכשל AA) */
   --surface:#ffffff;
   --surface-2:#f6f4ef;
   --line:#d5d0c6;
@@ -215,7 +215,7 @@ img,svg{max-width:100%;}
   display:flex;align-items:center;gap:1.35rem;
 }
 .nav-links a{
-  color:#9aa8c4;text-decoration:none;font-size:.9rem;font-weight:500;
+  color:#9aa8c4;text-decoration:none;font-size:.95rem;font-weight:500;
   padding:.3rem .1rem;border-radius:.35rem;
   transition:color .18s ease;
 }
@@ -654,7 +654,7 @@ strong{color:var(--heading);font-weight:600;}
 }
 .card .ico svg{width:1.5rem;height:1.5rem;fill:none;stroke:var(--accent);stroke-width:1.8;
   stroke-linecap:round;stroke-linejoin:round;}
-.card p{font-size:.95rem;color:var(--text-dim);}
+.card p{font-size:1rem;color:var(--text-dim);}
 
 /* ---- היתרונות: ארבעה כרטיסים זהים. מובייל: עמודה אחת. טאבלט (≥760): 2 עמודות.
    דסקטופ (≥1000): 4 עמודות באותו גובה. ---- */
@@ -725,14 +725,14 @@ strong{color:var(--heading);font-weight:600;}
 }
 .soon-mark{width:2.3rem;height:2.3rem;fill:var(--accent);opacity:.85;}
 .soon-badge{
-  font-size:.72rem;font-weight:700;letter-spacing:.14em;color:var(--accent);
+  font-size:.75rem;font-weight:700;letter-spacing:.14em;color:var(--accent);
   background:var(--pill);padding:.32rem .75rem;border-radius:999px;
 }
-.soon p{margin:0;font-size:.93rem;}
+.soon p{margin:0;font-size:1rem;}
 /* טבלת לפני/אחרי — הוכחה קומפקטית בתוך הכרטיס */
-.ba{width:100%;border-collapse:collapse;margin-top:.8rem;font-size:.83rem;line-height:1.5;}
+.ba{width:100%;border-collapse:collapse;margin-top:.8rem;font-size:.875rem;line-height:1.5;}
 .ba th{
-  font-weight:600;font-size:.72rem;letter-spacing:.1em;
+  font-weight:600;font-size:.75rem;letter-spacing:.1em;
   color:var(--accent);text-align:start;padding:.3rem .55rem;border-bottom:1px solid var(--line);
 }
 .ba td{color:var(--text-dim);padding:.42rem .55rem;border-bottom:1px solid var(--line);vertical-align:top;width:50%;}
@@ -760,12 +760,13 @@ strong{color:var(--heading);font-weight:600;}
 /* נקודות ניווט */
 .case-dots{display:flex;justify-content:center;gap:.55rem;margin-top:.35rem;padding:.25rem;}
 .case-dot{
-  width:.62rem;height:.62rem;border-radius:50%;padding:0;cursor:pointer;
-  background:var(--line);border:0;
+  /* שטח לחיצה 24px (WCAG 2.5.8); הנקודה הנראית .62rem דרך background-clip */
+  width:1.5rem;height:1.5rem;border-radius:50%;padding:.44rem;cursor:pointer;
+  background-color:var(--line);background-clip:content-box;border:0;
   transition:background-color .18s ease,transform .18s ease;
 }
 .case-dot:hover{transform:scale(1.25);}
-.case-dot[aria-current="true"]{background:var(--accent);transform:scale(1.25);}
+.case-dot[aria-current="true"]{background-color:var(--accent);transform:scale(1.25);}
 
 /* בהדפסה — חוזרים לרשימה רגילה, בלי ההעתקים של הלולאה */
 @media print{
@@ -779,16 +780,16 @@ strong{color:var(--heading);font-weight:600;}
   transition:background-color calc(.45s * var(--dur)) ease,border-color calc(.45s * var(--dur)) ease;
 }
 .case-tag{
-  align-self:flex-start;max-width:100%;overflow-wrap:anywhere;font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+  align-self:flex-start;max-width:100%;overflow-wrap:anywhere;font-family:var(--mono);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;
   color:var(--accent);background:var(--pill);padding:.35rem .7rem;border-radius:999px;
 }
 .case h3{font-size:1.25rem;margin:0;}
 .case dl{margin:0;display:grid;gap:.7rem;}
 .case dt{
-  font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+  font-family:var(--mono);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;
   color:var(--text-dim);margin-bottom:.2rem;
 }
-.case dd{margin:0;font-size:.95rem;color:var(--text-dim);}
+.case dd{margin:0;font-size:1rem;color:var(--text-dim);}
 .case dd strong{color:var(--heading);}
 .case .result{
   border-top:1px solid var(--line);padding-top:.8rem;
@@ -865,7 +866,7 @@ strong{color:var(--heading);font-weight:600;}
 }
 .step:last-child::after{display:none;}
 @media (max-width:819px){.step::after{display:none;}}
-.step p{font-size:.95rem;color:var(--text-dim);}
+.step p{font-size:1rem;color:var(--text-dim);}
 
 /* סקשן 6 · הנעה לפעולה (עומד בפני עצמו) */
 .cta{
@@ -915,9 +916,9 @@ body.high-contrast .cta-or{color:var(--heading);}
 }
 .cta-form[hidden]{display:none;}
 .cta-form .fld{display:flex;flex-direction:column;gap:.4rem;min-width:0;}
-.cta-form label{font-size:.92rem;font-weight:500;color:#cbd6ea;}
+.cta-form label{font-size:.95rem;font-weight:500;color:#cbd6ea;}
 .cta-form .req{color:#8dfff4;margin-inline-start:.15rem;}
-.cta-form .hint{font-size:.82rem;color:#93a1bd;font-weight:400;}
+.cta-form .hint{font-size:.875rem;color:#93a1bd;font-weight:400;}
 .cta-form input,
 .cta-form textarea{
   font:inherit;font-size:1rem;color:#eff3fa;
@@ -938,7 +939,7 @@ body.high-contrast .cta-or{color:var(--heading);}
 }
 .cta-form input[aria-invalid="true"],
 .cta-form textarea[aria-invalid="true"]{border-color:#ff9b8a;}
-.cta-form .err{font-size:.85rem;color:#ffb3a4;min-height:0;}
+.cta-form .err{font-size:.9rem;color:#ffb3a4;min-height:0;}
 .cta-form .err:empty{display:none;}
 .cta-form .btn{align-self:center;justify-content:center;}
 .cta-form .btn[disabled]{opacity:.6;cursor:progress;transform:none;}
@@ -954,7 +955,7 @@ body.high-contrast .cta-or{color:var(--heading);}
 .form-status:empty{display:none;}
 .form-status.ok{color:#04121a;background:#8dfff4;font-weight:600;}
 .form-status.bad{color:#ffd9d1;background:rgba(255,120,96,.16);border:1px solid #ff9b8a;}
-.form-legal{font-size:.82rem;color:#93a1bd;text-align:center;margin:0;line-height:1.7;}
+.form-legal{font-size:.875rem;color:#93a1bd;text-align:center;margin:0;line-height:1.7;}
 .form-legal .legal-line{display:block;}
 .form-legal a{color:#8dfff4;}
 
@@ -1019,7 +1020,7 @@ body.high-contrast .member .shotwrap{filter:none;}
   font-size:.82rem;font-weight:500;color:var(--accent);
   background:var(--pill);padding:.25rem .6rem;border-radius:999px;white-space:nowrap;
 }
-.member p{font-size:.95rem;color:var(--text-dim);margin:0;}
+.member p{font-size:1rem;color:var(--text-dim);margin:0;}
 .member .wa-link{
   margin-top:auto;align-self:flex-start;
   display:inline-flex;align-items:center;gap:.55rem;
@@ -1037,7 +1038,7 @@ footer{
   position:relative;z-index:1;background:var(--bg);border-top:1px solid var(--line);
   padding:1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
   display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
-  gap:.5rem 1.25rem;font-size:.85rem;color:var(--text-dim);
+  gap:.5rem 1.25rem;font-size:.9rem;color:var(--text-dim);
   transition:color calc(.45s * var(--dur)) ease,border-color calc(.45s * var(--dur)) ease,background-color calc(.45s * var(--dur)) ease;
 }
 footer a{color:var(--text-dim);text-decoration:underline;text-underline-offset:.22em;border-radius:.3rem;}
@@ -1121,7 +1122,7 @@ body.high-contrast .float-cta{background:var(--btn-bg);color:var(--btn-fg);}
 }
 .a11y-panel[hidden]{display:none;}
 .a11y-panel h2{margin:0 0 .25rem;font-size:1rem;font-weight:600;color:var(--heading);}
-.a11y-panel .note{margin:0 0 .85rem;font-size:.78rem;color:var(--text-dim);}
+.a11y-panel .note{margin:0 0 .85rem;font-size:.85rem;color:var(--text-dim);}
 .a11y-grid{display:grid;gap:.45rem;}
 .a11y-opt{
   display:flex;align-items:center;justify-content:space-between;gap:.75rem;
@@ -1129,7 +1130,7 @@ body.high-contrast .float-cta{background:var(--btn-bg);color:var(--btn-fg);}
   border-radius:.6rem;color:var(--text);font:inherit;font-size:.9rem;padding:.6rem .75rem;cursor:pointer;
 }
 .a11y-opt:hover,.a11y-opt[aria-pressed="true"]{border-color:var(--accent);}
-.a11y-opt .tick{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;color:var(--text-dim);text-transform:uppercase;}
+.a11y-opt .tick{font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;color:var(--text-dim);text-transform:uppercase;}
 .a11y-opt[aria-pressed="true"] .tick{color:var(--accent);font-weight:700;}
 .a11y-size{display:flex;gap:.4rem;}
 .a11y-size button{
@@ -1915,7 +1916,8 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
       var next = el.getAttribute('aria-pressed') !== 'true';
       if (name === 'lights-on') {
         setDimmer(!next);
-        if (next) { store.set('a11y:lightMode', '1'); } else { store.del('a11y:lightMode'); }
+        store.set('a11y:lightMode', next ? '1' : '0');
+        syncToggle('lights-on', next);
         live.textContent = next ? 'כל האתר בתצוגה בהירה.' : 'הסקשנים הראשונים חזרו לכהה.';
       } else {
         applyToggle(name, next);
@@ -1939,7 +1941,8 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
   document.getElementById('a11yReset').addEventListener('click', function () {
     TOGGLES.forEach(function (n) { applyToggle(n, false); });
     store.del('a11y:lightMode');
-    setDimmer(true);
+    setDimmer(!initialLight());
+    syncToggle('lights-on', initialLight());
     document.documentElement.style.fontSize = '';
     store.del('a11y:font');
     live.textContent = 'הגדרות הנגישות אופסו.';
@@ -1947,9 +1950,17 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
 
   /* ---------- שחזור העדפות ---------- */
   TOGGLES.forEach(function (n) { if (store.get('a11y:' + n) === '1') applyToggle(n, true); });
-  /* הדימר פעיל אלא אם המשתמש ביקש תצוגה בהירה קבועה או צמצום תנועה */
-  setDimmer(!(store.get('a11y:lightMode') === '1'));
+  /* הדימר פעיל אלא אם המשתמש ביקש תצוגה בהירה קבועה, או שלא בחר כלום
+     והמערכת שלו מוגדרת "בהיר" (prefers-color-scheme). '0' = ביקש כהה במפורש. */
+  function initialLight() {
+    var lm = store.get('a11y:lightMode');
+    if (lm === '1') return true;
+    if (lm === '0') return false;
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+  }
+  setDimmer(!initialLight());
   paint(true);
+  syncToggle('lights-on', initialLight());
   if (store.get('a11y:font')) setFont(currentFont());
 
   /* ---------- מודאל הצהרת נגישות ---------- */
