@@ -237,12 +237,34 @@ dialog::backdrop{background:#0e1a3388}
 .invite .actions{margin-top:12px}
 
 /* ---------- מסך כניסה ---------- */
-.login{max-width:430px;margin:0 auto;padding:64px 20px}
-.login .card{padding:26px;gap:0;--logo-ring:#0E1A33;--logo-word:#0a5766}
-.login .logo{font-size:1.6rem}
-.login h1{font-size:20px;margin:18px 0 2px}
-.loginfoot{display:flex;gap:8px;justify-content:center;margin-top:16px;font-size:13px;color:var(--muted)}
-.loginfoot a{color:var(--muted)}.loginfoot a:hover{color:var(--accent)}
+/* ============ מסך הכניסה — באותה שפה של מסך "שלום, מיכאל" ============ */
+.login{position:fixed;inset:0;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 20px;color:#eef3fa;background:radial-gradient(1200px 600px at 50% 30%,#1b2f57 0%,var(--navy) 60%)}
+.login .card{width:min(380px,100%);background:transparent;border:0;box-shadow:none;padding:0;gap:0;
+  display:flex;flex-direction:column;--logo-ring:#eff3fa;--logo-word:#2ff0e6;animation:zoomIn .35s cubic-bezier(.3,.7,.3,1)}
+.login .logo{font-size:1.5rem;align-self:center}
+.login h1{font-size:26px;font-weight:700;color:#fff;margin:22px 0 6px;text-align:center}
+.login .lead{color:#aebbcd;font-size:14.5px;line-height:1.65;text-align:center;margin:0 0 4px}
+.login .how{color:#8797ad;font-size:13px;text-align:center;margin:0 0 26px}
+.login .gbtn{background:#fff;border-color:#fff;color:var(--navy);border-radius:999px;padding:12px 18px;font-weight:600}
+.login .gbtn:hover{background:#eef3fa}
+.login .sep{color:#8797ad}
+.login .sep::before,.login .sep::after{background:#ffffff22}
+.login label{color:#cfd8e6;font-weight:500}
+.login .control{background:#ffffff0d;border-color:#ffffff2e;color:#fff;border-radius:12px}
+.login .control:focus{outline:none;border-color:var(--turq);box-shadow:0 0 0 3px #2ff0e622}
+.login .control:-webkit-autofill{-webkit-text-fill-color:#fff;-webkit-box-shadow:0 0 0 40px #16264a inset;caret-color:#fff}
+.login .btn.primary{background:var(--turq);border-color:var(--turq);color:var(--navy);font-weight:700;border-radius:12px}
+.login .btn.primary:hover{background:#6ff5ee}
+.login #signupBtn{background:transparent;border-color:#ffffff40;color:#dfe7f2;border-radius:12px}
+.login #signupBtn:hover{border-color:var(--turq);color:var(--turq)}
+.login .msg{background:#ffffff12;color:#dfe7f2;border:1px solid #ffffff1f}
+.login .msg.err{background:#a3251c33;color:#ffc9c4;border-color:#a3251c66}
+.login .msg.ok{background:#2ff0e61a;color:#bff9f5;border-color:#2ff0e640}
+.login .msg.wait{background:#e8d49a1f;color:#f3e3b3;border-color:#e8d49a4d}
+.login .msg a{color:#fff}
+.loginfoot{display:flex;gap:8px;justify-content:center;margin-top:30px;font-size:13px;color:#8797ad}
+.loginfoot a{color:#8797ad}.loginfoot a:hover{color:var(--turq)}
 .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-bottom:0}
 .gmark{width:19px;height:19px;flex:none}
 /* ============ חשבון: כפתור בכותרת, מסך ברוך הבא, תפריט ============ */
@@ -301,8 +323,8 @@ dialog::backdrop{background:#0e1a3388}
   <div class="card">
     <div class="logo" aria-label="MyOS"><span class="my">My</span><svg viewBox="6 -7 88 101" aria-hidden="true"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="spark" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg><span class="s">S</span></div>
     <h1>מערכת המשימות</h1>
-    <div class="muted" style="margin:4px 0 6px;line-height:1.6">מקום אחד לכל המשימות — מחולק לאזורים: המשרד, הבית, פרויקטים. לכל אזור חברים משלו, ולכל משימה יומן.</div>
-    <div class="muted" style="margin-bottom:22px">כניסה עם חשבון Google או עם מייל וסיסמה</div>
+    <p class="lead">מקום אחד לכל המשימות — מחולק לאזורים: המשרד, הבית, פרויקטים. לכל אזור חברים משלו, ולכל משימה יומן.</p>
+    <p class="how">כניסה עם חשבון Google או עם מייל וסיסמה</p>
     <div id="loginMessage" class="msg hidden"></div>
     <div id="loginChoices">
       <button type="button" id="googleBtn" class="btn gbtn">
