@@ -190,14 +190,14 @@ img,svg{max-width:100%;}
 .tasks-login:focus-visible{outline:none;box-shadow:0 0 0 3px #0E1A33,0 0 0 6px #2ff0e6;}
 .tasks-login svg{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 @media (max-width:560px){.tasks-login{font-size:.78rem;padding:.44rem .75rem;}}
-/* כפתור משני — הרשמה/כניסה לתוסף עסקאות (למי שלא הגיע דרך התוסף) */
+/* כפתור התוסף — זהה לכפתור המשימות (מיכאל, 22.9: "צריך להיות כמו כניסה למשימות") */
 .ext-signup{
   display:inline-flex;align-items:center;gap:.45rem;white-space:nowrap;
-  background:transparent;color:#eaf3ff;font-weight:600;font-size:.86rem;
-  padding:.5rem 1rem;border:1px solid rgba(47,240,230,.55);border-radius:.6rem;text-decoration:none;
-  transition:background-color .18s ease,border-color .18s ease,transform .18s ease,box-shadow .18s ease;
+  background:#2ff0e6;color:#04121a;font-weight:600;font-size:.86rem;
+  padding:.5rem 1rem;border:1px solid #2ff0e6;border-radius:.6rem;text-decoration:none;
+  transition:background-color .18s ease,transform .18s ease,box-shadow .18s ease;
 }
-.ext-signup:hover{background:rgba(47,240,230,.12);border-color:#2ff0e6;color:#fff;transform:translateY(-1px);}
+.ext-signup:hover{background:#8dfff4;border-color:#8dfff4;transform:translateY(-1px);}
 .ext-signup:focus-visible{outline:none;box-shadow:0 0 0 3px #0E1A33,0 0 0 6px #2ff0e6;}
 .ext-signup svg{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 @media (max-width:560px){.ext-signup{font-size:.78rem;padding:.44rem .75rem;}}
@@ -263,10 +263,29 @@ body.lights-on .wordmark{opacity:1;}
 .wordmark .wm-stem{fill:var(--mark);transition:fill calc(.45s * var(--dur)) ease;}
 body.lights-on .wordmark .wm-stem{fill:#12879b;}
 
-/* ============ ההירו — כיוון C (22.9.2026) ============ */
-/* הירו תוכן: כותרת ימין-כבדה + צילום המערכת בבזל משמאל. נייבי קבוע;
-   "תצוגה בהירה" (force-light) מהתפריט מחליפה לערכה הבהירה.
-   רצף ההדלקה הוסר — המסך הראשון הוא המסך המלא (Lindgaard 2006: 50ms). */
+/* ============ ההירו — האולם ============ */
+/* שני מסכים עוקבים בזרימה רגילה, בדיוק כמו כל סקשן אחר בדף:
+   ‎.hero-dark‎ נשאר כהה תמיד; אחריו מגיע The Hook עם לוג הריצה ברקע. */
+.hero{
+  position:relative;
+  min-height:100svh;
+  /* בלי overflow – האורות שעל התפר גולשים אל מחוץ לגבול הסקשן */
+}
+.hero-stage{
+  position:relative;
+  min-height:100svh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:clamp(.95rem,2.4vw,1.45rem);
+  /* הריפוד התחתון שומר מקום לאינדיקטור הגלילה כדי שלא ייפול על הטקסט */
+  padding:clamp(4.4rem,8vw,5.4rem) 1.25rem clamp(6rem,8vw,7rem);
+  text-align:center;
+  overflow:clip;
+}
+/* המסך הראשון נשאר כהה גם אחרי שכל שאר הדף עבר לערכה הבהירה */
+/* הלוגו מופיע פעמיים באותו מסך – מסתירים את הקטן כל עוד החשוך למעלה */
+
+/* הסקשנים הכהים — קבועים תמיד. אין החלפת ערכות בגלילה — הצבעים קבועים.
+   The Hook נשאר בהיר — הוא לא כאן. */
 .hero-dark,#advantage,#process{
   --bg:#0E1A33;--hero-text:#93a1bd;--mark:#525c7e;--stem:#525c7e;
   --text:#cfd8ea;--text-dim:#9aa8c4;--heading:#eef3fb;--punch:#cfd8ea;
@@ -275,118 +294,196 @@ body.lights-on .wordmark .wm-stem{fill:#12879b;}
   --btn-bg:#2ff0e6;--btn-fg:#04121a;
   --term:rgba(47,240,230,.34);
   --glow-1:rgba(47,240,230,.022);--glow-2:rgba(20,60,90,.07);
-  --bezel-top:rgba(255,255,255,.16);--bezel-bot:rgba(255,255,255,.03);--bezel-bg:#0f1a33;
-  --ghost-line:rgba(255,255,255,.14);
   background:#0E1A33;color:var(--text);
 }
 #advantage.alt{background:#0b1428;}
 #advantage h2,#process h2,#advantage h3,#process h3{color:var(--heading);}
+.hero-dark .hero-stage::after{opacity:1;}
+.hero-dark{background:var(--bg);}
+/* תאורת התקרה + אפלולית — חיות רק בהירו */
+.hero-stage::before,.hero-stage::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;}
+.hero-stage::before{
+  background:
+    radial-gradient(130% 80% at 50% -12%, var(--glow-1) 0%, rgba(0,0,0,0) 60%),
+    radial-gradient(100% 70% at 50% 118%, var(--glow-2) 0%, rgba(0,0,0,0) 72%);
+  transition:background calc(.45s * var(--dur)) ease;
+}
+.hero-stage::after{
+  background:radial-gradient(96% 72% at 50% 44%, rgba(0,0,0,0) 12%, rgba(0,0,0,.55) 62%, rgba(0,0,0,.9) 100%);
+  opacity:1;transition:opacity calc(.45s * var(--dur)) ease;
+}
 
-.hero{
-  position:relative;overflow:clip;
-  min-height:min(92svh,58rem);
-  display:flex;align-items:center;
-  padding:clamp(6.5rem,11vw,8.5rem) 1.25rem clamp(4rem,7vw,6rem);
-  background:var(--bg);color:var(--text);
-  transition:background-color calc(.45s * var(--dur)) ease,color calc(.45s * var(--dur)) ease;
+/* מסכים נמוכים (לפטופים 13 אינץ׳, נייד לרוחב): מקטינים את הסמל ואת הריפוד
+   כדי שאינדיקטור הגלילה יישאר בתוך המסך הראשון ולא ייפול על תת-הכותרת */
+/* מסכים נמוכים: מכווצים כדי שאינדיקטור הגלילה יישאר בתוך המסך הראשון —
+   הוא ההנחיה היחידה שהגולש מקבל, ואם הוא מתחת לקו הקיפול אין לו מה לעשות. */
+@media (max-height:900px){
+  .hero-stage{gap:clamp(.7rem,1.6vw,1.05rem);padding-bottom:clamp(5rem,7vw,6rem);}
+  .hero-logo{font-size:clamp(2.2rem,7vw,3.9rem);}
+  .hero-title{font-size:clamp(1.4rem,3.6vw,2.1rem);}
+  .hero-punch{font-size:clamp(1.05rem,2.4vw,1.35rem);}
 }
-/* זוהר טורקיז יחיד, עמום, מאחורי הכותרת (ימין-למעלה) — לא "glow soup" */
-.hero::before{
-  content:"";position:absolute;pointer-events:none;z-index:0;
-  top:-18rem;inset-inline-start:6rem;width:56rem;height:44rem;border-radius:50%;
-  background:radial-gradient(closest-side,rgba(47,240,230,.09),rgba(47,240,230,0) 70%);
+@media (max-height:720px){
+  .hero-stage{padding-bottom:clamp(4.5rem,6.5vw,5.4rem);gap:.5rem;}
+  .hero-logo{font-size:clamp(1.9rem,5.5vw,3rem);}
+  .hero-title{font-size:clamp(1.3rem,3vw,1.75rem);}
+  .hero-punch{font-size:clamp(1rem,2vw,1.18rem);}
+  .hero-sub{font-size:clamp(.95rem,1.8vw,1.05rem);}
 }
-body.force-light .hero::before{background:radial-gradient(closest-side,rgba(47,240,230,.14),rgba(47,240,230,0) 70%);}
-.hero > .inner{position:relative;z-index:1;width:100%;}
-.hero-grid{
-  display:grid;grid-template-columns:1fr;gap:clamp(2.5rem,5vw,4rem);align-items:center;
+/* נייד לרוחב קיצוני: הסמל הגדול יורד – הוא עיטור, והמותג מופיע בכותרת העליונה */
+@media (max-height:430px){
+  .hero-logo{font-size:clamp(1.7rem,4.6vw,2.3rem);}
+  .hero-stage{padding-top:2.6rem;padding-bottom:2.8rem;}
 }
-@media (min-width:1000px){
-  .hero-grid{grid-template-columns:minmax(0,6fr) minmax(0,6fr);gap:clamp(2rem,4vw,3.5rem);}
+@media (max-height:560px){
+  /* נייד לרוחב – מכווצים כדי שיישאר שימושי */
+  .hero-stage{min-height:0;padding-top:3.1rem;padding-bottom:3.2rem;gap:.35rem;}
+  .topbar{padding:.55rem 1.25rem .1rem;}
+  /* ה-H1 יוצא מהזרימה החזותית אבל נשאר בעץ הנגישות ובסריקת מנועי חיפוש */
+  .hero-sub{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+  .hero-logo{font-size:clamp(1.8rem,5vw,2.6rem);}
+  .hero .hero-title{font-size:clamp(1.35rem,4vw,2rem);}
 }
-.hero-copy{display:flex;flex-direction:column;align-items:flex-start;gap:clamp(1.1rem,2.2vw,1.6rem);max-width:40rem;}
-/* תווית mono — הטקסטורה ההנדסית של הבוטיקים; טורקיז = אחת מ-≤3 הדגשות במסך */
-.hero-kicker{
-  margin:0;font-family:var(--mono);font-weight:500;font-size:.78rem;letter-spacing:.12em;
-  color:var(--accent);
+.hero-stage > *{position:relative;z-index:1;}
+
+.power{
+  display:grid;place-items:center;position:relative;
+  width:clamp(6.5rem,17vw,9.5rem);aspect-ratio:88/101;
+  background:none;border:0;padding:0;margin:0;color:inherit;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;border-radius:1.6rem;
+  transition:transform calc(.25s * var(--dur)) cubic-bezier(.2,.8,.3,1);
 }
-/* h1 יחיד בדף. 40–68px; max/min = 1.77 (<2.5 → עובר 200% זום) */
+.power:hover{transform:scale(1.035);}
+.power:active{transform:scale(.975);}
+.power .mark{position:relative;width:100%;height:100%;display:block;overflow:visible;}
+.power .ring,.power .stem{transition:fill calc(.45s * var(--dur)) ease,filter calc(.45s * var(--dur)) ease,opacity calc(.45s * var(--dur)) ease;}
+/* filter לא ניתן להנפשה מ-none, ולכן מצב הבסיס הוא אותה צללית בשקיפות מלאה */
+.power .ring{fill:var(--mark);filter:drop-shadow(0 6px 18px rgba(14,26,51,0));}
+.power .stem{fill:var(--stem);filter:drop-shadow(0 0 12px rgba(47,240,230,0));}
+.power:hover .stem{fill:#7fb9c4;}
+body.lights-on .power:hover .stem{fill:url(#stemGrad);}
+.power .halo{
+  position:absolute;inset:-40%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(47,240,230,.20) 0%,rgba(47,240,230,.07) 38%,rgba(47,240,230,0) 68%);
+  opacity:0;transform:scale(.7);
+  transition:opacity calc(.5s * var(--dur)) ease,transform calc(.5s * var(--dur)) cubic-bezier(.16,1,.3,1);
+}
+body.lights-on .power .halo{opacity:1;transform:scale(1);}
+@keyframes breathe{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.7;transform:scale(1.05);}}
+/* ההשהיה חיונית: בלעדיה האנימציה דורסת את מעבר הכניסה וההילה מופיעה בבת אחת */
+body.lights-on:not(.no-motion) .power .halo{animation:breathe 4s ease-in-out .55s infinite;}
+body.lights-on .power .ring{filter:drop-shadow(0 6px 18px rgba(14,26,51,.2));}
+body.lights-on .power .stem{filter:drop-shadow(0 0 12px rgba(47,240,230,.75));}
+@keyframes standby{0%,100%{opacity:.85;}50%{opacity:.45;}}
+body:not(.lights-on):not(.no-motion) .power .stem{animation:standby 3.4s ease-in-out infinite;}
+
+/* הלוגו — מועתק אחד לאחד מ-MyOS Logo.html:
+   ‏My ב-Poppins 600, ה-O כ-SVG, ו-S ב-Chakra Petch 700. גופנים שונים,
+   ריווח אותיות שונה, ויישור baseline עם gap של 0.055em. */
+.hero-logo{
+  display:inline-flex;align-items:baseline;gap:.055em;
+  font-size:clamp(3rem,11vw,7.4rem);line-height:1.38;padding-bottom:.11em;
+  text-decoration:none;
+  --grad:linear-gradient(122deg,#0a5766 0%,#13a8bd 44%,#2ff0e6 80%,#8dfff4 100%);
+  transition:transform calc(.25s * var(--dur)) cubic-bezier(.2,.8,.3,1);
+}
+.hero-logo:hover{transform:scale(1.025);}
+.hero-logo:active{transform:scale(.985);}
+.hero-logo:focus-visible{outline:none;box-shadow:0 0 0 3px var(--focus-bg),0 0 0 6px var(--focus-ring);border-radius:.4rem;}
+.hero-logo .my,.hero-logo .s{
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:#12879b;
+}
+.hero-logo .my{font-family:'Poppins',var(--sans);font-weight:600;letter-spacing:-.004em;}
+.hero-logo .s{font-family:'Chakra Petch',var(--sans);font-weight:700;letter-spacing:-.02em;}
+.hero-logo .o{position:relative;display:block;width:.72em;height:.826em;flex:none;align-self:auto;}
+.hero-logo .mark{position:relative;z-index:1;width:100%;height:100%;display:block;overflow:visible;}
+.hero-logo .ring{fill:var(--logo-o,#eff3fa);transition:fill calc(.45s * var(--dur)) ease,filter calc(.45s * var(--dur)) ease;
+  filter:drop-shadow(0 6px 18px rgba(14,26,51,0));}
+.hero-logo .stem{fill:url(#stemGrad);transition:filter calc(.45s * var(--dur)) ease,opacity calc(.45s * var(--dur)) ease;
+  filter:drop-shadow(0 0 12px rgba(47,240,230,0));}
+body.force-light .hero-logo{--logo-o:#0E1A33;}
+body:not(.no-motion) .hero-logo .stem{animation:standby 3.4s ease-in-out infinite;}
+
+.hero-logo .stem{filter:drop-shadow(0 0 14px rgba(47,240,230,.5));}
+.hero-logo .halo{
+  position:absolute;inset:-42%;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle,rgba(47,240,230,.20) 0%,rgba(47,240,230,.07) 38%,rgba(47,240,230,0) 68%);
+  opacity:0;transform:scale(.7);
+  transition:opacity calc(.5s * var(--dur)) ease,transform calc(.5s * var(--dur)) cubic-bezier(.16,1,.3,1);
+}
+.hero-logo .halo{opacity:1;transform:scale(1);}
+body:not(.no-motion) .hero-logo .halo{animation:breathe 4s ease-in-out .55s infinite;}
 .hero-title{
-  margin:0;font-size:clamp(2.4rem,4.6vw,4.25rem);font-weight:600;line-height:1.08;
-  letter-spacing:-.02em;color:var(--heading);max-width:14ch;text-wrap:balance;
+  margin:0;font-size:clamp(1.55rem,5vw,2.7rem);font-weight:600;line-height:1.3;
+  color:var(--heading);max-width:26ch;text-wrap:balance;
 }
-.hero-title .hl{color:var(--accent);}
-.hero-lead{
-  margin:0;font-size:clamp(1.1rem,1.6vw,1.25rem);line-height:1.55;color:var(--text-dim);max-width:32ch;
-}
-.hero-cta{display:flex;align-items:center;flex-wrap:wrap;gap:.75rem 1.1rem;margin-top:.25rem;}
-.btn.btn-ghost{
-  background:transparent;border-color:var(--ghost-line);color:var(--text);
-}
-.btn.btn-ghost:hover{background:rgba(255,255,255,.06);border-color:var(--ghost-line);transform:translateY(-2px);}
-body.force-light .btn.btn-ghost{--ghost-line:#c9c3b6;}
-body.force-light .btn.btn-ghost:hover{background:rgba(14,26,51,.05);}
-/* שורת הוכחה: שלושה מספרים אמיתיים, בלי סופרלטיבים (Fogg #2, NN/g) */
-.hero-proof{
-  display:flex;flex-wrap:wrap;gap:.6rem 1.75rem;margin:.75rem 0 0;padding:0;list-style:none;
-  font-size:.95rem;color:var(--text-dim);
-}
-.hero-proof li{display:flex;align-items:baseline;gap:.45rem;}
-.hero-proof strong{font-size:1.5rem;font-weight:600;color:var(--heading);letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
+/* שני הנוסחים חולקים תא ברשת – גובה הבלוק קבוע ולכן שום דבר לא זז */
 
-/* הבזל: מסגרת 1px גרדיאנט (16%→3% לבן) + צל עמוק. הצילום האמיתי, לא אילוסטרציה. */
-.hero-shot{
-  margin:0;position:relative;justify-self:end;width:100%;max-width:38rem;
-  border-radius:1rem;padding:1px;
-  background:linear-gradient(180deg,var(--bezel-top),var(--bezel-bot));
-  box-shadow:0 30px 80px rgba(0,0,0,.45);
-  transition:box-shadow calc(.45s * var(--dur)) ease;
+/* המשפט המרכזי – נקרא מהשנייה הראשונה, עוד לפני שהאור עולה */
+.hero-punch{
+  margin:0;max-width:32ch;
+  font-size:clamp(1.16rem,3.1vw,1.7rem);font-weight:500;line-height:1.5;
+  color:var(--punch);text-wrap:balance;
+  transition:color calc(.45s * var(--dur)) ease;
 }
-body.force-light .hero-shot{--bezel-top:rgba(14,26,51,.18);--bezel-bot:rgba(14,26,51,.06);--bezel-bg:#ffffff;box-shadow:0 30px 80px rgba(14,26,51,.18);}
-.hero-shot-in{border-radius:calc(1rem - 1px);background:var(--bezel-bg);overflow:hidden;}
-.hero-shot-bar{
-  display:flex;align-items:center;justify-content:space-between;gap:1rem;
-  padding:.6rem .9rem;border-bottom:1px solid var(--line);
-  font-family:var(--mono);font-size:.72rem;letter-spacing:.02em;color:var(--text-dim);
-}
-.hero-shot-bar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-/* קופסת יחס ב-padding-top (aspect-ratio על תמונה בתוך flex/grid מתקפל בספארי iOS) */
-.hero-shot-img{position:relative;width:100%;padding-top:64%;}
-.hero-shot-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;display:block;}
-@media (max-width:999px){
-  .hero{min-height:0;padding-top:clamp(5.5rem,14vw,7rem);}
-  .hero-shot{justify-self:stretch;max-width:none;}
-  .hero-title{max-width:16ch;}
-}
-@media (max-height:560px) and (min-width:1000px){
-  .hero{min-height:0;padding-top:5rem;padding-bottom:2.5rem;}
-  .hero-title{font-size:clamp(1.8rem,3.6vw,2.6rem);}
-}
-
-/* קישור משני (נשאר בשימוש בסקשנים אחרים) */
+.hero-punch .hl{color:var(--accent);}
+/* הנעה לפעולה בתוך The Hook — אחרי התרשים, לרוחב מלא */
+.hook-cta{display:flex;align-items:center;flex-wrap:wrap;gap:.9rem 1.4rem;margin-top:.25rem;grid-column:1 / -1;}
 .link-more{
   color:var(--accent);font-weight:600;font-size:.98rem;
   text-decoration:underline;text-underline-offset:.28em;border-radius:.35rem;
 }
 .link-more:hover{color:var(--accent-soft);}
 body.lights-on .link-more:hover{color:#0d6c7e;}
-
-/* ---- לוג ריצה ברקע (דקורטיבי בלבד, aria-hidden) ----
-   בהירו הוא חי רק מאחורי עמודת הצילום (שמאל) ונמוג לכיוון הטקסט (ימין);
-   opacity .35 — טקסטורה, לא תחרות עם הכותרת. */
-.hero .termlog{opacity:.22;}
-.hero .termlog-inner{
-  -webkit-mask-image:linear-gradient(to right,#000 0%,#000 26%,rgba(0,0,0,.1) 42%,rgba(0,0,0,0) 50%);
-  mask-image:linear-gradient(to right,#000 0%,#000 26%,rgba(0,0,0,.1) 42%,rgba(0,0,0,0) 50%);
+.hero-title .lit{color:var(--accent);}
+.hero-sub .lead-line{
+  display:block;color:var(--accent);
+  font-size:clamp(1.15rem,3.2vw,1.7rem);font-weight:600;letter-spacing:.22em;
+  transition:color calc(.45s * var(--dur)) ease;
 }
-@media (max-width:999px){.hero .termlog{display:none;}}
+.hero-sub .sub-line{display:block;margin-top:.55rem;}
+.hero-sub{
+  margin:0;font-size:clamp(1.02rem,2.5vw,1.24rem);font-weight:400;line-height:1.6;
+  color:var(--text-dim);max-width:46ch;text-wrap:balance;
+}
+/* ה-H1 גלוי בשני המצבים – הוא תוכן, לא חלק מהאפקט */
+
+/* ---- לוג ריצה ברקע של The Hook (דקורטיבי בלבד, aria-hidden) ---- */
+#hook,#process{overflow:clip;}
+#hook > .inner,#process > .inner{position:relative;z-index:1;}
+/* בסקשן הזה יש טקסט אמיתי מימין, ולכן הלוג נמוג לכיוונו ולא רץ מתחתיו */
+/* הלוג בולט — צבע חזק ושקיפות גבוהה, בהתאמה לערכה של כל סקשן */
+#hook{--term:rgba(10,87,102,.55);}
+#hook .termlog{opacity:.85;}
+#process .termlog{opacity:.7;}
+#hook .termlog-inner,#process .termlog-inner{
+  -webkit-mask-image:linear-gradient(to right,#000 0%,#000 26%,rgba(0,0,0,.15) 62%,rgba(0,0,0,0) 78%);
+  mask-image:linear-gradient(to right,#000 0%,#000 26%,rgba(0,0,0,.15) 62%,rgba(0,0,0,0) 78%);
+}
+/* ב-The Process הצעדים פרוסים על כל הרוחב (אין עמודת טקסט כמו ב-Hook),
+   ולכן הלוג נדחק לשוליים: מרכז נקי רחב שמכסה את אזור התוכן כולו */
+#process{--term:rgba(47,240,230,.55);}
+#process .termlog-inner{
+  -webkit-mask-image:radial-gradient(ellipse 72% 62% at 50% 52%, transparent 58%, #000 94%);
+  mask-image:radial-gradient(ellipse 72% 62% at 50% 52%, transparent 58%, #000 94%);
+}
+@media (max-width:860px){
+  #hook .termlog,#process .termlog{opacity:.5;}
+  #hook .termlog-inner,#process .termlog-inner{
+    -webkit-mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.1) 30%,rgba(0,0,0,0) 55%);
+    mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.1) 30%,rgba(0,0,0,0) 55%);
+  }
+}
 .termlog{
   position:absolute;inset:0;z-index:0;pointer-events:none;user-select:none;overflow:hidden;
-  color:var(--term);
-  -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 16%, #000 72%, transparent 92%);
-  mask-image:linear-gradient(to bottom, transparent 0, #000 16%, #000 72%, transparent 92%);
+  color:var(--term);opacity:1;
+  /* שכבה 1: דהייה למעלה ולמטה */
+  -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 9%, #000 72%, transparent 90%);
+  mask-image:linear-gradient(to bottom, transparent 0, #000 9%, #000 72%, transparent 90%);
   transition:opacity .34s ease .04s,color calc(.3s * var(--dur)) ease;
 }
+/* שכבה 2 (מקוננת, בלי mask-composite): מרכז נקי לכותרת */
 .termlog-inner{
   position:absolute;inset:0;
   display:grid;grid-auto-flow:column;grid-auto-columns:1fr;grid-template-rows:100%;
@@ -394,8 +491,12 @@ body.lights-on .link-more:hover{color:#0d6c7e;}
   padding:0 clamp(1rem,4vw,3rem);
   direction:ltr;text-align:left;
   font-family:var(--mono);font-size:.71rem;line-height:2.25;letter-spacing:.01em;
+  -webkit-mask-image:radial-gradient(ellipse 45% 58% at 50% 50%, transparent 30%, #000 92%);
+  mask-image:radial-gradient(ellipse 45% 58% at 50% 50%, transparent 30%, #000 92%);
 }
+
 .termcol{overflow:hidden;height:100%;min-width:0;display:none;}
+/* מספר העמודות נקבע לפי רוחב המסך, כדי שאף עמודה לא תיחתך או תיפול לשורה שנייה */
 .termcol:nth-child(1){display:block;}
 @media (min-width:560px){.termcol:nth-child(2){display:block;}}
 @media (min-width:820px){.termcol:nth-child(3){display:block;}}
@@ -410,6 +511,57 @@ body:not(.no-motion) .termtrack{
 .termcol:nth-child(3) .termtrack{animation-delay:-7.1s;}
 .termcol:nth-child(4) .termtrack{animation-delay:-1.8s;}
 .termcol:nth-child(5) .termtrack{animation-delay:-5.2s;}
+@media (max-width:760px){
+  /* במסך צר יש פחות מקום סביב הכותרת — מרחיבים מעט את האזור הנקי ומחלישים את הלוג */
+  .termlog-inner{
+    font-size:.66rem;
+    -webkit-mask-image:radial-gradient(ellipse 62% 34% at 50% 57%, transparent 32%, #000 96%);
+    mask-image:radial-gradient(ellipse 62% 34% at 50% 57%, transparent 32%, #000 96%);
+  }
+  
+}
+
+/* ---- אינדיקטור גלילה ---- */
+.scroll-cue{
+  display:none;position:absolute;bottom:1.1rem;left:50%;
+  z-index:2;color:var(--accent);text-decoration:none;
+  flex-direction:column;align-items:center;gap:.45rem;
+  padding:.55rem .9rem;border-radius:1.4rem;
+  transform:translateX(-50%);
+  /* רקע אטום: לוג הריצה עובר מאחורי האזור הזה, ובלעדיו הניגודיות
+     של הכיתוב הייתה יורדת ל-4.1:1 במקומות שבהם שורת קוד נופלת מתחת לאות */
+  background:var(--bg);
+}
+/* מופיע כבר במסך החשוך – הוא ההנחיה היחידה שהגולש מקבל */
+.scroll-cue{display:inline-flex;}
+.scroll-cue:hover{color:var(--accent-soft);}
+/* האייקון הוא ה-O של הלוגו — הטבעת בצבע ההדגשה והגבעול בגרדיאנט של הלוגו */
+.scroll-cue .cue-mouse{display:block;}
+.scroll-cue .cue-mouse svg{width:1.9rem;height:2.18rem;display:block;overflow:visible;}
+.scroll-cue .cue-ring{fill:currentColor;}
+.scroll-cue .cue-stem{fill:url(#stemGrad);}
+.scroll-cue .cue-label{font-size:.85rem;font-weight:600;letter-spacing:.01em;}
+.scroll-cue .cue-chev{width:1.25rem;height:.75rem;display:block;overflow:visible;}
+.scroll-cue .cue-chev path{fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;}
+
+@keyframes cueBob{0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,7px);}}
+@keyframes chevPulse{
+  0%{transform:translateY(-3px);opacity:.25;}
+  45%{transform:translateY(2px);opacity:1;}
+  100%{transform:translateY(6px);opacity:0;}
+}
+body:not(.no-motion) .scroll-cue{animation:cueBob 2.6s ease-in-out infinite;}
+/* הגבעול מהבהב בהמתנה — אותה נשימה כמו הסמל הגדול שבהירו */
+body:not(.no-motion) .scroll-cue .cue-stem{animation:standby 3.4s ease-in-out infinite;}
+body:not(.no-motion) .scroll-cue .cue-chev{
+  animation:chevPulse 1.9s cubic-bezier(.4,0,.2,1) infinite;
+}
+
+/* מסך נמוך: אינדיקטור מקוצר, אחרת הוא נופל על תת-הכותרת */
+@media (max-height:720px){
+  .scroll-cue{padding:.38rem .85rem;gap:.28rem;bottom:.7rem;}
+  .scroll-cue .cue-mouse{display:none;}
+}
 
 /* ============ תוכן ============ */
 .section{padding:clamp(3.5rem,9vw,6.5rem) 1.25rem;position:relative;z-index:1;}
@@ -465,6 +617,28 @@ strong{color:var(--heading);font-weight:600;}
 /* סקשן 2 */
 .split{display:grid;grid-template-columns:1fr;gap:clamp(1.75rem,4vw,3rem);align-items:start;}
 @media (min-width:900px){.split{grid-template-columns:1.05fr .95fr;}}
+/* העטיפה שקופה לגמרי — הרקע המעמעם יושב על התרשים עצמו וצמוד אליו,
+   כך שלוג הריצה רץ קרוב ואין "ריבוע שקט" גדול מסביב */
+.aside-mark{display:grid;place-items:center;padding:0;}
+/* מיקום מוחלט בדסקטופ, לפי הכלל: אופקית — אמצע האזור שבין המילה השמאלית
+   ביותר בטקסט (הקצה השמאלי של עמודת הטקסט) לבין קצה המסך השמאלי;
+   אנכית — בדיוק אמצע הגובה של כל הסקשן הבהיר. מחושב מרוחב ה-inner בפועל. */
+@media (min-width:900px){
+  #hook{
+    --innerw:min(100vw - 2.5rem, 74rem);
+    --sgap:clamp(1.75rem, 4vw, 3rem);
+    /* הקצה השמאלי של עמודת הטקסט: שול העמוד + עמודת התרשים (‎.95fr) + הרווח */
+    --textleft:calc((100vw - var(--innerw)) / 2 + (var(--innerw) - var(--sgap)) * 0.475 + var(--sgap));
+  }
+  #hook .aside-mark{
+    position:absolute;
+    top:50%;
+    /* הקונטיינר הממקם הוא ה-inner (יש לו position:relative) — מפחיתים את שול העמוד */
+    left:calc(var(--textleft) / 2 - (100vw - var(--innerw)) / 2);
+    transform:translate(-50%, -50%);
+    width:min(17.8rem, calc(var(--textleft) - 1.5rem));
+  }
+}
 /* סקשן 3 */
 .cards{display:grid;grid-template-columns:1fr;gap:1.1rem;margin-top:2rem;}
 @media (min-width:760px){.cards{grid-template-columns:repeat(3,1fr);}}
@@ -494,6 +668,8 @@ strong{color:var(--heading);font-weight:600;}
    אותה הרמה כמו בריחוף. דסקטופ בלבד, לא בצמצום תנועה. */
 .card.is-poked{transform:translateY(-3px);}
 
+/* הטקסט של "מה אנחנו עושים" בעמודה קריאה */
+#hook .inner>div:not(.hook-cta){max-width:52rem;}
 
 /* סקשן 4 — קרוסלה אופקית עם נעילת גלילה (scroll snap) */
 .cases-wrap{position:relative;margin-top:2rem;}
@@ -911,6 +1087,7 @@ body.force-light .hero-dark,body.force-light #advantage{
   --term:rgba(10,87,102,.32);background:#efece5;
 }
 body.force-light #advantage.alt{background:#f6f4ef;}
+body.force-light .hero-dark .hero-stage::after{opacity:0;}
 
 /* ============ כפתור פעולה צף (נייד) ============ */
 .float-cta{
@@ -1031,7 +1208,7 @@ body.high-contrast.lights-on{
   --term:rgba(0,0,0,0);--cue-dot:#004a58;--punch:#000000;
   background:#fff!important;
 }
-body.high-contrast .hero::before{display:none;}
+body.high-contrast .hero::after{display:none;}
 body.high-contrast .halo{display:none;}
 body.high-contrast .power .ring,body.high-contrast .power .stem{filter:none!important;}
 body.high-contrast .wordmark{opacity:1;}
@@ -1077,7 +1254,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
 </head>
 <body class="lights-on">
 
-<a class="skip" href="#top">דלג לתוכן הראשי</a>
+<a class="skip" href="#hook">דלג לתוכן הראשי</a>
 
 <header class="topbar">
   <nav class="topnav" aria-label="ניווט ראשי">
@@ -1085,7 +1262,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></svg>
     </button>
     <ul class="nav-links" id="navLinks">
-      <li><a href="#advantage">מה אנחנו עושים</a></li>
+      <li><a href="#hook">מה אנחנו עושים</a></li>
       <li><a href="#cases">פתרונות</a></li>
       <li><a href="#contact">יצירת קשר</a></li>
     </ul>
@@ -1110,18 +1287,53 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
 
 <main id="top">
 
-  <!-- ============ 1 · ההירו (כיוון C, 22.9.2026) ============ -->
-  <section class="hero hero-dark" id="top-dark" aria-labelledby="heroTitle">
-    <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
-      <defs>
-        <linearGradient id="stemGrad" x1="0" y1="1" x2="1" y2="0">
-          <stop offset="0" stop-color="#0a5766"></stop>
-          <stop offset="0.5" stop-color="#12879b"></stop>
-          <stop offset="1" stop-color="#2ff0e6"></stop>
-        </linearGradient>
-      </defs>
-    </svg>
+  <!-- ============ 1 · ההירו ============ -->
+  <!-- ============ 1א · המסך החשוך ============ -->
+  <section class="hero hero-dark" id="top-dark" aria-labelledby="heroSub">
+   <div class="hero-stage">
 
+    <a class="hero-logo" id="powerBtn" href="#hook" dir="ltr"
+       aria-label="MyOS — גללו למטה כדי להפעיל את העסק">
+      <span class="my" aria-hidden="true">My</span>
+      <span class="o" aria-hidden="true">
+        <span class="halo"></span>
+        <svg class="mark" viewBox="6 -7 88 101" focusable="false">
+          <defs>
+            <linearGradient id="stemGrad" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0" stop-color="#0a5766"></stop>
+              <stop offset="0.5" stop-color="#12879b"></stop>
+              <stop offset="1" stop-color="#2ff0e6"></stop>
+            </linearGradient>
+          </defs>
+          <path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"></path>
+          <path class="stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"></path>
+        </svg>
+      </span>
+      <span class="s" aria-hidden="true">S</span>
+    </a>
+
+    <h1 class="hero-sub" id="heroSub">
+      <span class="lead-line">אוטומציה אנושית</span>
+      <span class="sub-line">מערכות עבודה, אינטגרציות, כלי AI ואוטומציות — תפורים בדיוק לעסק שלכם</span>
+    </h1>
+
+    <a class="scroll-cue" href="#hook">
+      <span class="cue-mouse" aria-hidden="true">
+        <svg viewBox="6 -7 88 101" focusable="false">
+          <path class="cue-ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"></path>
+          <path class="cue-stem" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"></path>
+        </svg>
+      </span>
+      <span class="cue-label">גללו למטה כדי להפעיל את העסק</span>
+      <svg class="cue-chev" viewBox="0 0 24 12" aria-hidden="true" focusable="false"><path d="M2.5 2 12 10 21.5 2"></path></svg>
+    </a>
+
+    <p role="status" aria-live="polite" class="visually-hidden" id="liveRegion"></p>
+   </div>
+  </section>
+
+  <!-- ============ 2 · הבעיה והפתרון ============ -->
+  <section class="section" id="hook" aria-labelledby="hookTitle">
     <div class="termlog" id="termlog" aria-hidden="true">
       <div class="termlog-inner">
         <div class="termcol"></div><div class="termcol"></div>
@@ -1131,41 +1343,18 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
     </div>
 
     <div class="inner">
-      <div class="hero-grid">
-        <div class="hero-copy">
-          <p class="hero-kicker">אוטומציה אנושית</p>
-          <h1 class="hero-title" id="heroTitle">אוטומציה טובה מתחילה <span class="hl">באנשים</span>, לא בתוכנה.</h1>
-          <p class="hero-lead">אנחנו לומדים את התהליך שלכם, מפצחים את המורכבות ובונים סביבת עבודה אחת שפשוט עובדת.</p>
-          <div class="hero-cta">
-            <a class="btn" href="#contact">קובעים פגישת אבחון</a>
-            <a class="btn btn-ghost" href="#cases">איך זה נראה בשטח</a>
-          </div>
-          <ul class="hero-proof" aria-label="בקצרה">
-            <li><strong>70%</strong>פחות זמן לתיק</li>
-            <li><strong>4</strong>מערכות באוויר</li>
-            <li><strong>36</strong>שדות לכל עסקה, אוטומטית</li>
-          </ul>
-        </div>
+      <div>
+        <p class="eyebrow">מה אנחנו עושים</p>
+        <h2 id="hookTitle">אוטומציה טובה מתחילה <span class="hl">באנשים</span>, לא בתוכנה.</h2>
+        <p class="lead">אנחנו מחברים בין המערכות, המידע והאנשים — ויוצרים סביבם סביבת עבודה אחת שפשוט עובדת.</p>
+        <p class="lead">ב־MyOS אנחנו לא מסתפקים בחיבור טכני בין תוכנות. אנחנו לומדים את התהליך, מפצחים את המורכבות ובונים סביבת עבודה שלמה המותאמת לעסק שלכם.</p>
+      </div>
 
-        <figure class="hero-shot">
-          <div class="hero-shot-in">
-            <div class="hero-shot-bar" aria-hidden="true">
-              <span>עירייה — מערכת תיווך בין CRM לקומפלוט</span>
-              <span dir="ltr">CRM ↔ Compuplot</span>
-            </div>
-            <div class="hero-shot-img">
-              <picture>
-                <source srcset="img/case-crm.webp" type="image/webp">
-                <img src="img/case-crm.jpg" width="900" height="576" alt="מסך העבודה של מערכת התיווך בעירייה: סנכרון בין ה-CRM לקומפלוט, ניווט בין תיקים וסטטוס התיקים הפתוחים" loading="eager" fetchpriority="high" decoding="async">
-              </picture>
-            </div>
-          </div>
-          <figcaption class="visually-hidden">צילום מסך מהמערכת שבנינו לעירייה</figcaption>
-        </figure>
+      <div class="hook-cta">
+        <a class="btn" href="#contact">קובעים פגישת אבחון</a>
+        <a class="link-more" href="#cases">ראו פתרונות שבנינו</a>
       </div>
     </div>
-
-    <p role="status" aria-live="polite" class="visually-hidden" id="liveRegion"></p>
   </section>
 
   <!-- ============ 3 · היתרונות ============ -->
@@ -1839,7 +2028,7 @@ body.underline-links a{text-decoration:underline!important;text-underline-offset
     function sync() { fab.hidden = heroVis || contactVis || hookCtaVis; }
     var hero = document.querySelector('.hero-dark');
     var contact = document.getElementById('contact');
-    var hookCta = document.querySelector('.hero-cta');
+    var hookCta = document.querySelector('.hook-cta');
     if (!hero || !contact) return;
     new IntersectionObserver(function (es) {
       es.forEach(function (e) { heroVis = e.isIntersecting; }); sync();
