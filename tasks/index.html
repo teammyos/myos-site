@@ -241,6 +241,8 @@ dialog::backdrop{background:#0e1a3388}
 .login .card{padding:26px;gap:0;--logo-ring:#0E1A33;--logo-word:#0a5766}
 .login .logo{font-size:1.6rem}
 .login h1{font-size:20px;margin:18px 0 2px}
+.loginfoot{display:flex;gap:8px;justify-content:center;margin-top:16px;font-size:13px;color:var(--muted)}
+.loginfoot a{color:var(--muted)}.loginfoot a:hover{color:var(--accent)}
 .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-bottom:0}
 .gmark{width:19px;height:19px;flex:none}
 /* ============ חשבון: כפתור בכותרת, מסך ברוך הבא, תפריט ============ */
@@ -299,7 +301,8 @@ dialog::backdrop{background:#0e1a3388}
   <div class="card">
     <div class="logo" aria-label="MyOS"><span class="my">My</span><svg viewBox="6 -7 88 101" aria-hidden="true"><path class="ring" d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z"/><path class="spark" d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z"/></svg><span class="s">S</span></div>
     <h1>מערכת המשימות</h1>
-    <div class="muted" style="margin-bottom:22px">כניסה עם חשבון גוגל או עם מייל וסיסמה</div>
+    <div class="muted" style="margin:4px 0 6px;line-height:1.6">מקום אחד לכל המשימות — מחולק לאזורים: המשרד, הבית, פרויקטים. לכל אזור חברים משלו, ולכל משימה יומן.</div>
+    <div class="muted" style="margin-bottom:22px">כניסה עם חשבון Google או עם מייל וסיסמה</div>
     <div id="loginMessage" class="msg hidden"></div>
     <div id="loginChoices">
       <button type="button" id="googleBtn" class="btn gbtn">
@@ -314,6 +317,7 @@ dialog::backdrop{background:#0e1a3388}
       </form>
     </div>
   </div>
+  <div class="loginfoot"><a href="privacy.html">מדיניות פרטיות</a><span>·</span><a href="https://myos.co.il/">myos.co.il</a></div>
 </section>
 
 <!-- מעבר אחרי כניסה: "מתחבר…" ואז "שלום, מיכאל" -->
