@@ -10,6 +10,8 @@
 <meta property="og:description" content="דף יומי וכל המחזורים, לוח עברי ולוח לימוד אישי בקצב שלך.">
 <meta property="og:url" content="https://myos.co.il/daily/">
 <link rel="icon" href="app/favicon.ico">
+<!-- Poppins 600 + Chakra Petch 700 — הגופנים של הלוגו. נוצר מ-site/fonts.json. -->
+<link rel="stylesheet" href="brand-fonts.css">
 <style>
   :root{
     --bg:#0E1A33; --bg2:#0b1428; --line:#26375c; --text:#ffffff; --muted:#a9b6cf;
@@ -24,96 +26,113 @@
   }
   a{color:var(--accent)}
   header{
-    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
     padding:14px clamp(16px,4vw,32px);
   }
-  .brand{display:flex; align-items:baseline; gap:0; direction:ltr; font-weight:700; font-size:1.25rem; letter-spacing:-.01em}
-  .brand .my{color:#13a8bd}
-  .brand .s{color:#5ff5ec}
-  .brand .daily{color:#fff; font-size:.85em; margin-inline-start:.25rem}
-  .tools{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+
+  /* ---- הלוגו האמיתי: אותו נעילה שבאפליקציה (Logo.js) — "My" ב-Poppins 600,
+         הסמל (טבעת + גבעול בגרדיאנט) כ-SVG, ו-"S" ב-Chakra Petch 700. ---- */
+  .brand{--s:1.5rem; display:flex; align-items:flex-end; direction:ltr; line-height:1}
+  .brand .lock{display:flex; align-items:flex-end; gap:calc(var(--s)*.055)}
+  .brand .my,.brand .s,.brand .daily{font-family:'Poppins',system-ui,'Segoe UI',Arial,sans-serif; font-weight:600}
+  .brand .my{font-size:var(--s); letter-spacing:-.004em; color:#13a8bd}
+  .brand .my b{font-weight:inherit; color:#1fc6d6}
+  .brand .s{font-family:'Chakra Petch',system-ui,'Segoe UI',Arial,sans-serif; font-weight:700;
+            font-size:var(--s); letter-spacing:-.02em; color:#5ff5ec}
+  .brand .mark{width:calc(var(--s)*.72); height:calc(var(--s)*.826);
+               margin-bottom:calc(var(--s)*.23); overflow:visible; display:block}
+  .brand .daily{font-size:calc(var(--s)*.62); color:#fff; margin-inline-start:calc(var(--s)*.28)}
+
   .chip{
-    background:transparent; color:var(--text); border:1px solid var(--line);
-    border-radius:999px; padding:7px 14px; font:inherit; font-size:.85rem; cursor:pointer;
+    background:transparent; color:var(--muted); border:1px solid var(--line);
+    border-radius:999px; padding:6px 13px; font:inherit; font-size:.8rem; cursor:pointer;
   }
-  .chip[aria-pressed="true"]{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:700}
+  .chip:hover{color:var(--text); border-color:#3b4f7d}
   .chip:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
   main{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 16px 8px}
   .note{color:var(--muted); font-size:.85rem; text-align:center; padding:10px 16px 18px; max-width:46rem; margin:0 auto}
 
-  /* ---- מסגרת הטלפון (תצוגת בדיקה; תוסר כשנסיים) ---- */
-  .phone{
-    position:relative; width:var(--w,390px); height:var(--h,844px); max-height:calc(100dvh - 150px);
-    background:#05070d; border-radius:44px; padding:34px 12px 14px;
+  /* ---- ברירת המחדל: תצוגה רחבה משובצת בעמוד ---- */
+  .stage{
+    position:relative; width:min(100%,1100px); height:calc(100dvh - 150px);
+    background:#05070d; border-radius:16px; overflow:hidden;
+    box-shadow:0 0 0 1px #2b3b5e, 0 24px 60px rgba(0,0,0,.45);
+  }
+  .stage iframe{width:100%; height:100%; border:0; background:#0E1A33; display:block}
+
+  /* ---- תצוגת נייד: מסגרת טלפון (390×844) ---- */
+  body.phone .stage{
+    width:390px; height:844px; max-height:calc(100dvh - 150px);
+    border-radius:44px; padding:34px 12px 14px; overflow:visible;
     box-shadow:0 0 0 2px #2b3b5e, 0 30px 70px rgba(0,0,0,.55), inset 0 0 0 1px #0b1220;
   }
-  .phone::after{ /* חריץ המצלמה */
+  body.phone .stage::after{ /* חריץ המצלמה */
     content:""; position:absolute; top:10px; left:50%; transform:translateX(-50%);
     width:110px; height:18px; background:#05070d; border-radius:16px; z-index:2; pointer-events:none;
   }
-  .phone iframe{width:100%; height:100%; border:0; border-radius:34px; background:#0E1A33; display:block}
-  .full .phone{width:min(100%,1100px); height:calc(100dvh - 120px); max-height:none; border-radius:16px; padding:0; box-shadow:none}
-  .full .phone::after{display:none}
-  .full .phone iframe{border-radius:12px}
+  body.phone .stage iframe{border-radius:34px}
 
-  /* בטלפון אמיתי אין מסגרת — האפליקציה תופסת את כל המסך */
+  /* בטלפון אמיתי האפליקציה תופסת את כל המסך. הכותרת של העטיפה יורדת —
+     הלוגו כבר מופיע בתוך האפליקציה עצמה, ואין טעם להציג אותו פעמיים. */
   @media (max-width:820px){
-    header{padding:8px 12px}
-    .tools .sizes{display:none}
+    header{display:none}
     main{padding:0}
-    .phone{width:100%; height:calc(100dvh - 58px); max-height:none; border-radius:0; padding:0; box-shadow:none}
-    .phone::after{display:none}
-    .phone iframe{border-radius:0}
+    .stage, body.phone .stage{
+      width:100%; height:100dvh; max-height:none;
+      border-radius:0; padding:0; box-shadow:none;
+    }
+    body.phone .stage::after{display:none}
+    .stage iframe, body.phone .stage iframe{border-radius:0}
     .note{display:none}
   }
 </style>
 </head>
 <body>
   <header>
-    <span class="brand" aria-label="MyOS Daily"><span class="my">My</span><span class="s">OS</span><span class="daily">Daily</span></span>
-    <div class="tools">
-      <span class="sizes" style="display:inline-flex; gap:8px">
-        <button class="chip" data-w="390" data-h="844" aria-pressed="true">אייפון <span dir="ltr">390×844</span></button>
-        <button class="chip" data-w="412" data-h="915" aria-pressed="false">אנדרואיד <span dir="ltr">412×915</span></button>
+    <span class="brand" role="img" aria-label="MyOS Daily">
+      <span class="lock">
+        <span class="my">M<b>y</b></span>
+        <svg class="mark" viewBox="6 -7 88 101" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="stemGrad" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0" stop-color="#0a5766"/>
+              <stop offset=".5" stop-color="#12879b"/>
+              <stop offset="1" stop-color="#2ff0e6"/>
+            </linearGradient>
+          </defs>
+          <path d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z" fill="#eff3fa"/>
+          <path d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z" fill="url(#stemGrad)"/>
+        </svg>
+        <span class="s">S</span>
       </span>
-      <button class="chip" id="fullBtn" aria-pressed="false">מסך מלא</button>
-      <a class="chip" href="app/" target="_blank" rel="noopener">פתיחה בלשונית</a>
-    </div>
+      <span class="daily">Daily</span>
+    </span>
+    <button class="chip" id="viewBtn" aria-pressed="false">תצוגת נייד</button>
   </header>
 
-  <main id="stage">
-    <div class="phone" id="phone">
+  <main>
+    <div class="stage" id="stage">
       <iframe id="app" src="app/" title="MyOS Daily" allow="clipboard-write"></iframe>
     </div>
   </main>
 
-  <p class="note">תצוגת בדיקה: האפליקציה רצה כאן בתוך מסגרת טלפון. בטלפון עצמו היא נפתחת במסך מלא.
-    אפשר להוסיף אותה למסך הבית: בכרום — תפריט ⋮ ← «הוספה למסך הבית».</p>
+  <p class="note">אפשר להוסיף את MyOS Daily למסך הבית: בכרום — תפריט ⋮ ← «הוספה למסך הבית».</p>
 
 <script>
-  const phone = document.getElementById('phone');
-  const stage = document.getElementById('stage');
-  const sizes = document.querySelectorAll('.chip[data-w]');
-  const fullBtn = document.getElementById('fullBtn');
+  // ברירת המחדל היא התצוגה הרחבה; "תצוגת נייד" מחליפה למסגרת טלפון, והבחירה נזכרת.
+  const btn = document.getElementById('viewBtn');
+  const LABEL = { on: 'תצוגה רחבה', off: 'תצוגת נייד' };
 
-  function setSize(btn) {
-    sizes.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-    phone.style.setProperty('--w', btn.dataset.w + 'px');
-    phone.style.setProperty('--h', btn.dataset.h + 'px');
-    try { localStorage.setItem('myos-daily-frame-size', btn.dataset.w); } catch (e) {}
+  function setPhone(on) {
+    document.body.classList.toggle('phone', on);
+    btn.setAttribute('aria-pressed', String(on));
+    btn.textContent = on ? LABEL.on : LABEL.off;
+    try { localStorage.setItem('myos-daily-view', on ? 'phone' : 'wide'); } catch (e) {}
   }
-  sizes.forEach((b) => b.addEventListener('click', () => setSize(b)));
-  try {
-    const saved = localStorage.getItem('myos-daily-frame-size');
-    const match = [...sizes].find((b) => b.dataset.w === saved);
-    if (match) setSize(match);
-  } catch (e) {}
 
-  fullBtn.addEventListener('click', () => {
-    const on = document.body.classList.toggle('full');
-    fullBtn.setAttribute('aria-pressed', String(on));
-    fullBtn.textContent = on ? 'תצוגת טלפון' : 'מסך מלא';
-  });
+  try { if (localStorage.getItem('myos-daily-view') === 'phone') setPhone(true); } catch (e) {}
+  btn.addEventListener('click', () => setPhone(!document.body.classList.contains('phone')));
 </script>
 </body>
 </html>
