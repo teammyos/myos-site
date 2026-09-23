@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>הצהרת נגישות ופרטיות | MyOS Daily</title>
+<meta name="description" content="הצהרת הנגישות והפרטיות של MyOS Daily — לימוד יומי. שירות חינם מבית MyOS.">
+<meta name="theme-color" content="#0E1A33">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://myos.co.il/daily/accessibility.html">
+<link rel="icon" href="app/favicon.ico">
+<link rel="stylesheet" href="brand-fonts.css">
+<style>
+  :root{
+    --bg:#0E1A33; --bg2:#0b1428; --line:#26375c; --text:#ffffff; --muted:#c3cee2;
+    --accent:#2ff0e6; --accent-ink:#04121a;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Heebo',system-ui,'Segoe UI',Arial,sans-serif;
+    font-size:1.0625rem; line-height:1.75;
+  }
+  a{color:var(--accent)}
+  a:focus-visible,button:focus-visible{outline:3px solid var(--accent); outline-offset:3px; border-radius:4px}
+
+  /* דילוג לתוכן — הרכיב הראשון בעמוד, נגלה בעת מיקוד מקלדת */
+  .skip{
+    position:absolute; inset-inline-start:1rem; top:0; z-index:50;
+    transform:translateY(-150%);
+    background:var(--accent); color:var(--accent-ink); font-weight:700;
+    padding:.7rem 1.2rem; border-radius:0 0 .6rem .6rem; text-decoration:none;
+  }
+  .skip:focus{transform:translateY(0)}
+
+  header{padding:18px clamp(16px,4vw,32px); border-bottom:1px solid var(--line)}
+  .brand{--s:1.5rem; display:flex; align-items:flex-end; direction:ltr; line-height:1; text-decoration:none}
+  .brand .lock{display:flex; align-items:flex-end; gap:calc(var(--s)*.055)}
+  .brand .my,.brand .s,.brand .daily{font-family:'Poppins',system-ui,Arial,sans-serif; font-weight:600}
+  .brand .my{font-size:var(--s); letter-spacing:-.004em; color:#13a8bd}
+  .brand .my b{font-weight:inherit; color:#1fc6d6}
+  .brand .s{font-family:'Chakra Petch',system-ui,Arial,sans-serif; font-weight:700; font-size:var(--s); letter-spacing:-.02em; color:#5ff5ec}
+  .brand .mark{width:calc(var(--s)*.72); height:calc(var(--s)*.826); margin-bottom:calc(var(--s)*.23); overflow:visible; display:block}
+  .brand .daily{font-size:calc(var(--s)*.62); color:#fff; margin-inline-start:calc(var(--s)*.28)}
+
+  main{max-width:46rem; margin:0 auto; padding:clamp(20px,5vw,40px) clamp(16px,4vw,32px) 64px}
+  h1{font-size:clamp(1.5rem,4vw,2rem); line-height:1.3; margin:0 0 .2rem}
+  h2{font-size:clamp(1.15rem,3vw,1.4rem); margin:2.4rem 0 .6rem; color:var(--accent)}
+  h3{font-size:1.05rem; margin:1.6rem 0 .4rem}
+  .updated{color:var(--muted); font-size:.95rem; margin:0 0 1.5rem}
+  ul{padding-inline-start:1.3rem} li{margin:.45rem 0}
+  dl{margin:.5rem 0} dt{font-weight:700; margin-top:.8rem} dd{margin:0 0 0 0; padding-inline-start:0; color:var(--muted)}
+  .note{border:1px solid var(--line); border-radius:.8rem; padding:1rem 1.2rem; background:var(--bg2)}
+  footer{border-top:1px solid var(--line); padding:20px clamp(16px,4vw,32px); color:var(--muted); font-size:.92rem}
+  footer a{margin-inline-end:1rem}
+  [dir="ltr"]{unicode-bidi:isolate}
+</style>
+</head>
+<body>
+  <a class="skip" href="#main">דילוג לתוכן</a>
+
+  <header>
+    <a class="brand" href="./" aria-label="MyOS Daily — חזרה לאפליקציה">
+      <span class="lock">
+        <span class="my">M<b>y</b></span>
+        <svg class="mark" viewBox="6 -7 88 101" aria-hidden="true" focusable="false">
+          <defs><linearGradient id="stemGrad" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0" stop-color="#0a5766"/><stop offset=".5" stop-color="#12879b"/><stop offset="1" stop-color="#2ff0e6"/>
+          </linearGradient></defs>
+          <path d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z" fill="#eff3fa"/>
+          <path d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z" fill="url(#stemGrad)"/>
+        </svg>
+        <span class="s">S</span>
+      </span>
+      <span class="daily">Daily</span>
+    </a>
+  </header>
+
+  <main id="main">
+    <h1>הצהרת נגישות ופרטיות</h1>
+    <p class="updated">MyOS Daily — לימוד יומי · עודכן לאחרונה: ספטמבר 2026</p>
+
+    <p>MyOS Daily הוא שירות חינם לציבור מבית MyOS. אנו פועלים להנגיש אותו לכלל הציבור, לרבות
+      אנשים עם מוגבלות, מתוך תפיסה של שוויון הזדמנויות ומתוקף חוק שוויון זכויות לאנשים עם
+      מוגבלות, התשנ״ח–1998 ותקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), התשע״ג–2013.</p>
+
+    <p>ההצהרה חלה על האתר <span dir="ltr">myos.co.il/daily</span> ועל האפליקציה לאנדרואיד ולאייפון —
+      שתיהן נבנות מאותו קוד, ולכן ההתאמות זהות בשתיהן.</p>
+
+    <h2>רמת הנגישות</h2>
+    <p>השירות נבנה בשאיפה לעמוד בתקן הישראלי ת״י 5568 המבוסס על הנחיות
+      <span dir="ltr">WCAG 2.0</span> ברמת התאמה <span dir="ltr">AA</span>.
+      יחסי הניגודיות נמדדים אוטומטית בכל בנייה — לא מוערכים, אלא נקראים מתוך המסך עצמו
+      ונבדקים מול הסף — וכל טקסט בשתי ערכות הצבע עובר את הדרישה.</p>
+
+    <h2>התאמות הנגישות שבוצעו</h2>
+    <ul>
+      <li><strong>שליטה בגודל הטקסט מתוך האפליקציה</strong> — מ-87.5% ועד 175%, בצעדים של 12.5%,
+        באותה סקאלה שבתפריט הנגישות של אתר MyOS. ההגדלה חלה על כל המסכים; שורת הניווט
+        מתרחבת כדי שהתוויות לא ייחתכו, ולוח החודש עובר לתצוגה מצומצמת עם מקרא, כדי שתאריכים
+        יישארו קריאים במקום שטקסט ייחתך.</li>
+      <li><strong>מצב ניגודיות גבוהה</strong> — ערכת צבעים נוספת שבה כל צירוף של טקסט ורקע עומד
+        ברמה <span dir="ltr">AAA</span> (יחס 7:1 ומעלה), והגבולות עומדים בדרישת 3:1 לרכיבי ממשק.</li>
+      <li><strong>שום מצב אינו נמסר בצבע בלבד.</strong> כל מתג באפליקציה מסומן גם במילה — «פועל» או
+        «כבוי» — וסימון «למדתי» משנה את מבנה הכרטיס ולא רק את צבעו.</li>
+      <li><strong>גופן קריא</strong> — מעבר לגופן המערכת במקום גופן המותג.</li>
+      <li><strong>הדגשת קישורים</strong> — קו תחתון לכל קישור, כך שהוא אינו מסומן בצבע בלבד.</li>
+      <li><strong>עצירת אנימציות</strong> — מעברי המסכים נעשים מיידיים.</li>
+      <li>כפתור <strong>איפוס הגדרות הנגישות</strong>, שמחזיר את הכול למצב ההתחלתי.</li>
+      <li>ערכה בהירה וכהה, ואפשרות להיצמד להגדרת המכשיר.</li>
+      <li><strong>תוויות לקוראי מסך לכל רכיב אינטראקטיבי באפליקציה.</strong> זה נבדק אוטומטית
+        בכל שינוי: עץ הנגישות שהדפדפן מוסר לקורא המסך נקרא במלואו, ונבדק שלכל כפתור, קישור,
+        תיבת סימון ומתג יש תפקיד ושם — ושהשם אומר משהו בהקראה ולא רק על המסך. הבדיקה רצה
+        גם בגודל הטקסט המרבי.</li>
+      <li>ממשק מלא בעברית ובאנגלית, כולל כיוון כתיבה נכון בכל מסך.</li>
+      <li>קישור לדילוג לתוכן וסימון ברור של מוקד ההתמקדות בעמודי האתר.</li>
+      <li>העדפות התצוגה והנגישות נשמרות במכשיר שלכם בלבד.</li>
+      <li>האפליקציה פועלת גם ללא חיבור לאינטרנט, כך שאיכות הרשת אינה חוסמת את השימוש.</li>
+    </ul>
+
+    <h2>מגבלות ידועות</h2>
+    <p>אנחנו מעדיפים לומר במפורש מה עוד לא הושלם, במקום להבטיח יותר ממה שנבדק:</p>
+    <ul>
+      <li><strong>מעבר ידני של אדם עם קורא מסך</strong> (<span dir="ltr">NVDA</span>,
+        <span dir="ltr">VoiceOver</span>) טרם בוצע. עץ הנגישות נבדק אוטומטית ובאופן מלא, וזה מה
+        שקורא מסך מקריא — אבל יש דברים שרק שימוש אמיתי חושף, כמו סדר הקראה מבלבל או תווית
+        שנכונה טכנית ומטעה בפועל. זו הבדיקה שנותרה, ואנחנו לא מתיימרים שבוצעה.</li>
+    </ul>
+    <p>אם נתקלתם בקושי, נשמח שתדווחו — דיווח כזה הוא הדרך המהירה ביותר שהוא יתוקן.</p>
+
+    <h2>פניות בנושא נגישות</h2>
+    <dl>
+      <dt>שם</dt><dd>אוטומציה אנושית (MyOS)</dd>
+      <dt>דוא״ל</dt><dd><a href="mailto:team@myos.co.il">team@myos.co.il</a></dd>
+      <dt>טלפון</dt><dd><a href="tel:+97235333630" dir="ltr">03-5333630</a></dd>
+    </dl>
+    <p>נשתדל להשיב לכל פנייה בתוך זמן סביר.</p>
+
+    <h2>פרטיות</h2>
+    <div class="note">
+      <p style="margin:0"><strong>MyOS Daily אינו אוסף עליכם מידע.</strong> אין הרשמה, אין חשבון,
+        אין שרת שאליו נשלחים נתונים, ואין קובצי <span dir="ltr">Cookie</span> למעקב.</p>
+    </div>
+
+    <h3>מה נשמר, ואיפה</h3>
+    <p>כל מה שאתם בוחרים — המחזורים שאתם לומדים, הלוחות האישיים, הימים שסימנתם, שעת התזכורת
+      והעדפות התצוגה — נשמר <strong>במכשיר שלכם בלבד</strong>. הנתונים אינם עוזבים אותו.</p>
+
+    <h3>תזכורות</h3>
+    <p>התזכורת היומית היא התראה מקומית שנקבעת במכשיר עצמו. היא אינה עוברת דרך שרת, ואיננו יודעים
+      אם הופעלה, מתי, או אם למדתם.</p>
+
+    <h3>גיבוי ומעבר למכשיר אחר</h3>
+    <p>הגיבוי מייצר קובץ שנשאר אצלכם — אתם בוחרים לאן לשמור אותו או למי לשלוח אותו. הקובץ אינו
+      נשלח לשום מקום מטעמנו.</p>
+
+    <h3>אנליטיקס ופרסום</h3>
+    <p>אין. איננו מפעילים כלי ניתוח, אין פרסומות, ואיננו מוכרים או מעבירים מידע לאיש — פשוט מפני
+      שאין לנו מידע להעביר. מספרי ההתקנות שאנו רואים מגיעים מחנויות האפליקציות עצמן, והם נתון
+      מצטבר שאינו מזהה אף אחד.</p>
+
+    <h3>זכויותיכם</h3>
+    <p>בהתאם לחוק הגנת הפרטיות, התשמ״א–1981, אתם רשאים לעיין במידע שנאסף עליכם, לבקש את תיקונו
+      או את מחיקתו. במקרה שלנו אין מידע כזה כלל; הסרת האפליקציה מוחקת את כל מה שנשמר במכשיר.
+      לכל שאלה — <a href="mailto:team@myos.co.il">team@myos.co.il</a>.</p>
+  </main>
+
+  <footer>
+    <a href="./">חזרה ל-MyOS Daily</a>
+    <a href="https://myos.co.il/">אתר MyOS</a>
+    <a href="mailto:team@myos.co.il">team@myos.co.il</a>
+  </footer>
+</body>
+</html>
