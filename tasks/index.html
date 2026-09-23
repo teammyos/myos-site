@@ -55,6 +55,8 @@ nav .badge{display:inline-block;min-width:19px;padding:1px 6px;margin-inline-sta
 .btn{border:1px solid var(--accent);border-radius:10px;padding:10px 16px;background:var(--surface);color:var(--accent);font-weight:600;cursor:pointer}
 .btn:hover{background:#eaf2f3}
 .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn.big{font-size:17px;padding:14px 26px;border-radius:12px;box-shadow:0 2px 8px #0f223a26}
+.btn.big:hover{box-shadow:0 4px 12px #0f223a33}
 .btn.primary:hover{background:#17294c}
 .btn.small{padding:6px 11px;font-size:13px;font-weight:500}
 .btn.danger{border-color:var(--danger);color:var(--danger);background:var(--surface)}
@@ -75,6 +77,12 @@ nav .badge{display:inline-block;min-width:19px;padding:1px 6px;margin-inline-sta
 .grouphead h2{margin:0;font-size:18px}
 .grouphead .goaltag{font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:2px 9px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.goalrow{margin-bottom:14px}
+.undergoal{margin-inline-start:22px;padding-inline-start:14px;border-inline-start:2px dashed #ddd6c8}
+.card.goal{border-color:#e2cf9f;background:linear-gradient(180deg,#fffaf0 0%,var(--surface) 46%)}
+.card.goal:hover{border-color:#d3b978}
+.card .goaltag{font-size:12px;color:#8a6509;border:1px solid #e0cb95;background:#fbf1dc;border-radius:999px;padding:2px 9px;vertical-align:middle}
+.goalcount{font-size:12.5px;color:var(--muted)}
 
 .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;
   cursor:pointer;transition:box-shadow .15s,transform .15s,border-color .15s}
@@ -107,6 +115,13 @@ dialog.xl::backdrop{background:#0e1a3380;backdrop-filter:blur(6px)}
 .xmain{overflow:auto;padding:20px 24px 24px;display:flex;flex-direction:column;gap:14px;min-height:0}
 .xside{overflow:auto;padding:20px 20px 24px;border-inline-start:1px solid var(--line);background:#f6f4ef;display:grid;gap:14px;align-content:start}
 .xside .hebnote{font-size:12px;color:var(--accent);font-weight:600;margin-top:-6px}
+.ochips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px}
+.ochip{display:inline-flex;align-items:center;gap:6px;background:#eaf4f3;border:1px solid #bfdedb;
+  border-radius:999px;padding:3px;padding-inline-start:10px;font-size:13px;font-weight:600;color:#134e4a}
+.ochip button{border:0;background:#cfe6e3;color:#0d3b38;border-radius:999px;width:18px;height:18px;
+  line-height:1;font-size:12px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
+.ochip button:hover{background:#a9d3ce}
+.ochipnone{font-size:13px;color:var(--muted);padding:2px 0 4px}
 .xfoot{flex:none;display:flex;gap:8px;align-items:center;padding:12px 24px;border-top:1px solid var(--line);background:var(--surface)}
 .xfoot .grow{flex:1}
 .logh{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--navy)}
@@ -389,8 +404,7 @@ dialog::backdrop{background:#0e1a3388}
     <div class="heading">
       <div><div class="eyebrow" id="eyebrow">לוח עבודה</div><h1 id="title">המשימות הפתוחות</h1></div>
       <div class="actions" id="newActions">
-        <button class="btn primary" data-new="task">＋ משימה חדשה</button>
-        <button class="btn" data-new="goal">＋ מטרה / פרויקט</button>
+        <button class="btn primary big" data-new="task">＋ משימה חדשה</button>
       </div>
     </div>
 
@@ -506,15 +520,15 @@ dialog::backdrop{background:#0e1a3388}
     </div>
     <div class="xside">
       <label id="itemSpaceField" class="hidden">אזור<select id="itemSpace" class="control"></select></label>
+      <label>סוג<select id="itemType" class="control"><option value="task">משימה</option><option value="goal">מטרה / פרויקט</option></select></label>
       <label>מצב<select id="itemStatus" class="control"><option value="active">פעיל</option><option value="waiting">ממתין</option><option value="done">הסתיים</option></select></label>
-      <label>אחראי<select id="owner" class="control"></select></label>
+      <label>אחראים<div id="ownerChips" class="ochips"></div><select id="owner" class="control"></select></label>
       <div id="quickPersonBox" class="inline hidden">
         <label style="flex:1">שם האדם החדש<input id="quickPersonName" class="control" placeholder="למשל: יוסי / נהג"></label>
         <button type="button" id="quickPersonSave" class="btn primary">הוספה</button>
       </div>
       <label>תאריך יעד<input id="due" type="date" class="control"></label>
       <div class="hebnote" id="dueHeb"></div>
-      <label>סוג<select id="itemType" class="control"><option value="task">משימה</option><option value="goal">מטרה / פרויקט</option></select></label>
       <label id="parentField">שייך למטרה / פרויקט<select id="parent" class="control"></select></label>
       <div id="quickGoalBox" class="inline hidden">
         <label style="flex:1">שם המטרה או הפרויקט<input id="quickGoalName" class="control" placeholder="למשל: פרויקט מגדל צפת"></label>
@@ -553,7 +567,8 @@ const OAUTH_RETURN=/access_token=|error_description=/.test(location.hash)||new U
 const db=window.supabase.createClient(cfg.url,cfg.publishableKey);
 
 let user=null,me=null,spaces=[],space=null,items=[],people=[],members=[],users=[],view='board';
-let lastParent='',lastOwner='',allMode=false;
+let owners=[],ownersOk=true;           // item_owners — משימה ↔ אדם, כמה אחראים לכל משימה
+let lastParent='',allMode=false;
 let calMonth=new Date(),calScope='mine',invites=[];
 const ALL='__all__';
 const spaceName=id=>{const s=spaces.find(x=>x.id===id)||{};return s.label||s.name||''};
@@ -575,6 +590,17 @@ const statusTag=s=>`<span class="status ${esc(s)}">● ${label(s)}</span>`;
 const personName=id=>{const p=people.find(x=>x.id===id);return p?p.name:''};
 const one=d=>Array.isArray(d)?d[0]:d;
 
+/* ---------- אחראים ----------
+   item_owners היא מקור האמת. items.owner_id נשאר ומתעדכן לבד לאחראי הראשון,
+   כדי שגם אם הטבלה החדשה עוד לא נטענה (מיגרציה 015 שטרם רצה) הכול יעבוד. */
+const ownerIds=id=>{
+  const list=owners.filter(o=>o.item_id===id).map(o=>o.person_id);
+  if(list.length)return list;
+  const x=items.find(y=>y.id===id);
+  return x&&x.owner_id?[x.owner_id]:[];
+};
+const ownerNames=id=>ownerIds(id).map(personName).filter(Boolean).join(' · ');
+
 /* ============ טעינה ============ */
 async function loadSpaces(){
   // my_spaces מחזירה גם את שם הבעלים, כדי להבדיל בין שני אזורים באותו שם.
@@ -595,14 +621,17 @@ async function loadSpaces(){
     +`<option value="${ALL}" ${allMode?'selected':''}>כל האזורים</option>`;
 }
 async function loadSpace(){
-  if(!allMode&&!space){items=[];people=[];render();return}
+  if(!allMode&&!space){items=[];people=[];owners=[];render();return}
   localStorage.setItem('myos_space',allMode?ALL:space.id);
   let iq=db.from('items').select('*').order('created_at',{ascending:false});
   let pq=db.from('people').select('*').order('name');
-  if(!allMode){iq=iq.eq('space_id',space.id);pq=pq.eq('space_id',space.id)}
-  const [a,b]=await Promise.all([iq,pq]);
+  let oq=db.from('item_owners').select('item_id,person_id,created_at').order('created_at');
+  if(!allMode){iq=iq.eq('space_id',space.id);pq=pq.eq('space_id',space.id);oq=oq.eq('space_id',space.id)}
+  const [a,b,c]=await Promise.all([iq,pq,oq]);
   if(a.error||b.error){alert(heb(a.error||b.error));return}
-  items=a.data||[];people=b.data||[];render()
+  items=a.data||[];people=b.data||[];
+  ownersOk=!c.error;owners=ownersOk?(c.data||[]):[];   // לפני מיגרציה 015 — נופלים חזרה ל-owner_id
+  render()
 }
 async function showTeam(){
   $('#teamNeedsSpace').classList.toggle('hidden',!allMode);
@@ -678,20 +707,18 @@ function render(){
     if(loose.length||!groups.length)groups.push({goal:null,list:loose});
     const head=bl.sp?`<div class="spacehead"><h2>${esc(bl.sp.name)}</h2><span class="count">${bt.length} משימות · ${bg.length} מטרות</span></div>`:'';
     return `<div class="spaceblock">${head}`+groups.map(gr=>`
-      <div class="group">
-        <div class="grouphead">
-          ${gr.goal?`<span class="goaltag">מטרה</span><h2>${esc(gr.goal.title)}</h2>${statusTag(gr.goal.status)}<button class="btn small" data-edit="${gr.goal.id}">פתיחה</button>`
-                  :`<h2>${groups.length>1?'ללא שיוך':(allMode?'משימות בודדות':'המשימות שלי')}</h2>`}
-        </div>
-        ${gr.list.length?`<div class="grid">${gr.list.map(card).join('')}</div>`
-          :`<div class="muted" style="padding:6px 2px">אין משימות פתוחות ${gr.goal?'במטרה הזו':''}</div>`}
+      <div class="group${gr.goal?' hasgoal':''}">
+        ${gr.goal?`<div class="grid goalrow">${card(gr.goal)}</div>`
+                 :`<div class="grouphead"><h2>${groups.length>1?'ללא שיוך':(allMode?'משימות בודדות':'המשימות שלי')}</h2></div>`}
+        ${gr.list.length?`<div class="grid${gr.goal?' undergoal':''}">${gr.list.map(card).join('')}</div>`
+          :(gr.goal?`<div class="muted undergoal" style="padding:2px 2px 0">אין עדיין משימות במטרה הזו</div>`:'')}
       </div>`).join('')+`</div>`;
   }).join('')
     :`<div class="empty">אין עדיין משימות ${allMode?'באף אזור':'באזור הזה'}. אפשר להתחיל מ«משימה חדשה».</div>`);
 
   const q=$('#search').value.trim(), f=$('#filter').value;
   const filtered=items.filter(x=>(f==='all'||(f==='open'?x.status!=='done':x.status===f))
-    &&(!q||[x.title,x.action_title,personName(x.owner_id)].some(v=>(v||'').includes(q))));
+    &&(!q||[x.title,x.action_title,ownerNames(x.id)].some(v=>(v||'').includes(q))));
   $('#spaceCol').classList.toggle('hidden',!allMode);
   renderCal();
   $('#rows').innerHTML=filtered.map(x=>`<tr data-open="${x.id}" style="cursor:pointer">
@@ -700,17 +727,19 @@ function render(){
     <td>${x.type==='goal'?'מטרה':'משימה'}</td>
     <td>${esc(items.find(y=>y.id===x.parent_id)?.title||'—')}</td>
     <td>${esc(x.action_title||'—')}</td>
-    <td>${esc(personName(x.owner_id)||'—')}</td>
+    <td>${esc(ownerNames(x.id)||'—')}</td>
     <td>${x.due_date?fmt(x.due_date):'—'}</td>
     <td>${statusTag(x.status)}</td>
     <td><button class="btn small" data-edit="${x.id}">פתיחה</button></td></tr>`).join('')
     ||`<tr><td colspan="${allMode?9:8}" style="text-align:center;padding:40px">לא נמצאו פריטים</td></tr>`;
 }
-const card=x=>`<article class="card" data-open="${x.id}" tabindex="0">
-  <div class="cardtop"><div>${statusTag(x.status)}<h3 style="margin-top:8px">${esc(x.title)}</h3></div>
+const card=x=>`<article class="card${x.type==='goal'?' goal':''}" data-open="${x.id}" tabindex="0">
+  <div class="cardtop"><div>${x.type==='goal'?'<span class="goaltag">מטרה</span> ':''}${statusTag(x.status)}<h3 style="margin-top:8px">${esc(x.title)}</h3></div>
     <button class="btn small" data-complete="${x.id}">✓ בוצע</button></div>
-  <div class="next"><span>הפעולה הבאה</span><b>${esc(x.action_title||'לא הוגדרה פעולה')}</b></div>
-  <div class="meta"><span>👤 ${esc(personName(x.owner_id)||'ללא אחראי')}</span>
+  <div class="next"><span>${x.type==='goal'?'הצעד הבא במטרה':'הפעולה הבאה'}</span><b>${esc(x.action_title||'לא הוגדרה פעולה')}</b></div>
+  ${x.type==='goal'?(()=>{const k=items.filter(y=>y.parent_id===x.id);const open=k.filter(y=>y.status!=='done').length;
+    return `<div class="goalcount">${k.length?`${open} פתוחות מתוך ${k.length} משימות`:'עדיין בלי משימות'}</div>`})():''}
+  <div class="meta"><span>${ownerIds(x.id).length>1?'👥':'👤'} ${esc(ownerNames(x.id)||'ללא אחראי')}</span>
     <span${x.due_date&&x.due_date<today()?' style="color:#a3251c;font-weight:600"':''}>🗓 ${fmt(x.due_date)}${x.due_date?` · ${esc(hebFull(new Date(x.due_date)))}`:''}</span>
     ${x.due_date&&holidayText(new Date(x.due_date))?`<span class="tag" style="background:#fbf1dc;color:#8a6509;border-color:#eddcb8">${esc(holidayText(new Date(x.due_date)))}</span>`:''}</div>
   ${x.notes?`<div class="cardnotes rt">${x.last_note_at?`<span class="stamp">🕒 ${esc(stampOf(x.last_note_at))}${x.last_note_by?' · '+esc(x.last_note_by):''}</span>`:''}${richHtml(x.notes)}</div>`:''}</article>`;
@@ -849,7 +878,7 @@ function calItems(){
   const dated=items.filter(x=>x.due_date);
   if(calScope!=='mine')return dated;
   const mine=myPersonIds();
-  return dated.filter(x=>mine.includes(x.owner_id));
+  return dated.filter(x=>ownerIds(x.id).some(id=>mine.includes(id)));
 }
 function renderCal(){
   document.querySelectorAll('#calScope button').forEach(b=>b.classList.toggle('on',b.dataset.scope===calScope));
@@ -932,9 +961,48 @@ function fillSelects(sel={}){
   $('#parent').innerHTML='<option value="">ללא שיוך</option>'
     +goals.map(g=>`<option value="${g.id}" ${g.id===sel.parent?'selected':''}>${esc(g.title)}</option>`).join('')
     +`<option value="${NEW}">＋ מטרה / פרויקט חדש…</option>`;
-  $('#owner').innerHTML='<option value="">ללא אחראי</option>'
-    +people.filter(p=>p.space_id===sid).map(p=>`<option value="${p.id}" ${p.id===sel.owner?'selected':''}>${esc(p.name)}</option>`).join('')
+  renderOwners();
+}
+
+/* ---------- אחראים בפאנל ----------
+   dlgOwners הוא הרשימה שרואים. על פריט קיים כל שינוי נשמר מיד (השרת שולח
+   את המייל וכותב ביומן); על פריט חדש הרשימה נאספת ונכתבת אחרי היצירה. */
+let dlgOwners=[];
+function renderOwners(){
+  const sid=dlgSpace();
+  $('#ownerChips').innerHTML=dlgOwners.length
+    ?dlgOwners.map(id=>`<span class="ochip"><span>${esc(personName(id)||'—')}</span>`
+      +`<button type="button" data-rmowner="${id}" title="הסרה">✕</button></span>`).join('')
+    :'<span class="ochipnone">אין עדיין אחראי</span>';
+  const left=people.filter(p=>p.space_id===sid&&!dlgOwners.includes(p.id));
+  $('#owner').innerHTML=`<option value="">${dlgOwners.length?'הוספת אחראי…':'בחירת אחראי…'}</option>`
+    +left.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')
     +`<option value="${NEW}">＋ אדם חדש…</option>`;
+}
+async function addOwner(pid){
+  if(!pid||dlgOwners.includes(pid))return;
+  const id=curId();
+  if(!id){dlgOwners.push(pid);renderOwners();return}
+  const {error}=await db.from('item_owners').insert({item_id:id,person_id:pid,space_id:dlgSpace()});
+  if(error){alert(heb(error));return}
+  dlgOwners.push(pid);owners.push({item_id:id,person_id:pid,created_at:new Date().toISOString()});
+  syncOwnerId(id);renderOwners();touchedList=true;flashSaved();
+  if(notesOk)await loadNotes(id);
+}
+async function removeOwner(pid){
+  const id=curId();
+  if(!id){dlgOwners=dlgOwners.filter(x=>x!==pid);renderOwners();return}
+  const {error}=await db.from('item_owners').delete().eq('item_id',id).eq('person_id',pid);
+  if(error){alert(heb(error));return}
+  dlgOwners=dlgOwners.filter(x=>x!==pid);
+  owners=owners.filter(o=>!(o.item_id===id&&o.person_id===pid));
+  syncOwnerId(id);renderOwners();touchedList=true;flashSaved();
+  if(notesOk)await loadNotes(id);
+}
+/** השרת מעדכן את owner_id לאחראי הראשון; כאן מעדכנים את העותק שבזיכרון */
+function syncOwnerId(id){
+  const x=items.find(y=>y.id===id); if(!x)return;
+  x.owner_id=dlgOwners[0]||null;
 }
 function typeChanged(){
   const isGoal=$('#itemType').value==='goal';
@@ -1102,11 +1170,12 @@ async function saveNow(){
   const title=$('#itemTitle').value.trim(); if(!title)return false;
   dirty=false;
   const x=items.find(y=>y.id===id)||{};
+  // האחראים לא נשלחים כאן — הם נשמרים מיד בכל הוספה או הסרה, ב-item_owners
   const row={title,type:$('#itemType').value,parent_id:$('#parent').value||null,
-    action_title:$('#action').value.trim(),owner_id:$('#owner').value||null,
+    action_title:$('#action').value.trim(),
     due_date:$('#due').value||null,status:$('#itemStatus').value};
   if(row.type==='goal')row.parent_id=null;
-  const logged=row.status!==x.status||row.owner_id!==(x.owner_id||null)||row.due_date!==(x.due_date||null);
+  const logged=row.status!==x.status||row.due_date!==(x.due_date||null);
   const {error}=await db.from('items').update(row).eq('id',id);
   if(error){dirty=true;alert(heb(error));return false}
   Object.assign(x,row);touchedList=true;flashSaved();
@@ -1127,8 +1196,9 @@ function openItem(kind='task',id=''){
   // משימה חדשה — האחראי ברירת המחדל הוא אני, אם אני ברשימת האנשים של האזור
   const meHere=(()=>{const sid=x?x.space_id:(space?space.id:'');
     const p=people.find(q=>q.user_id===user.id&&q.space_id===sid);return p?p.id:''})();
-  lastParent=x?.parent_id||'';lastOwner=x?x.owner_id||'':meHere;
-  fillSelects({parent:lastParent,owner:lastOwner});
+  lastParent=x?.parent_id||'';
+  dlgOwners=x?ownerIds(x.id).slice():(meHere?[meHere]:[]);
+  fillSelects({parent:lastParent});
   $('#itemId').value=x?.id||'';$('#itemTitle').value=x?.title||'';$('#itemType').value=x?.type||kind;
   $('#action').value=x?.action_title||'';$('#due').value=x?.due_date||'';$('#itemStatus').value=x?.status||'active';
   $('#formTitle').textContent=x?`נוצר ${fmt((x.created_at||'').slice(0,10))}`:(kind==='goal'?'מטרה / פרויקט חדש':'משימה חדשה');
@@ -1169,10 +1239,17 @@ async function createItem(){
   const sid=dlgSpace(); if(!sid)return;
   const row={space_id:sid,title:$('#itemTitle').value.trim(),type:$('#itemType').value,
     parent_id:$('#itemType').value==='goal'?null:($('#parent').value||null),action_title:$('#action').value.trim(),
-    owner_id:$('#owner').value||null,due_date:$('#due').value||null,status:$('#itemStatus').value,
+    owner_id:dlgOwners[0]||null,due_date:$('#due').value||null,status:$('#itemStatus').value,
     notes:editorText(ED())||null,created_by:user.id};
-  const {error}=await db.from('items').insert(row);
+  const {data,error}=await db.from('items').insert(row).select();
   if(error){alert(heb(error));return}
+  // האחראי הראשון נכנס ל-item_owners דרך השרת; השאר נכתבים כאן
+  const made=one(data);
+  if(made&&dlgOwners.length>1){
+    const rest=dlgOwners.slice(1).map(pid=>({item_id:made.id,person_id:pid,space_id:sid}));
+    const {error:e2}=await db.from('item_owners').insert(rest);
+    if(e2)alert(heb(e2));
+  }
   $('#itemDialog').close();await loadSpace();
 }
 
@@ -1236,9 +1313,10 @@ document.addEventListener('click',async e=>{
     const {error}=await db.from('items').update({status:'done'}).eq('id',b.dataset.complete);
     if(error){alert(heb(error));return} await loadSpace();
   }
+  if(b.dataset.rmowner){await removeOwner(b.dataset.rmowner);return}
   if(b.dataset.rmperson){
     const per=people.find(x=>x.id===b.dataset.rmperson)||{};
-    const used=items.filter(x=>x.owner_id===per.id).length;
+    const used=items.filter(x=>ownerIds(x.id).includes(per.id)).length;
     if(!confirm(`למחוק את "${per.name}" מרשימת האנשים של האזור?`+(used?`\n${used} משימות משויכות אליו ויישארו ללא אחראי.`:'')))return;
     const {error}=await db.from('people').delete().eq('id',b.dataset.rmperson);
     if(error){alert(heb(error));return} await loadSpace();await showTeam();
@@ -1378,7 +1456,7 @@ $('#noteList').addEventListener('click',async e=>{
 document.addEventListener('keydown',e=>{const c=e.target.closest&&e.target.closest('article[data-open]');
   if(c&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openItem('',c.dataset.open)}});
 $('#itemType').onchange=typeChanged;
-$('#itemSpace').onchange=()=>{lastParent='';lastOwner='';fillSelects({});whereUpdate()};
+$('#itemSpace').onchange=()=>{lastParent='';dlgOwners=[];fillSelects({});whereUpdate()};
 $('#cancelItem').onclick=()=>$('#itemDialog').close();
 $('#cancelSpace').onclick=()=>$('#spaceDialog').close();
 $('#parent').onchange=e=>{
@@ -1387,20 +1465,18 @@ $('#parent').onchange=e=>{
   $('#quickGoalBox').classList.remove('hidden');$('#quickGoalName').focus();
 };
 $('#owner').onchange=e=>{
-  if(e.target.value!==NEW){lastOwner=e.target.value;schedSave(0);return}
-  e.target.value=lastOwner;
-  $('#quickPersonBox').classList.remove('hidden');$('#quickPersonName').focus();
+  const v=e.target.value; e.target.value='';
+  if(v===NEW){$('#quickPersonBox').classList.remove('hidden');$('#quickPersonName').focus();return}
+  if(v)addOwner(v);
 };
 $('#quickGoalSave').onclick=async()=>{
   const title=$('#quickGoalName').value.trim();const sid=dlgSpace();if(!title||!sid)return;
   const {data,error}=await db.from('items').insert({space_id:sid,title,type:'goal',created_by:user.id}).select();
   if(error){alert(heb(error));return}
   const made=one(data);
-  const owner=$('#owner').value;
   await loadSpace();
   lastParent=(made&&made.id)||(items.find(x=>x.type==='goal'&&x.title===title)||{}).id||'';
-  lastOwner=owner;
-  fillSelects({parent:lastParent,owner});
+  fillSelects({parent:lastParent});
   $('#quickGoalBox').classList.add('hidden');$('#quickGoalName').value='';
   whereUpdate();schedSave(0);
 };
@@ -1414,10 +1490,10 @@ $('#quickPersonSave').onclick=async()=>{
   const {data:fresh}=await fq;
   people=fresh||people;
   lastParent=$('#parent').value;
-  lastOwner=(added&&added.id)||(people.find(x=>x.name===name)||{}).id||'';
-  fillSelects({parent:lastParent,owner:lastOwner});
+  const pid=(added&&added.id)||(people.find(x=>x.name===name)||{}).id||'';
+  fillSelects({parent:lastParent});
   $('#quickPersonBox').classList.add('hidden');$('#quickPersonName').value='';
-  schedSave(0);
+  if(pid)await addOwner(pid);
 };
 $('#addPersonBtn').onclick=async()=>{
   const name=$('#personName').value.trim();if(!name||!space)return;
