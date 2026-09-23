@@ -389,7 +389,24 @@ dialog::backdrop{background:#0e1a3388}
     <label class="toggle"><input type="checkbox" id="prefAssign"><span>כשמשייכים אליי משימה<small>מייל מיידי עם פרטי המשימה, תאריך היעד וההערות</small></span></label>
     <label class="toggle"><input type="checkbox" id="prefDaily"><span>תזכורת בוקר<small>מה שעל הפרק היום ועד יום העבודה הבא. לא נשלחת בשבת וביום טוב.</small></span></label>
     <div id="prefMsg" class="muted" style="font-size:12px;min-height:16px"></div>
-    <div style="display:flex;gap:8px;justify-content:space-between;margin-top:4px">
+
+    <h3>המשימות שלי ביומן גוגל</h3>
+    <p class="muted" style="font-size:13px;margin:0 0 8px;line-height:1.7">
+      הכתובת הזו היא יומן לקריאה בלבד עם המשימות הפתוחות שלך. ביומן גוגל:
+      ליד «יומנים אחרים» ← <b>＋</b> ← «מכתובת URL» ← להדביק ← «הוספת יומן».
+      גוגל מרעננת אותו לבד כל כמה שעות.
+    </p>
+    <div class="inline"><input id="calUrl" class="control" readonly style="flex:1;font-size:12px;direction:ltr;text-align:left">
+      <button type="button" id="calCopy" class="btn small">העתקה</button></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+      <button type="button" id="calReset" class="btn small danger">יצירת כתובת חדשה</button>
+      <span id="calMsg" class="muted" style="font-size:12px"></span>
+    </div>
+    <p class="muted" style="font-size:12px;margin:8px 0 0">
+      הכתובת סודית — מי שמקבל אותה רואה את רשימת המשימות שלך. «יצירת כתובת חדשה» מבטלת את הישנה.
+    </p>
+
+    <div style="display:flex;gap:8px;justify-content:space-between;margin-top:14px">
       <button type="button" id="logoutBtn" class="btn danger small">יציאה מהחשבון</button>
       <button type="button" id="meClose" class="btn small">סגירה</button>
     </div>
@@ -551,6 +568,7 @@ dialog::backdrop{background:#0e1a3388}
       </div>
       <label>תאריך יעד<input id="due" type="date" class="control"></label>
       <div class="hebnote" id="dueHeb"></div>
+      <a id="gcalLink" class="btn small hidden" target="_blank" rel="noopener" style="text-decoration:none;text-align:center">＋ הוספה ליומן גוגל</a>
       <label id="parentField">שייך למטרה / פרויקט<select id="parent" class="control"></select></label>
       <div id="quickGoalBox" class="inline hidden">
         <label style="flex:1">שם המטרה או הפרויקט<input id="quickGoalName" class="control" placeholder="למשל: פרויקט מגדל צפת"></label>
@@ -1164,6 +1182,26 @@ function flashSaved(){const el=$('#xSaved');el.classList.add('on');clearTimeout(
 function dueHebUpdate(){
   const v=$('#due').value;
   $('#dueHeb').textContent=v?hebFull(new Date(v))+(holidayText(new Date(v))?' · '+holidayText(new Date(v)):''):'';
+  gcalUpdate();
+}
+/** קישור שפותח ביומן גוגל אירוע יום שלם מוכן לשמירה — בלי הרשאות ובלי חיבור */
+function gcalUpdate(){
+  const a=$('#gcalLink'), v=$('#due').value, title=$('#itemTitle').value.trim();
+  if(!v||!title){a.classList.add('hidden');return}
+  const d0=v.replace(/-/g,'');
+  const d1=(()=>{const d=new Date(v+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+1);
+    return d.toISOString().slice(0,10).replace(/-/g,'')})();
+  const g=items.find(y=>y.id===$('#parent').value);
+  const det=[$('#action').value.trim()&&('הפעולה הבאה: '+$('#action').value.trim()),
+    g&&('במטרה: '+g.title),
+    dlgOwners.length&&('אחראים: '+dlgOwners.map(personName).filter(Boolean).join(' · ')),
+    $('#dueHeb').textContent,
+    '', curId()?location.origin+location.pathname+`?space=${dlgSpace()}&item=${curId()}`:location.href
+  ].filter(x=>x!==false&&x!==0&&x!==undefined&&x!==null).join('\n');
+  a.href='https://calendar.google.com/calendar/render?action=TEMPLATE'
+    +'&text='+encodeURIComponent(($('#itemType').value==='goal'?'🎯 ':'')+title)
+    +'&dates='+d0+'/'+d1+'&details='+encodeURIComponent(det);
+  a.classList.remove('hidden');
 }
 function whereUpdate(){
   const sid=dlgSpace(), g=items.find(y=>y.id===$('#parent').value);
@@ -1497,14 +1535,14 @@ $('#deleteItem').onclick=async()=>{
   dlg.addEventListener('close',()=>{if(touchedList){touchedList=false;render()}});
 }
 // שמירה אוטומטית
-['#itemStatus','#due','#itemType'].forEach(s=>$(s).addEventListener('change',()=>{schedSave(0)}));
+['#itemStatus','#due','#itemType'].forEach(s=>$(s).addEventListener('change',()=>{schedSave(0);gcalUpdate()}));
 $('#due').addEventListener('change',dueHebUpdate);
 $('#itemTitle').addEventListener('input',()=>{
   $('#itemTitle').style.borderBottomColor='';
   if(!curId()){$('#xFootNote').textContent='';$('#xFootNote').style.color=''}
-  schedSave(900);
+  schedSave(900);gcalUpdate();
 });
-$('#action').addEventListener('input',()=>schedSave(900));
+$('#action').addEventListener('input',()=>{schedSave(900);gcalUpdate()});
 $('#itemTitle').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();curId()?$('#action').focus():createItem()}});
 // עורך ההערות
 $('#rtbar').addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()}); // לא לאבד את הסימון
@@ -1654,7 +1692,30 @@ $('#meBtn').onclick=async()=>{
   $('#prefDaily').checked=error?true:pr.mail_daily!==false;
   $('#prefAssign').disabled=$('#prefDaily').disabled=!!error;
   if(error)$('#prefMsg').textContent='ההגדרות יהיו זמינות אחרי עדכון המערכת.';
+  await paintCalUrl();
   $('#meDialog').showModal();
+};
+/* ---------- מנוי היומן ---------- */
+const calFeedUrl=tok=>`${cfg.url}/functions/v1/notify?ics=${tok}`;
+async function paintCalUrl(tok){
+  $('#calMsg').textContent='';
+  if(tok===undefined){const {data,error}=await db.rpc('my_cal_token');tok=error?null:(one(data)||data)}
+  const ok=!!tok;
+  $('#calUrl').value=ok?calFeedUrl(tok):'הכתובת תהיה זמינה אחרי עדכון המערכת';
+  $('#calUrl').disabled=$('#calCopy').disabled=$('#calReset').disabled=!ok;
+}
+$('#calCopy').onclick=async()=>{
+  const v=$('#calUrl').value;
+  try{await navigator.clipboard.writeText(v)}
+  catch(e){$('#calUrl').select();document.execCommand('copy')}
+  $('#calMsg').textContent='הועתק ✓';setTimeout(()=>{$('#calMsg').textContent=''},2500);
+};
+$('#calReset').onclick=async()=>{
+  if(!confirm('ליצור כתובת חדשה?\nהיומן שכבר הוספת בגוגל יפסיק להתעדכן, ויהיה צריך להוסיף אותו מחדש עם הכתובת החדשה.'))return;
+  const {data,error}=await db.rpc('reset_my_cal_token');
+  if(error){$('#calMsg').textContent=heb(error);return}
+  await paintCalUrl(one(data)||data);
+  $('#calMsg').textContent='נוצרה כתובת חדשה ✓';
 };
 $('#meClose').onclick=()=>$('#meDialog').close();
 $('#meDialog').addEventListener('click',e=>{if(e.target===$('#meDialog'))$('#meDialog').close()});
