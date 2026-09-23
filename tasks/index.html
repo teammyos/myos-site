@@ -63,9 +63,22 @@ nav .badge{display:inline-block;min-width:19px;padding:1px 6px;margin-inline-sta
 .btn:disabled{opacity:.4;cursor:default}
 
 .summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:26px}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 20px;min-width:150px}
-.stat strong{display:block;font-size:26px;line-height:1.2}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 20px;min-width:150px;
+  font:inherit;text-align:start;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.stat:hover{border-color:var(--accent);box-shadow:0 2px 10px #0f223a14}
+.stat.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:#f2faf9}
+.stat strong{display:block;font-size:26px;line-height:1.2;color:var(--navy)}
 .stat span{color:var(--muted);font-size:13px}
+.filterbar{display:flex;align-items:center;gap:12px;margin:-14px 0 20px;font-size:14px;color:var(--muted)}
+.filterbar b{color:var(--navy)}
+#toast{position:fixed;inset-inline-start:50%;transform:translateX(-50%);bottom:24px;z-index:80;
+  display:flex;align-items:center;gap:14px;background:var(--navy);color:#fff;border-radius:12px;
+  padding:12px 18px;box-shadow:0 6px 24px #0f223a45;font-size:14px;opacity:0;pointer-events:none;
+  transition:opacity .18s,transform .18s}
+#toast.on{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(-4px)}
+#toast button{border:1px solid #ffffff55;background:transparent;color:var(--turq);font-weight:700;
+  border-radius:8px;padding:5px 12px;cursor:pointer;font-size:13px}
+#toast button:hover{background:#ffffff14}
 
 .spaceblock{margin-bottom:34px}
 .spacehead{display:flex;align-items:center;gap:12px;margin:0 0 16px;padding-bottom:9px;border-bottom:2px solid var(--accent)}
@@ -77,8 +90,12 @@ nav .badge{display:inline-block;min-width:19px;padding:1px 6px;margin-inline-sta
 .grouphead h2{margin:0;font-size:18px}
 .grouphead .goaltag{font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:2px 9px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
-.goalrow{margin-bottom:14px}
-.undergoal{margin-inline-start:22px;padding-inline-start:14px;border-inline-start:2px dashed #ddd6c8}
+/* קבוצה של מטרה: המטרה ראשונה ברשת, המשימות שלה ממשיכות באותה שורה,
+   והכול יושב בתוך מסגרת רכה שמראה שהן שייכות זו לזו. */
+.group.hasgoal{background:#faf7f1;border:1px solid #ece3d2;border-radius:18px;padding:14px}
+.spaceblock>.grid{margin-bottom:30px}
+.card.done{opacity:.72}
+.card.done h3{text-decoration:line-through;text-decoration-color:#b9b2a4}
 .card.goal{border-color:#e2cf9f;background:linear-gradient(180deg,#fffaf0 0%,var(--surface) 46%)}
 .card.goal:hover{border-color:#d3b978}
 .card .goaltag{font-size:12px;color:#8a6509;border:1px solid #e0cb95;background:#fbf1dc;border-radius:999px;padding:2px 9px;vertical-align:middle}
@@ -410,9 +427,14 @@ dialog::backdrop{background:#0e1a3388}
 
     <section id="boardView">
       <div class="summary">
-        <div class="stat"><strong id="taskCount">0</strong><span>משימות פתוחות</span></div>
-        <div class="stat"><strong id="goalCount">0</strong><span>מטרות ופרויקטים</span></div>
-        <div class="stat"><strong id="lateCount">0</strong><span>עברו את תאריך היעד</span></div>
+        <button class="stat" data-stat="task"><strong id="taskCount">0</strong><span>משימות פתוחות</span></button>
+        <button class="stat" data-stat="goal"><strong id="goalCount">0</strong><span>מטרות ופרויקטים</span></button>
+        <button class="stat" data-stat="late"><strong id="lateCount">0</strong><span>עברו את תאריך היעד</span></button>
+        <button class="stat" data-stat="done"><strong id="doneCount">0</strong><span>הסתיימו</span></button>
+      </div>
+      <div id="boardFilterBar" class="filterbar hidden">
+        <span id="boardFilterText"></span>
+        <button class="btn small" id="boardFilterClear">הצגת הכול</button>
       </div>
       <div id="board"></div>
     </section>
@@ -543,6 +565,8 @@ dialog::backdrop{background:#0e1a3388}
     <button type="button" id="saveItem" class="btn primary">יצירה</button>
   </div>
 </dialog>
+
+<div id="toast"><span id="toastText"></span><button type="button" id="toastAct"></button></div>
 
 <dialog id="spaceDialog"><form method="dialog" class="modal">
   <h2>אזור חדש</h2>
@@ -689,32 +713,58 @@ async function loadUsers(){
 }
 
 /* ============ לוח העבודה ============ */
+/* boardFilter: '' = התצוגה הרגילה (מה שפתוח, מקובץ לפי מטרות).
+   'task' / 'goal' / 'late' / 'done' — לחיצה על אחת הקופסאות שלמעלה. */
+let boardFilter='';
+const FILTER_TEXT={task:'משימות פתוחות',goal:'מטרות ופרויקטים',
+  late:'משימות שעברו את תאריך היעד',done:'מה שהסתיים'};
+function boardPick(all){
+  if(boardFilter==='done')return all.filter(x=>x.status==='done');
+  const open=all.filter(x=>x.status!=='done');
+  if(boardFilter==='task')return open.filter(x=>x.type==='task');
+  if(boardFilter==='goal')return open.filter(x=>x.type==='goal');
+  if(boardFilter==='late')return open.filter(x=>x.due_date&&x.due_date<today());
+  return open;
+}
 function render(){
   const open=items.filter(x=>x.status!=='done');
   const tasks=open.filter(x=>x.type==='task'), goals=open.filter(x=>x.type==='goal');
   $('#taskCount').textContent=tasks.length;
   $('#goalCount').textContent=goals.length;
   $('#lateCount').textContent=open.filter(x=>x.due_date&&x.due_date<today()).length;
+  $('#doneCount').textContent=items.filter(x=>x.status==='done').length;
+  document.querySelectorAll('[data-stat]').forEach(b=>b.classList.toggle('on',b.dataset.stat===boardFilter));
+  $('#boardFilterBar').classList.toggle('hidden',!boardFilter);
+  if(boardFilter)$('#boardFilterText').innerHTML=`מציג: <b>${esc(FILTER_TEXT[boardFilter])}</b>`;
 
+  const shown=boardPick(items);
   const blocks=allMode
-    ? spaces.filter(s=>open.some(i=>i.space_id===s.id)).map(s=>({sp:s,list:open.filter(i=>i.space_id===s.id)}))
-    : [{sp:null,list:open}];
+    ? spaces.filter(s=>shown.some(i=>i.space_id===s.id)).map(s=>({sp:s,list:shown.filter(i=>i.space_id===s.id)}))
+    : [{sp:null,list:shown}];
 
-  $('#board').innerHTML=(open.length?blocks.map(bl=>{
+  const emptyText=boardFilter==='done'
+    ?'עדיין לא סומן כאן שום דבר כבוצע.'
+    :boardFilter?'אין פריטים שמתאימים לבחירה הזו.'
+    :`אין עדיין משימות ${allMode?'באף אזור':'באזור הזה'}. אפשר להתחיל מ«משימה חדשה».`;
+
+  $('#board').innerHTML=(shown.length?blocks.map(bl=>{
     const bt=bl.list.filter(x=>x.type==='task'), bg=bl.list.filter(x=>x.type==='goal');
-    const groups=bg.map(g=>({goal:g,list:bt.filter(x=>x.parent_id===g.id)}));
-    const loose=bt.filter(x=>!x.parent_id||!bg.some(g=>g.id===x.parent_id));
-    if(loose.length||!groups.length)groups.push({goal:null,list:loose});
     const head=bl.sp?`<div class="spacehead"><h2>${esc(bl.sp.name)}</h2><span class="count">${bt.length} משימות · ${bg.length} מטרות</span></div>`:'';
-    return `<div class="spaceblock">${head}`+groups.map(gr=>`
-      <div class="group${gr.goal?' hasgoal':''}">
-        ${gr.goal?`<div class="grid goalrow">${card(gr.goal)}</div>`
-                 :`<div class="grouphead"><h2>${groups.length>1?'ללא שיוך':(allMode?'משימות בודדות':'המשימות שלי')}</h2></div>`}
-        ${gr.list.length?`<div class="grid${gr.goal?' undergoal':''}">${gr.list.map(card).join('')}</div>`
-          :(gr.goal?`<div class="muted undergoal" style="padding:2px 2px 0">אין עדיין משימות במטרה הזו</div>`:'')}
-      </div>`).join('')+`</div>`;
+    // בתצוגה מסוננת אין קיבוץ — רשת אחת פשוטה
+    if(boardFilter)return `<div class="spaceblock">${head}<div class="grid">${bl.list.map(card).join('')}</div></div>`;
+    // מטרה עם משימות מקבלת בלוק משלה; מטרה ריקה ומשימה בלי מטרה נכנסות יחד לרשת אחת
+    const groups=bg.map(g=>({goal:g,list:bt.filter(x=>x.parent_id===g.id)})).filter(gr=>gr.list.length);
+    const grouped=new Set(groups.map(gr=>gr.goal.id));
+    const singles=bg.filter(g=>!grouped.has(g.id))
+      .concat(bt.filter(x=>!x.parent_id||!bg.some(g=>g.id===x.parent_id)));
+    return `<div class="spaceblock">${head}`
+      +groups.map(gr=>`<div class="group hasgoal">
+        <div class="grid">${card(gr.goal)}${gr.list.map(card).join('')}</div>
+      </div>`).join('')
+      +(singles.length?`<div class="grid">${singles.map(card).join('')}</div>`:'')
+      +`</div>`;
   }).join('')
-    :`<div class="empty">אין עדיין משימות ${allMode?'באף אזור':'באזור הזה'}. אפשר להתחיל מ«משימה חדשה».</div>`);
+    :`<div class="empty">${esc(emptyText)}</div>`);
 
   const q=$('#search').value.trim(), f=$('#filter').value;
   const filtered=items.filter(x=>(f==='all'||(f==='open'?x.status!=='done':x.status===f))
@@ -733,9 +783,10 @@ function render(){
     <td><button class="btn small" data-edit="${x.id}">פתיחה</button></td></tr>`).join('')
     ||`<tr><td colspan="${allMode?9:8}" style="text-align:center;padding:40px">לא נמצאו פריטים</td></tr>`;
 }
-const card=x=>`<article class="card${x.type==='goal'?' goal':''}" data-open="${x.id}" tabindex="0">
+const card=x=>`<article class="card${x.type==='goal'?' goal':''}${x.status==='done'?' done':''}" data-open="${x.id}" tabindex="0">
   <div class="cardtop"><div>${x.type==='goal'?'<span class="goaltag">מטרה</span> ':''}${statusTag(x.status)}<h3 style="margin-top:8px">${esc(x.title)}</h3></div>
-    <button class="btn small" data-complete="${x.id}">✓ בוצע</button></div>
+    ${x.status==='done'?`<button class="btn small" data-reopen="${x.id}">↩ פתיחה מחדש</button>`
+                       :`<button class="btn small" data-complete="${x.id}">✓ בוצע</button>`}</div>
   <div class="next"><span>${x.type==='goal'?'הצעד הבא במטרה':'הפעולה הבאה'}</span><b>${esc(x.action_title||'לא הוגדרה פעולה')}</b></div>
   ${x.type==='goal'?(()=>{const k=items.filter(y=>y.parent_id===x.id);const open=k.filter(y=>y.status!=='done').length;
     return `<div class="goalcount">${k.length?`${open} פתוחות מתוך ${k.length} משימות`:'עדיין בלי משימות'}</div>`})():''}
@@ -1099,6 +1150,16 @@ function stampOf(ts){
 }
 let notes=[], notesOk=true, editingNote=null, dirty=false, saveTimer=null, touchedList=false;
 const curId=()=>$('#itemId').value;
+/** הודעה קצרה בתחתית המסך, עם פעולה אחת (בדרך כלל "ביטול") */
+function toast(text,actLabel,act){
+  const box=$('#toast'),btn=$('#toastAct');
+  $('#toastText').textContent=text;
+  btn.textContent=actLabel||'';btn.classList.toggle('hidden',!actLabel);
+  btn.onclick=async()=>{hideToast();if(act)await act()};
+  box.classList.add('on');
+  clearTimeout(toast.t);toast.t=setTimeout(hideToast,6000);
+}
+function hideToast(){clearTimeout(toast.t);$('#toast').classList.remove('on')}
 function flashSaved(){const el=$('#xSaved');el.classList.add('on');clearTimeout(flashSaved.t);flashSaved.t=setTimeout(()=>el.classList.remove('on'),1600)}
 function dueHebUpdate(){
   const v=$('#due').value;
@@ -1309,9 +1370,27 @@ document.addEventListener('click',async e=>{
   if(b.dataset.newday&&!b.dataset.edit){openItem('task');$('#due').value=b.dataset.newday;return}
   if(b.dataset.new)openItem(b.dataset.new);
   if(b.dataset.edit)openItem('',b.dataset.edit);
+  if(b.dataset.stat){
+    boardFilter=boardFilter===b.dataset.stat?'':b.dataset.stat;render();return;
+  }
   if(b.dataset.complete){
-    const {error}=await db.from('items').update({status:'done'}).eq('id',b.dataset.complete);
-    if(error){alert(heb(error));return} await loadSpace();
+    const id=b.dataset.complete, x=items.find(y=>y.id===id)||{}, was=x.status||'active';
+    const {error}=await db.from('items').update({status:'done'}).eq('id',id);
+    if(error){alert(heb(error));return}
+    await loadSpace();
+    toast(`«${x.title||'הפריט'}» עבר ל«הסתיימו»`,'ביטול',async()=>{
+      const {error:e2}=await db.from('items').update({status:was}).eq('id',id);
+      if(e2){alert(heb(e2));return} await loadSpace();
+    });
+    return;
+  }
+  if(b.dataset.reopen){
+    const x=items.find(y=>y.id===b.dataset.reopen)||{};
+    const {error}=await db.from('items').update({status:'active'}).eq('id',b.dataset.reopen);
+    if(error){alert(heb(error));return}
+    await loadSpace();
+    toast(`«${x.title||'הפריט'}» חזר ללוח`,'לצפייה',()=>{boardFilter='';render()});
+    return;
   }
   if(b.dataset.rmowner){await removeOwner(b.dataset.rmowner);return}
   if(b.dataset.rmperson){
@@ -1340,6 +1419,7 @@ document.addEventListener('click',async e=>{
 });
 
 $('#calPrev').onclick=()=>{calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()-1,1);renderCal()};
+$('#boardFilterClear').onclick=()=>{boardFilter='';render()};
 $('#calNext').onclick=()=>{calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+1,1);renderCal()};
 $('#calToday').onclick=()=>{calMonth=new Date();renderCal()};
 $('#spaceSel').onchange=async e=>{
