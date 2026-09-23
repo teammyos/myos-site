@@ -1159,7 +1159,12 @@ async function closeItem(){
   $('#itemDialog').close();
 }
 async function createItem(){
-  if(!$('#itemTitle').value.trim()){$('#itemTitle').focus();$('#itemTitle').placeholder='צריך שם כדי ליצור';return}
+  if(!$('#itemTitle').value.trim()){
+    const t=$('#itemTitle');
+    t.focus();t.style.borderBottomColor='#ff8f86';t.placeholder='צריך שם כדי ליצור';
+    const f=$('#xFootNote');f.textContent='חסר שם למשימה — כותבים אותו בשורה הגדולה למעלה';f.style.color='#a3251c';
+    setTimeout(()=>{t.style.borderBottomColor='';f.textContent='';f.style.color=''},4000);
+    return}
   const sid=dlgSpace(); if(!sid)return;
   const row={space_id:sid,title:$('#itemTitle').value.trim(),type:$('#itemType').value,
     parent_id:$('#itemType').value==='goal'?null:($('#parent').value||null),action_title:$('#action').value.trim(),
@@ -1312,7 +1317,7 @@ $('#saveSpace').onclick=async()=>{
   $('#spaceSel').value=space.id;await loadSpace();
 };
 
-$('#saveItem').onclick=()=>closeItem();
+$('#saveItem').onclick=()=>curId()?closeItem():createItem();
 $('#xClose').onclick=()=>closeItem();
 $('#deleteItem').onclick=async()=>{
   const cur=items.find(x=>x.id===curId())||{};
@@ -1335,7 +1340,11 @@ $('#deleteItem').onclick=async()=>{
 // שמירה אוטומטית
 ['#itemStatus','#due','#itemType'].forEach(s=>$(s).addEventListener('change',()=>{schedSave(0)}));
 $('#due').addEventListener('change',dueHebUpdate);
-$('#itemTitle').addEventListener('input',()=>schedSave(900));
+$('#itemTitle').addEventListener('input',()=>{
+  $('#itemTitle').style.borderBottomColor='';
+  if(!curId()){$('#xFootNote').textContent='';$('#xFootNote').style.color=''}
+  schedSave(900);
+});
 $('#action').addEventListener('input',()=>schedSave(900));
 $('#itemTitle').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();curId()?$('#action').focus():createItem()}});
 // עורך ההערות
