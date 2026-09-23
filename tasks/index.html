@@ -196,13 +196,13 @@ dialog.xl::backdrop{background:#0e1a3380;backdrop-filter:blur(6px)}
 .calgrid{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .calhead,.calweek{display:grid;grid-template-columns:repeat(7,1fr)}
 .calhead div{padding:10px 8px;text-align:center;font-size:13px;font-weight:600;color:var(--muted);background:var(--alt);border-bottom:1px solid var(--line)}
-.calcell{min-height:104px;border-inline-start:1px solid #eceae4;border-bottom:1px solid #eceae4;padding:7px;display:flex;flex-direction:column;gap:4px;cursor:pointer}
+.calcell{min-height:104px;min-width:0;border-inline-start:1px solid #eceae4;border-bottom:1px solid #eceae4;padding:7px;display:flex;flex-direction:column;gap:4px;cursor:pointer}
 .calcell:first-child{border-inline-start:0}
 .calweek:last-child .calcell{border-bottom:0}
 .calcell:hover{background:#faf8f4}
 .calcell.out{background:var(--alt);color:#a8b0ba}
 .calcell.today{background:#eaf4f5}
-.calnum{display:flex;align-items:baseline;gap:6px;align-self:stretch}
+.calnum{display:flex;align-items:baseline;gap:6px;align-self:stretch;min-width:0}
 /* התאריך העברי והלועזי באותו גודל ובאותו משקל — שניהם תאריך, לא הערת שוליים */
 .calnum b,.calnum .heb{font-size:13.5px;font-weight:700;line-height:1.5}
 .calnum b{color:var(--muted)}
@@ -210,7 +210,7 @@ dialog.xl::backdrop{background:#0e1a3380;backdrop-filter:blur(6px)}
 .calcell.today .calnum{background:var(--accent);color:#fff;border-radius:999px;padding:1px 9px;align-self:flex-start}
 .calcell.today .calnum b,.calcell.today .calnum .heb{color:#fff}
 .calhol{font-size:11.5px;font-weight:600;line-height:1.35;border-radius:5px;padding:1px 5px;
-  align-self:stretch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+  align-self:stretch;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
 .calhol.chag{background:#f6e3b8;color:#6d4f04}
 .calhol.moed{background:#fbf1dc;color:#8a6509}
 .calhol.day {background:#e6f0f2;color:#0a5766}
@@ -219,7 +219,7 @@ dialog.xl::backdrop{background:#0e1a3380;backdrop-filter:blur(6px)}
 /* החודש העברי בגודל של הלועזי — רק בצבע אחר, לא בגודל אחר */
 .calsub{font-size:inherit;font-weight:inherit;color:var(--accent)}
 .calsep{color:var(--line);font-weight:400;margin:0 2px}
-.chip{display:block;width:100%;text-align:start;border:0;border-inline-start:3px solid var(--accent);background:#eaf2f3;color:var(--ink);border-radius:6px;padding:3px 7px;font-size:12px;line-height:1.35;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip{display:block;width:100%;text-align:start;border:0;border-inline-start:3px solid var(--accent);background:#eaf2f3;color:var(--ink);border-radius:6px;padding:3px 7px;font-size:12px;line-height:1.35;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;max-width:100%}
 .chip:hover{background:#ddeaec}
 .chip.goal{border-inline-start-color:#8a6509;background:#fbf3e2}
 .chip.done{border-inline-start-color:#9aa4b0;background:#eef0f2;color:#77818d;text-decoration:line-through}
@@ -395,6 +395,11 @@ dialog::backdrop{background:#0e1a3388}
       הכתובת הזו היא יומן לקריאה בלבד עם המשימות הפתוחות שלך. ביומן גוגל:
       ליד «יומנים אחרים» ← <b>＋</b> ← «מכתובת URL» ← להדביק ← «הוספת יומן».
       גוגל מרעננת אותו לבד כל כמה שעות.
+    </p>
+    <p class="muted" style="font-size:12px;margin:0 0 8px;line-height:1.7">
+      גוגל קוראת ליומן החדש על שם הכתובת. לשינוי: הגדרות ← לבחור אותו ברשימת
+      היומנים ← «שם» ← לכתוב <b>MyOS משימות</b>. לצבע: ריחוף על שם היומן ברשימה
+      ← שלוש הנקודות ← <b>＋</b> בתחתית לוח הצבעים ← להדביק <b>#0a5766</b>.
     </p>
     <div class="inline"><input id="calUrl" class="control" readonly style="flex:1;font-size:12px;direction:ltr;text-align:left">
       <button type="button" id="calCopy" class="btn small">העתקה</button></div>
