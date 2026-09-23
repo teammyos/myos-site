@@ -332,6 +332,7 @@ dialog::backdrop{background:#0e1a3388}
         המשך עם Google</button>
       <div class="sep"><span>או באמצעות מייל וסיסמה</span></div>
       <form id="loginForm" class="form">
+        <label id="nameField" class="hidden">שם מלא<input id="signupName" class="control" autocomplete="name" placeholder="למשל: יוסף רובינשטיין"></label>
         <label>דואר אלקטרוני<input id="loginEmail" type="email" class="control" autocomplete="email" required></label>
         <label>סיסמה<input id="loginPassword" type="password" class="control" autocomplete="current-password" minlength="6" required></label>
         <button class="btn primary">כניסה</button>
@@ -1508,23 +1509,40 @@ $('#meDialog').addEventListener('click',e=>{if(e.target===$('#meDialog'))$('#meD
 
 /* ============ כניסה ============ */
 $('#loginForm').onsubmit=async e=>{
-  e.preventDefault();msg('מתחבר…');$('#loginMessage').classList.remove('hidden');
+  e.preventDefault();
+  if(signupMode){await doSignup();return}
+  msg('מתחבר…');$('#loginMessage').classList.remove('hidden');
   sessionStorage.setItem('myos_login','email');
   const {error}=await db.auth.signInWithPassword({email:$('#loginEmail').value.trim(),password:$('#loginPassword').value});
   if(error){msg(heb(error),'err');return} await enter();
 };
-$('#signupBtn').onclick=async()=>{
-  const email=$('#loginEmail').value.trim(),password=$('#loginPassword').value;
+// שני מצבים לאותו טופס: כניסה, והרשמה שמבקשת גם שם.
+// בלי השם, החשבון נוצר עם המייל כשם — וכך הוא מופיע לכולם.
+let signupMode=false;
+function setSignupMode(on){
+  signupMode=on;
+  $('#nameField').classList.toggle('hidden',!on);
+  $('#loginForm').querySelector('button.primary').textContent=on?'יצירת חשבון':'כניסה';
+  $('#signupBtn').textContent=on?'יש לי כבר חשבון — לכניסה':'הרשמה';
+  $('#loginPassword').setAttribute('autocomplete',on?'new-password':'current-password');
+  if(on)setTimeout(()=>$('#signupName').focus(),30);
+}
+// הכפתור המשני רק מחליף מצב; היצירה עצמה בכפתור הראשי (ובאנטר)
+$('#signupBtn').onclick=()=>{setSignupMode(!signupMode);$('#loginMessage').classList.add('hidden')};
+async function doSignup(){
+  const name=$('#signupName').value.trim(),email=$('#loginEmail').value.trim(),password=$('#loginPassword').value;
   $('#loginMessage').classList.remove('hidden');
+  if(!name){$('#signupName').focus();msg('צריך שם מלא — כך יראו אתכם שאר חברי האזור.','err');return}
   if(!email||password.length<6){msg('כדי להירשם יש למלא מייל וסיסמה באורך 6 תווים לפחות.','err');return}
   msg('נרשם…');
-  const {data,error}=await db.auth.signUp({email,password});
+  const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name:name}}});
   if(error){msg(heb(error),'err');return}
   if(data.user&&Array.isArray(data.user.identities)&&data.user.identities.length===0){
     msg('הכתובת <b>'+esc(email)+'</b> כבר רשומה במערכת. אפשר להתחבר איתה בכפתור «כניסה».','err');return}
   if(data.session){await enter();return}
   msg('נשלח מייל אימות אל <b>'+esc(email)+'</b>.<br>יש ללחוץ על הקישור שבמייל, ואז לחזור לכאן וללחוץ «כניסה».','ok');
-};
+  setSignupMode(false);
+}
 $('#googleBtn').onclick=async()=>{
   $('#loginMessage').classList.remove('hidden');msg('מעביר לגוגל…');
   sessionStorage.setItem('myos_login','google');
