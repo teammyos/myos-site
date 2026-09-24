@@ -55,6 +55,8 @@ nav .badge{display:inline-block;min-width:19px;padding:1px 6px;margin-inline-sta
 .btn{border:1px solid var(--accent);border-radius:10px;padding:10px 16px;background:var(--surface);color:var(--accent);font-weight:600;cursor:pointer}
 .btn:hover{background:#eaf2f3}
 .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn.off{opacity:.45;pointer-events:none}
+.acct details summary::-webkit-details-marker{display:none}
 .btn.big{font-size:17px;padding:14px 26px;border-radius:12px;box-shadow:0 2px 8px #0f223a26}
 .btn.big:hover{box-shadow:0 4px 12px #0f223a33}
 .btn.primary:hover{background:#17294c}
@@ -391,25 +393,50 @@ dialog::backdrop{background:#0e1a3388}
     <div id="prefMsg" class="muted" style="font-size:12px;min-height:16px"></div>
 
     <h3>המשימות שלי ביומן גוגל</h3>
-    <p class="muted" style="font-size:13px;margin:0 0 8px;line-height:1.7">
-      הכתובת הזו היא יומן לקריאה בלבד עם המשימות הפתוחות שלך. ביומן גוגל:
-      ליד «יומנים אחרים» ← <b>＋</b> ← «מכתובת URL» ← להדביק ← «הוספת יומן».
-      גוגל מרעננת אותו לבד כל כמה שעות.
+    <p class="muted" style="font-size:13px;margin:0 0 10px;line-height:1.7">
+      יומן לקריאה בלבד עם המשימות הפתוחות שלך, שמתעדכן מעצמו: משימה שנסגרה
+      נעלמת, תאריך שהוזז זז. הוספה פעם אחת, מהמחשב.
     </p>
-    <p class="muted" style="font-size:12px;margin:0 0 8px;line-height:1.7">
-      גוגל קוראת ליומן החדש על שם הכתובת. לשינוי: הגדרות ← לבחור אותו ברשימת
-      היומנים ← «שם» ← לכתוב <b>MyOS משימות</b>. לצבע: ריחוף על שם היומן ברשימה
-      ← שלוש הנקודות ← <b>＋</b> בתחתית לוח הצבעים ← להדביק <b>#0a5766</b>.
+    <a id="calAdd" class="btn primary" target="_blank" rel="noopener"
+       style="text-decoration:none;text-align:center;display:block">הוספת היומן ליומן גוגל</a>
+    <p class="muted" style="font-size:12px;margin:8px 0 0;line-height:1.75">
+      ייפתח יומן גוגל עם השאלה «להוסיף את היומן?» — לאשר. אם גוגל מבקשת להתחבר,
+      להתחבר ולנסות שוב. באפליקציה בטלפון אי אפשר להוסיף יומן כזה; מוסיפים
+      במחשב פעם אחת, והוא מופיע גם בטלפון.
     </p>
-    <div class="inline"><input id="calUrl" class="control" readonly style="flex:1;font-size:12px;direction:ltr;text-align:left">
-      <button type="button" id="calCopy" class="btn small">העתקה</button></div>
-    <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
-      <button type="button" id="calReset" class="btn small danger">יצירת כתובת חדשה</button>
-      <span id="calMsg" class="muted" style="font-size:12px"></span>
-    </div>
-    <p class="muted" style="font-size:12px;margin:8px 0 0">
-      הכתובת סודית — מי שמקבל אותה רואה את רשימת המשימות שלך. «יצירת כתובת חדשה» מבטלת את הישנה.
-    </p>
+
+    <details id="calMore" style="margin-top:12px">
+      <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--accent)">אחרי ההוספה — שם, צבע, תזכורות והכתובת עצמה</summary>
+      <div style="padding-top:8px">
+        <p class="muted" style="font-size:12px;margin:0 0 8px;line-height:1.75">
+          <b>שם וצבע.</b> גוגל קוראת ליומן חדש על שם הכתובת ובוחרת צבע בעצמה.
+          לתיקון: הגדרות היומן ← לבחור אותו ברשימה ← «שם» ← <b>MyOS משימות</b>.
+          לצבע: ריחוף על שם היומן ברשימה ← שלוש הנקודות ← <b>＋</b> בתחתית לוח
+          הצבעים ← <b>#0a5766</b>.
+        </p>
+        <p class="muted" style="font-size:12px;margin:0 0 8px;line-height:1.75">
+          <b>תזכורות.</b> גוגל לא מקבלת אותן מהיומן עצמו — מגדירים פעם אחת:
+          הגדרות היומן ← היומן הזה ← «התראות על אירועים של יום שלם» ←
+          «הוספת התראה» ← למשל בשעה 9:00 ביום האירוע. משם זה חל על כל המשימות.
+        </p>
+        <p class="muted" style="font-size:12px;margin:0 0 10px;line-height:1.75">
+          <b>קצב העדכון.</b> גוגל מושכת יומן כזה בקצב שלה — בפועל בין כמה שעות
+          ליממה, ואין כפתור «רענן עכשיו». משימה חדשה לא תופיע שם מיד.
+          באפל, באאוטלוק ובת׳אנדרבירד אותו יומן מתעדכן תוך דקות.
+        </p>
+        <div class="inline"><input id="calUrl" class="control" readonly style="flex:1;font-size:12px;direction:ltr;text-align:left">
+          <button type="button" id="calCopy" class="btn small">העתקה</button></div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+          <button type="button" id="calReset" class="btn small danger">יצירת כתובת חדשה</button>
+          <span id="calMsg" class="muted" style="font-size:12px"></span>
+        </div>
+        <p class="muted" style="font-size:12px;margin:8px 0 0;line-height:1.75">
+          הכתובת מיועדת ליומנים אחרים (אפל, אאוטלוק) ולהוספה ידנית. היא סודית —
+          מי שמקבל אותה רואה את רשימת המשימות שלך, ו«יצירת כתובת חדשה» מבטלת
+          את הישנה מיידית.
+        </p>
+      </div>
+    </details>
 
     <div style="display:flex;gap:8px;justify-content:space-between;margin-top:14px">
       <button type="button" id="logoutBtn" class="btn danger small">יציאה מהחשבון</button>
@@ -573,7 +600,6 @@ dialog::backdrop{background:#0e1a3388}
       </div>
       <label>תאריך יעד<input id="due" type="date" class="control"></label>
       <div class="hebnote" id="dueHeb"></div>
-      <a id="gcalLink" class="btn small hidden" target="_blank" rel="noopener" style="text-decoration:none;text-align:center">＋ הוספה ליומן גוגל</a>
       <label id="parentField">שייך למטרה / פרויקט<select id="parent" class="control"></select></label>
       <div id="quickGoalBox" class="inline hidden">
         <label style="flex:1">שם המטרה או הפרויקט<input id="quickGoalName" class="control" placeholder="למשל: פרויקט מגדל צפת"></label>
@@ -1187,26 +1213,6 @@ function flashSaved(){const el=$('#xSaved');el.classList.add('on');clearTimeout(
 function dueHebUpdate(){
   const v=$('#due').value;
   $('#dueHeb').textContent=v?hebFull(new Date(v))+(holidayText(new Date(v))?' · '+holidayText(new Date(v)):''):'';
-  gcalUpdate();
-}
-/** קישור שפותח ביומן גוגל אירוע יום שלם מוכן לשמירה — בלי הרשאות ובלי חיבור */
-function gcalUpdate(){
-  const a=$('#gcalLink'), v=$('#due').value, title=$('#itemTitle').value.trim();
-  if(!v||!title){a.classList.add('hidden');return}
-  const d0=v.replace(/-/g,'');
-  const d1=(()=>{const d=new Date(v+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+1);
-    return d.toISOString().slice(0,10).replace(/-/g,'')})();
-  const g=items.find(y=>y.id===$('#parent').value);
-  const det=[$('#action').value.trim()&&('הפעולה הבאה: '+$('#action').value.trim()),
-    g&&('במטרה: '+g.title),
-    dlgOwners.length&&('אחראים: '+dlgOwners.map(personName).filter(Boolean).join(' · ')),
-    $('#dueHeb').textContent,
-    '', curId()?location.origin+location.pathname+`?space=${dlgSpace()}&item=${curId()}`:location.href
-  ].filter(x=>x!==false&&x!==0&&x!==undefined&&x!==null).join('\n');
-  a.href='https://calendar.google.com/calendar/render?action=TEMPLATE'
-    +'&text='+encodeURIComponent(($('#itemType').value==='goal'?'🎯 ':'')+title)
-    +'&dates='+d0+'/'+d1+'&details='+encodeURIComponent(det);
-  a.classList.remove('hidden');
 }
 function whereUpdate(){
   const sid=dlgSpace(), g=items.find(y=>y.id===$('#parent').value);
@@ -1540,14 +1546,14 @@ $('#deleteItem').onclick=async()=>{
   dlg.addEventListener('close',()=>{if(touchedList){touchedList=false;render()}});
 }
 // שמירה אוטומטית
-['#itemStatus','#due','#itemType'].forEach(s=>$(s).addEventListener('change',()=>{schedSave(0);gcalUpdate()}));
+['#itemStatus','#due','#itemType'].forEach(s=>$(s).addEventListener('change',()=>{schedSave(0)}));
 $('#due').addEventListener('change',dueHebUpdate);
 $('#itemTitle').addEventListener('input',()=>{
   $('#itemTitle').style.borderBottomColor='';
   if(!curId()){$('#xFootNote').textContent='';$('#xFootNote').style.color=''}
-  schedSave(900);gcalUpdate();
+  schedSave(900);
 });
-$('#action').addEventListener('input',()=>{schedSave(900);gcalUpdate()});
+$('#action').addEventListener('input',()=>schedSave(900));
 $('#itemTitle').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();curId()?$('#action').focus():createItem()}});
 // עורך ההערות
 $('#rtbar').addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()}); // לא לאבד את הסימון
@@ -1702,12 +1708,19 @@ $('#meBtn').onclick=async()=>{
 };
 /* ---------- מנוי היומן ---------- */
 const calFeedUrl=tok=>`${cfg.url}/functions/v1/notify?ics=${tok}`;
+/** קישור שפותח את יומן גוגל עם השאלה "להוסיף את היומן?" — webcal:// הוא מה
+    שגוגל מזהה כמנוי, והכתובת כולה מקודדת כי יש בה סימני ? ו-& משלה. */
+const calAddUrl=tok=>'https://calendar.google.com/calendar/r?cid='
+  +encodeURIComponent(calFeedUrl(tok).replace(/^https:\/\//,'webcal://'));
 async function paintCalUrl(tok){
   $('#calMsg').textContent='';
   if(tok===undefined){const {data,error}=await db.rpc('my_cal_token');tok=error?null:(one(data)||data)}
   const ok=!!tok;
   $('#calUrl').value=ok?calFeedUrl(tok):'הכתובת תהיה זמינה אחרי עדכון המערכת';
   $('#calUrl').disabled=$('#calCopy').disabled=$('#calReset').disabled=!ok;
+  const a=$('#calAdd');
+  if(ok){a.href=calAddUrl(tok);a.classList.remove('off');a.removeAttribute('aria-disabled')}
+  else {a.removeAttribute('href');a.classList.add('off');a.setAttribute('aria-disabled','true')}
 }
 $('#calCopy').onclick=async()=>{
   const v=$('#calUrl').value;
