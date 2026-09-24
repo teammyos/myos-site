@@ -531,6 +531,7 @@ dialog::backdrop{background:#0e1a3388}
         <h2>חברים באזור</h2>
         <div class="muted">מי שיכול להיכנס לאזור הזה ולראות את המשימות שבו. חייב להיות רשום במערכת. ההוספה שולחת לו <b>הזמנה במייל</b>, והאזור נפתח לו רק אחרי שאישר — עד אז הוא מופיע כאן כ"ממתין לאישור".</div>
         <div id="memberList" style="margin-top:14px"></div>
+        <div id="memberHint" class="muted" style="font-size:12.5px;margin-top:10px"></div>
         <div class="inline" id="addMemberBox" style="margin-top:16px">
           <label style="flex:1">הוספת חבר לפי כתובת מייל<input id="memberEmail" class="control" type="email" placeholder="name@example.com"></label>
           <button id="addMemberBtn" class="btn primary">הוספה</button>
@@ -710,25 +711,34 @@ async function showTeam(){
   $('#teamNeedsSpace').classList.toggle('hidden',!allMode);
   $('#teamPanels').classList.toggle('hidden',allMode);
   if(allMode)return;
-  const owner=!!(space&&space.owner_id===user.id);
+  $('#spaceMsg').classList.add('hidden');
+  await loadTeam();            // קודם החברים — מצב הכפתורים תלוי בכמה בעלים יש
+  paintSpacePanel();
+}
+/** מצב הפאנל "הגדרות האזור" — נקרא אחרי שרשימת החברים בידינו */
+function paintSpacePanel(){
+  const owner=!!(space&&space.is_owner);
   $('#spaceRename').value=space?space.name:'';
   $('#spaceRename').disabled=!owner;
   $('#renameSpaceBtn').disabled=!owner;
-  // מחיקה: כל אזור שאתה הבעלים שלו, כולל האישי — אבל לא האחרון שנשאר,
-  // כי מסך בלי שום אזור הוא מסך שבור. מי שאינו הבעלים יכול לצאת מהאזור.
+  // מחיקה: כל אזור שאתה בעלים שלו, כולל האישי — אבל לא האחרון שנשאר,
+  // כי מסך בלי שום אזור הוא מסך שבור.
+  // יציאה: כל מי שאינו הבעלים האחרון — כולל בעלים שיש לו שותף.
   const only=spaces.length<2;
+  const owners=members.filter(m=>m.role==='owner'&&m.status==='active').length;
+  const canLeave=!!space&&(!owner||owners>1);
   $('#delSpaceBtn').classList.toggle('hidden',!owner||!space);
   $('#delSpaceBtn').disabled=only;
-  $('#leaveSpaceBtn').classList.toggle('hidden',owner||!space);
+  $('#leaveSpaceBtn').classList.toggle('hidden',!canLeave);
   $('#leaveSpaceBtn').disabled=only;
   $('#spaceHint').textContent=!space?''
     :only?'זה האזור היחיד שלך. כדי למחוק אותו או לצאת ממנו, צריך שיהיה לך עוד אזור אחד לפחות.'
     :owner?(space.kind==='personal'
         ?'מחיקת האזור האישי אפשרית — הוא לא נוצר מחדש בכניסה הבאה.'
-        :'מחיקת האזור מוחקת גם את כל המשימות, האנשים והחברוּת שבו.')
-    :'אתה חבר באזור הזה, לא הבעלים. יציאה מהאזור לא מוחקת ממנו כלום.';
-  $('#spaceMsg').classList.add('hidden');
-  await loadTeam();
+        :owners>1
+          ?'מחיקת האזור מוחקת את כל המשימות שבו — גם אצל שאר הבעלים. יציאה משאירה את האזור לבעלים האחרים.'
+          :'מחיקת האזור מוחקת גם את כל המשימות, האנשים והחברוּת שבו.')
+    :'אתה חבר באזור הזה, לא בעלים. יציאה מהאזור לא מוחקת ממנו כלום.';
 }
 async function loadInvites(){
   const {data,error}=await db.rpc('my_invites');
@@ -746,7 +756,7 @@ async function loadTeam(){
   if(!space)return;
   const {data,error}=await db.rpc('space_member_list',{p_space:space.id});
   if(error){alert(heb(error));return}
-  members=data||[];renderTeam()
+  members=data||[];renderTeam();paintSpacePanel()
 }
 async function refreshPending(){
   if(!me||me.role!=='admin')return;
@@ -1026,12 +1036,23 @@ function renderCal(){
 
 function renderTeam(){
   const owner=space&&members.some(m=>m.user_id===user.id&&m.role==='owner');
-  $('#memberList').innerHTML=members.map(m=>`<div class="rowline">
+  const owners=members.filter(m=>m.role==='owner'&&m.status==='active').length;
+  $('#memberList').innerHTML=members.map(m=>{
+    const isOwner=m.role==='owner', active=m.status==='active';
+    // קידום והורדה — רק בעלים, רק על חבר מאושר, ולא הורדה של הבעלים האחרון
+    const canPromote=owner&&active&&!isOwner;
+    const canDemote =owner&&active&&isOwner&&owners>1;
+    return `<div class="rowline">
     <div class="grow"><b>${esc(m.full_name||m.email)}</b><div class="muted">${esc(m.email)}</div></div>
-    ${m.status==='invited'?'<span class="tag" style="background:var(--waitbg);color:var(--wait);border-color:#e8d49a">ממתין לאישור</span>':''}
-    <span class="tag">${m.role==='owner'?'בעלים':'חבר'}</span>
-    ${owner&&m.role!=='owner'?`<button class="btn small danger" data-rmmember="${m.user_id}">הסרה</button>`:''}
-  </div>`).join('')||'<div class="muted">אין חברים נוספים.</div>';
+    ${!active?'<span class="tag" style="background:var(--waitbg);color:var(--wait);border-color:#e8d49a">ממתין לאישור</span>':''}
+    <span class="tag${isOwner?' link':''}">${isOwner?'בעלים':'חבר'}</span>
+    ${canPromote?`<button class="btn small" data-role2="owner" data-ruser="${m.user_id}">הפיכה לבעלים</button>`:''}
+    ${canDemote?`<button class="btn small" data-role2="member" data-ruser="${m.user_id}">הפיכה לחבר</button>`:''}
+    ${owner&&!isOwner?`<button class="btn small danger" data-rmmember="${m.user_id}">הסרה</button>`:''}
+  </div>`}).join('')||'<div class="muted">אין חברים נוספים.</div>';
+  $('#memberHint').textContent=owner
+    ?'בעלים שווה לכם לגמרי: שינוי שם האזור, הוספה והסרה של חברים, קידום בעלים נוספים ומחיקת האזור.'
+    :'';
   $('#addMemberBox').classList.toggle('hidden',!owner);
   $('#peopleList').innerHTML=people.map(p=>`<div class="rowline">
     <div class="grow"><b>${esc(p.name)}</b></div>
@@ -1448,6 +1469,23 @@ document.addEventListener('click',async e=>{
     if(!confirm(`למחוק את "${per.name}" מרשימת האנשים של האזור?`+(used?`\n${used} משימות משויכות אליו ויישארו ללא אחראי.`:'')))return;
     const {error}=await db.from('people').delete().eq('id',b.dataset.rmperson);
     if(error){alert(heb(error));return} await loadSpace();await showTeam();
+  }
+  if(b.dataset.role2){
+    const mem=members.find(x=>x.user_id===b.dataset.ruser)||{};
+    const to=b.dataset.role2, nm=mem.full_name||mem.email||'';
+    if(!confirm(to==='owner'
+      ?`להפוך את ${nm} לבעלים של «${space.name}»?\nמרגע זה יהיו לו בדיוק אותן הרשאות כמו לך, כולל שינוי שם, ניהול חברים ומחיקת האזור.`
+      :`להוריד את ${nm} לחבר רגיל?\nהוא ימשיך לראות את האזור ואת המשימות, אבל לא יוכל לנהל אותו.`))return;
+    const {data,error}=await db.rpc('set_member_role',{p_space:space.id,p_user:b.dataset.ruser,p_role:to});
+    if(error){alert(heb(error));return}
+    const r=one(data)||data;
+    if(r==='last_owner'){alert('אי אפשר להוריד את הבעלים האחרון. קודם צריך לקדם מישהו אחר לבעלים.');return}
+    if(r==='invited'){alert('אפשר לקדם רק אחרי שההזמנה אושרה.');return}
+    if(r!=='ok'){alert('הפעולה לא בוצעה.');return}
+    await loadSpaces();
+    if(space)space=spaces.find(x=>x.id===space.id)||space;
+    await showTeam();render();
+    return;
   }
   if(b.dataset.rmmember){
     const mem=members.find(x=>x.user_id===b.dataset.rmmember)||{};
