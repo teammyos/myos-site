@@ -441,11 +441,11 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     if (sess && back) { forwardToExt(sess, back); return; }
     $('registerForm').reset();
     if (sess) {
-      showDone(email, 'נרשמת בהצלחה!', 'שבוע הניסיון פעיל ואתם כבר מחוברים. הצעד הבא:', true);
+      showDone(email, 'נרשמת בהצלחה!', 'תקופת הניסיון פעילה ואתם כבר מחוברים. הצעד הבא:', true);
     } else {
       /* אימות מייל פעיל: קודם מאשרים בקישור שנשלח, ואז מתחברים */
       $('rStatus').className = 'msg ok';
-      $('rStatus').innerHTML = 'נרשמת בהצלחה! שבוע הניסיון פעיל.<br>שלחנו קישור אימות ל-<b dir="ltr">' + esc(email) + '</b> — לחצו עליו, ואז חזרו לכאן ל"התחברות".<br>' +
+      $('rStatus').innerHTML = 'נרשמת בהצלחה! תקופת הניסיון פעילה.<br>שלחנו קישור אימות ל-<b dir="ltr">' + esc(email) + '</b> — לחצו עליו, ואז חזרו לכאן ל"התחברות".<br>' +
         'בינתיים: <a href="/install/">התקנה ותחילת עבודה — צעד אחר צעד</a>';
     }
   });
