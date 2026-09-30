@@ -124,6 +124,12 @@
   details.more>summary:hover{background:rgba(47,240,230,.08)}
   details.more .morebody{margin-top:.8rem}
   .flow .fc.here{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,240,230,.18)}
+  /* דרישת ההזדהות של רשות המיסים (30.9.2026) */
+  .idreq{display:flex;gap:.7rem;align-items:flex-start;max-width:46rem;margin:1.2rem auto 0;
+         text-align:right;background:rgba(47,240,230,.07);border:1px solid rgba(47,240,230,.32);
+         border-radius:.8rem;padding:.85rem 1rem;font-size:.95rem;line-height:1.65}
+  .idreq .i{flex:none;color:var(--accent);font-weight:800;font-size:1.05rem}
+  .idreq b{color:var(--heading)}
   .gblue{display:inline-block;background:#1a73e8;color:#fff;font-weight:700;border-radius:.35rem;padding:.05rem .5rem;font-size:.8rem}
   .flow .arr{color:var(--accent);font-size:1.6rem;line-height:1;padding:.15rem 0}
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -168,10 +174,17 @@
       <h1>התקנת MyOS עסקאות ב-4 צעדים</h1>
       <p>תוסף לדפדפן Chrome שמושך עסקאות נדל״ן מאתר רשות המיסים ישירות לקובץ Excel מסודר. ההרשמה וההתקנה לוקחות כשלוש דקות — עוברים צעד אחרי צעד, מלמעלה למטה.</p>
 
+      <div class="idreq"><span class="i">i</span><span><b>לפני שמתחילים — דרישה של רשות המיסים:</b>
+        מאז ספטמבר 2026 הכניסה לאתר עסקאות הנדל״ן שלהם מחייבת <b>הזדהות אישית</b> — מספר זהות
+        וקוד משתמש של רשות המיסים, או כרטיס חכם. זו דרישה שלהם והיא חלה על כל מי שנכנס לאתר,
+        עם התוסף או בלעדיו. אין לכם קוד משתמש?
+        <a href="https://secapp.taxes.gov.il/SrRishum" target="_blank" rel="noopener">נרשמים אצלם כאן</a>
+        (מספר זהות ונייד), ויש גם
+        <a href="https://youtu.be/Rdn_Ramup98" target="_blank" rel="noopener">סרטון הסבר רשמי</a>.</span></div>
     </section>
 
     <nav class="flow" aria-label="צעדי ההתקנה — אחד אחרי השני">
-      <div class="fc" id="flow1"><span class="n" id="flow1n">1</span><span class="body"><a class="t" href="#s1">הרשמה — פתיחת חשבון MyOS</a><small id="flow1s">באתר, דקה אחת — שבוע ניסיון מופעל מיד</small>
+      <div class="fc" id="flow1"><span class="n" id="flow1n">1</span><span class="body"><a class="t" href="#s1">הרשמה — פתיחת חשבון MyOS</a><small id="flow1s">באתר, דקה אחת — הניסיון מופעל מיד</small>
         <a class="cta" id="flow1cta" href="../login.html#register"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>הרשמה לניסיון חינם</a>
         <small class="after">אחרי ההרשמה חוזרים לדף הזה — לצעד 2.</small></span></div>
       <span class="arr" aria-hidden="true">↓</span>
@@ -197,7 +210,7 @@
       <ol>
         <li>פותחים את דף ההרשמה: <a href="../login.html#register">myos.co.il/login</a> (או הכפתור למטה).</li>
         <li>ממלאים שם מלא, דוא״ל וסיסמה ולוחצים <span class="btnlike teal">הרשמה</span> — או לוחצים <b>"הרשמה עם Google"</b> ובוחרים חשבון Google.</li>
-        <li>זהו: <b>שבוע הניסיון מופעל מיד</b>, בלי כרטיס אשראי. מופיע מסך "נרשמת בהצלחה!" עם המייל שלכם — ממשיכים לצעד 2.</li>
+        <li>זהו: <b>הניסיון מופעל מיד</b>, בלי כרטיס אשראי. מופיע מסך "נרשמת בהצלחה!" עם המייל שלכם — ממשיכים לצעד 2.</li>
       </ol>
       <a class="cta" href="../login.html#register">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -266,7 +279,8 @@
       <h2><span class="n">▶</span>מעולה! מוכנים לעבודה — השליפה הראשונה, מגוש לאקסל</h2>
       <ol>
         <li>בחלונית: ממלאים <b>גוש</b> (למשל 7375; חלקה — אם רוצים) או ישוב/רחוב, ולוחצים <span class="btnlike navy">פתח את אתר רשות המיסים ומלא</span>.</li>
-        <li>נפתחת לשונית עם אתר רשות המיסים והטופס <b>כבר מלא</b>. למעלה מופיעה הודעה: "הטופס מולא".</li>
+        <li>נפתחת לשונית עם אתר רשות המיסים. <b>אם עדיין לא הזדהיתם באתר שלהם</b> — יופיע מסך הזדהות (מספר זהות + קוד משתמש, או כרטיס חכם). מזדהים, ו<b>התוסף ממשיך למלא את הטופס מעצמו</b> מיד אחרי זה.</li>
+        <li>הטופס <b>כבר מלא</b>. למעלה מופיעה הודעה: "הטופס מולא".</li>
         <li>לוחצים על <b>חיפוש</b> באתר, מקלידים את <b>קוד האבטחה</b> (התמונה עם הספרות) ולוחצים <b>אישור</b>.</li>
         <li>בעמוד התוצאות מופיע במרכז המסך כפתור גדול <span class="btnlike" style="background:#0E1A33;border:1px solid #2ff0e6">⬇ הורד עסקאות</span>. לוחצים — ומכאן אפשר לעבור לעבודה אחרת.</li>
         <li><b>צריכים כמה גושים בקובץ אחד?</b> במקום "הורד עסקאות" לוחצים <span class="btnlike" style="background:#0E1A33;color:#8dfff4;border:1px solid #2ff0e6">🧺 שמור לסל</span>, לוחצים "להמשיך לחפש", מחפשים את הגוש הבא — וכשמסיימים לוחצים <b>"הורד הכול"</b> (בעמוד התוצאות או בחלונית). מתקבל אקסל אחד עם כל החיפושים.</li>
@@ -290,6 +304,7 @@
     <h3 class="sec">שאלות נפוצות</h3>
     <details class="q"><summary>הכפתור "פתח את אתר רשות המיסים ומלא" אפור ולא לוחץ</summary><div class="a">החלונית בודקת לפני שמתחילים: מחוברים? המנוי פעיל? המחשב הזה רשום? ההודעה האדומה מעל הכפתור אומרת בדיוק מה חסר — התחברות, או פנייה אלינו (יש שם קישור למייל מוכן). אחרי שמטפלים לוחצים "בדוק שוב".</div></details>
     <details class="q"><summary>"המנוי מוגדר למחשב אחד"</summary><div class="a">כל מנוי קשור למחשב שממנו התחברתם לראשונה. עברתם למחשב חדש, או רוצים לעבוד משניים? כתבו לנו ל-<a href="mailto:team@myos.co.il">team@myos.co.il</a> ונשחרר/נוסיף מחשב.</div></details>
+    <details class="q"><summary>מבקשים ממני מספר זהות וקוד משתמש באתר רשות המיסים</summary><div class="a">זו דרישה של רשות המיסים מספטמבר 2026, ולא קשורה ל-MyOS — היא חלה על כל מי שנכנס לאתר עסקאות הנדל״ן שלהם. מזדהים פעם אחת, והתוסף ממשיך את החיפוש מעצמו. אין לכם קוד משתמש קבוע? נרשמים אצלם ב-<a href="https://secapp.taxes.gov.il/SrRishum" target="_blank" rel="noopener">secapp.taxes.gov.il/SrRishum</a> (מספר זהות ונייד). MyOS לא רואה ולא שומר את פרטי ההזדהות שלכם מול רשות המיסים.</div></details>
     <details class="q"><summary>הטופס באתר רשות המיסים לא התמלא</summary><div class="a">לפעמים האתר איטי. סוגרים את הלשונית, חוזרים לחלונית התוסף ולוחצים שוב "פתח את אתר רשות המיסים ומלא". אם עדיין לא — אפשר תמיד למלא ידנית; הכפתור "הורד עסקאות" יופיע בעמוד התוצאות בכל מקרה.</div></details>
     <details class="q"><summary>הכפתור "הורד עסקאות" מסתיר לי את הטבלה</summary><div class="a">לוחצים "לבדוק קודם את התוצאות" מתחת לכפתור — הרקע נעלם, והכפתור עובר לכפתור קטן במרכז-למעלה. כשמוכנים, לוחצים עליו.</div></details>
     <details class="q"><summary>עברתי ללשונית אחרת — איך אדע שהקובץ ירד?</summary><div class="a">שלושה סימנים: ✓ ירוק על אייקון MyOS בסרגל הכלים, כותרת הלשונית של רשות המיסים משתנה ל"✓ הקובץ ירד", ו-Chrome מציג את בועת ההורדה. הקובץ בתיקיית ההורדות.</div></details>
