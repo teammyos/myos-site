@@ -64,23 +64,65 @@ nav .badge{display:inline-block;min-width:19px;padding:1px 6px;margin-inline-sta
 .btn.danger{border-color:var(--danger);color:var(--danger);background:var(--surface)}
 .btn:disabled{opacity:.4;cursor:default}
 
-.summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:26px}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 20px;min-width:150px;
-  font:inherit;text-align:start;cursor:pointer;transition:border-color .15s,box-shadow .15s}
-.stat:hover{border-color:var(--accent);box-shadow:0 2px 10px #0f223a14}
-.stat.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:#f2faf9}
-.stat strong{display:block;font-size:26px;line-height:1.2;color:var(--navy)}
-.stat span{color:var(--muted);font-size:13px}
-.filterbar{display:flex;align-items:center;gap:12px;margin:-14px 0 20px;font-size:14px;color:var(--muted)}
-.filterbar b{color:var(--navy)}
-#toast{position:fixed;inset-inline-start:50%;transform:translateX(-50%);bottom:24px;z-index:80;
-  display:flex;align-items:center;gap:14px;background:var(--navy);color:#fff;border-radius:12px;
-  padding:12px 18px;box-shadow:0 6px 24px #0f223a45;font-size:14px;opacity:0;pointer-events:none;
-  transition:opacity .18s,transform .18s}
-#toast.on{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(-4px)}
-#toast button{border:1px solid #ffffff55;background:transparent;color:var(--turq);font-weight:700;
-  border-radius:8px;padding:5px 12px;cursor:pointer;font-size:13px}
-#toast button:hover{background:#ffffff14}
+/* ===== שורת החיפוש והסינון ===== */
+.filters{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:18px}
+.searchrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search{flex:1;min-width:240px;position:relative}
+.search input{width:100%;border:1px solid var(--line);border-radius:11px;padding:12px 42px 12px 14px;background:var(--alt)}
+.search input:focus{outline:0;border-color:var(--accent);background:#fff}
+.search .mag{position:absolute;inset-inline-start:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:17px}
+.seg{display:inline-flex;background:var(--alt);border:1px solid var(--line);border-radius:11px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px;white-space:nowrap}
+.seg button.on{background:var(--surface);color:var(--navy);font-weight:600;box-shadow:0 1px 3px #0f223a1f}
+.drops{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.drops .lbl{font-size:13px;color:var(--muted);margin-inline-end:-4px}
+.minisel{border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:var(--surface);color:var(--ink);font-size:14px;max-width:210px}
+.count{font-size:13.5px;color:var(--muted);margin:0 2px 14px}
+.count b{color:var(--navy)}
+
+/* ===== כותרות מקטע ===== */
+.sect{margin-bottom:26px}
+.secthead{display:flex;align-items:center;gap:10px;margin:0 2px 12px}
+.secthead h2{font-size:15px;color:var(--muted);font-weight:600}
+.secthead .line{flex:1;height:1px;background:var(--line)}
+
+/* ===== כרטיס מטרה ===== */
+.goals{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.goalcard{background:linear-gradient(180deg,#fffaf0 0%,var(--surface) 42%);border:1px solid #e2cf9f;
+  border-radius:16px;padding:15px 16px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.goalcard:hover{border-color:#d3b978;box-shadow:0 3px 14px #0f223a14}
+.goalcard.done{opacity:.68}
+.goaltop{display:flex;align-items:flex-start;gap:8px}
+.gtag{font-size:11.5px;font-weight:700;color:#8a6509;background:#fbf1dc;border:1px solid #e2cf9f;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.goalcard h3{font-size:17px;margin-top:7px;line-height:1.35;overflow-wrap:anywhere}
+.goalcard.done h3{text-decoration:line-through}
+.gnext{margin-top:10px;background:var(--alt);border-radius:10px;padding:8px 11px;font-size:14px;overflow-wrap:anywhere}
+.gnext span{display:block;font-size:11.5px;color:var(--muted)}
+.bar{height:6px;border-radius:999px;background:#eee8dc;overflow:hidden;margin-top:11px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .2s}
+.gmeta{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px;font-size:13px;color:var(--muted)}
+.gmeta .late{color:var(--danger);font-weight:600}
+
+/* ===== שורת משימה ===== */
+.tasklist{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.trow{display:flex;align-items:flex-start;gap:12px;padding:13px 16px;border-bottom:1px solid #eceae4;cursor:pointer}
+.trow:last-child{border-bottom:0}
+.trow:hover{background:#faf8f4}
+.chk{flex:none;width:21px;height:21px;border:2px solid #c3cbd6;border-radius:7px;background:#fff;cursor:pointer;
+  display:grid;place-items:center;color:#fff;font-size:13px;line-height:1;margin-top:1px;padding:0;transition:.12s}
+.chk:hover{border-color:var(--accent)}
+.chk.on{background:var(--ok);border-color:var(--ok)}
+.tbody{flex:1;min-width:0}
+.ttext{line-height:1.45;overflow-wrap:anywhere}
+.trow.done{background:#fcfbf9}
+.trow.done .ttext{text-decoration:line-through;color:#8d96a3}
+.tsub{font-size:13px;color:var(--muted);margin-top:3px;overflow-wrap:anywhere}
+.tmeta{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:5px;font-size:12.5px;color:var(--muted);align-items:center}
+.tmeta .late{color:var(--danger);font-weight:600}
+.pill{font-size:12px;border-radius:999px;padding:1px 9px;border:1px solid var(--line);background:var(--alt);white-space:nowrap}
+.pill.goal{color:#8a6509;background:#fbf1dc;border-color:#e2cf9f}
+.pill.who{color:var(--accent);background:#eaf4f3;border-color:#bfdedb}
+.pill.none{color:#8d96a3}
 
 .spaceblock{margin-bottom:34px}
 .spacehead{display:flex;align-items:center;gap:12px;margin:0 0 16px;padding-bottom:9px;border-bottom:2px solid var(--accent)}
@@ -134,6 +176,10 @@ dialog.xl::backdrop{background:#0e1a3380;backdrop-filter:blur(6px)}
 .xmain{overflow:auto;padding:20px 24px 24px;display:flex;flex-direction:column;gap:14px;min-height:0}
 .xside{overflow:auto;padding:20px 20px 24px;border-inline-start:1px solid var(--line);background:#f6f4ef;display:grid;gap:14px;align-content:start}
 .xside .hebnote{font-size:12px;color:var(--accent);font-weight:600;margin-top:-6px}
+.addtask{display:flex;gap:8px;margin-top:10px}
+.addtask input{flex:1;border-style:dashed;background:var(--alt)}
+.addtask input:focus{border-style:solid;background:#fff}
+.xmain .tasklist .trow{padding:11px 13px}
 .ochips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px}
 .ochip{display:inline-flex;align-items:center;gap:6px;background:#eaf4f3;border:1px solid #bfdedb;
   border-radius:999px;padding:3px;padding-inline-start:10px;font-size:13px;font-weight:600;color:#134e4a}
@@ -468,24 +514,48 @@ dialog::backdrop{background:#0e1a3388}
   <main class="wrap">
     <div id="inviteBox"></div>
     <div class="heading">
-      <div><div class="eyebrow" id="eyebrow">לוח עבודה</div><h1 id="title">המשימות הפתוחות</h1></div>
+      <div><div class="eyebrow" id="eyebrow">לוח עבודה</div><h1 id="title">המטרות והמשימות</h1></div>
       <div class="actions" id="newActions">
         <button class="btn primary big" data-new="task">＋ משימה חדשה</button>
+        <button class="btn big" data-new="goal">＋ מטרה חדשה</button>
       </div>
     </div>
 
     <section id="boardView">
-      <div class="summary">
-        <button class="stat" data-stat="task"><strong id="taskCount">0</strong><span>משימות פתוחות</span></button>
-        <button class="stat" data-stat="goal"><strong id="goalCount">0</strong><span>מטרות ופרויקטים</span></button>
-        <button class="stat" data-stat="late"><strong id="lateCount">0</strong><span>עברו את תאריך היעד</span></button>
-        <button class="stat" data-stat="done"><strong id="doneCount">0</strong><span>הסתיימו</span></button>
+      <div class="filters">
+        <div class="searchrow">
+          <div class="search"><span class="mag">⌕</span>
+            <input id="bq" placeholder="חיפוש במטרות ובמשימות — תוכן, מטרה, אחראי…" autocomplete="off"></div>
+          <div class="seg" id="segTime">
+            <button class="on" data-time="all">הכל</button>
+            <button data-time="0">היום</button>
+            <button data-time="1">יומיים</button>
+            <button data-time="6">שבוע</button>
+          </div>
+        </div>
+        <div class="drops">
+          <div class="seg" id="segWho">
+            <button data-who="mine">המשימות שלי</button>
+            <button data-who="team">משימות הצוות</button>
+            <button class="on" data-who="all">הכל</button>
+          </div>
+          <span class="lbl">מטרה</span><select id="fGoal" class="minisel"></select>
+          <span class="lbl">אחראי</span><select id="fOwner" class="minisel"></select>
+          <span class="lbl">מנהל מטרה</span><select id="fMgr" class="minisel"></select>
+          <span class="lbl">מצב</span><select id="fStatus" class="minisel">
+            <option value="open">פתוח</option><option value="done">בוצע</option><option value="all">הכול</option></select>
+          <button class="btn small ghost" id="fClear" style="margin-inline-start:auto">ניקוי סינון</button>
+        </div>
       </div>
-      <div id="boardFilterBar" class="filterbar hidden">
-        <span id="boardFilterText"></span>
-        <button class="btn small" id="boardFilterClear">הצגת הכול</button>
+      <div class="count" id="bcount"></div>
+      <div class="sect" id="goalSect">
+        <div class="secthead"><h2>מטרות</h2><div class="line"></div></div>
+        <div class="goals" id="goalGrid"></div>
       </div>
-      <div id="board"></div>
+      <div class="sect">
+        <div class="secthead"><h2 id="taskHead">משימות</h2><div class="line"></div></div>
+        <div id="board"></div>
+      </div>
     </section>
 
     <section id="calView" class="hidden">
@@ -573,7 +643,15 @@ dialog::backdrop{background:#0e1a3388}
   </div>
   <div class="xbody">
     <div class="xmain">
-      <label>הפעולה הבאה<input id="action" class="control" placeholder="הצעד הבא שמקדם את זה — למשל: להתקשר לעירייה"></label>
+      <label id="actionField">הצעד הבא במטרה<input id="action" class="control" placeholder="מה הדבר הבא שמקדם את המטרה"></label>
+      <div id="goalTasksBox" class="hidden">
+        <div class="logh">המשימות במטרה <span class="muted" id="goalTaskCount"></span></div>
+        <div id="goalTasks" class="tasklist" style="margin-top:8px"></div>
+        <div class="addtask">
+          <input id="goalAdd" class="control" placeholder="משימה חדשה במטרה — כותבים ומוסיפים" autocomplete="off">
+          <button type="button" id="goalAddBtn" class="btn">הוספה</button>
+        </div>
+      </div>
       <div class="logh">יומן <span class="muted" id="logCount"></span></div>
       <div class="log" id="noteList"></div>
       <div class="composer">
@@ -594,7 +672,7 @@ dialog::backdrop{background:#0e1a3388}
       <label id="itemSpaceField" class="hidden">אזור<select id="itemSpace" class="control"></select></label>
       <label>סוג<select id="itemType" class="control"><option value="task">משימה</option><option value="goal">מטרה / פרויקט</option></select></label>
       <label>מצב<select id="itemStatus" class="control"><option value="active">פעיל</option><option value="waiting">ממתין</option><option value="done">הסתיים</option></select></label>
-      <label>אחראים<div id="ownerChips" class="ochips"></div><select id="owner" class="control"></select></label>
+      <label id="ownerField">אחראים<div id="ownerChips" class="ochips"></div><select id="owner" class="control"></select></label>
       <div id="quickPersonBox" class="inline hidden">
         <label style="flex:1">שם האדם החדש<input id="quickPersonName" class="control" placeholder="למשל: יוסי / נהג"></label>
         <button type="button" id="quickPersonSave" class="btn primary">הוספה</button>
@@ -772,59 +850,141 @@ async function loadUsers(){
 }
 
 /* ============ לוח העבודה ============ */
-/* boardFilter: '' = התצוגה הרגילה (מה שפתוח, מקובץ לפי מטרות).
-   'task' / 'goal' / 'late' / 'done' — לחיצה על אחת הקופסאות שלמעלה. */
-let boardFilter='';
-const FILTER_TEXT={task:'משימות פתוחות',goal:'מטרות ופרויקטים',
-  late:'משימות שעברו את תאריך היעד',done:'מה שהסתיים'};
-function boardPick(all){
-  if(boardFilter==='done')return all.filter(x=>x.status==='done');
-  const open=all.filter(x=>x.status!=='done');
-  if(boardFilter==='task')return open.filter(x=>x.type==='task');
-  if(boardFilter==='goal')return open.filter(x=>x.type==='goal');
-  if(boardFilter==='late')return open.filter(x=>x.due_date&&x.due_date<today());
-  return open;
+/* מטרה = מכל עם מנהל ורשימת משימות. משימה = פריט קל, עם אחראי או בלי,
+   שייך למטרה או לא. אותה משימה מופיעה בשני המקומות — זו אותה שורה. */
+const bf={q:'',time:'all',who:'all',goal:'',owner:'',mgr:'',status:'open'};
+const isGoal=x=>x.type==='goal';
+const kidsOf=id=>items.filter(y=>y.parent_id===id&&y.type==='task');
+const mgrNames=id=>ownerNames(id);                 // על מטרה, "אחראי" נקרא מנהל
+/** כמה ימים מהיום (שלילי = עבר) */
+const dayDiff=d=>Math.round((new Date(d+'T12:00:00Z')-new Date(today()+'T12:00:00Z'))/864e5);
+/** חלון הזמן כולל תמיד את מה שכבר עבר ולא בוצע. בלי תאריך — רק ב"הכל". */
+function inWindow(x){
+  if(bf.time==='all')return true;
+  if(!x.due_date)return false;
+  return dayDiff(x.due_date)<=Number(bf.time);
+}
+function hitsQuery(x){
+  if(!bf.q)return true;
+  const g=items.find(y=>y.id===x.parent_id);
+  return [x.title,x.action_title,ownerNames(x.id),g&&g.title,x.notes]
+    .some(v=>(v||'').includes(bf.q));
+}
+function passes(x){
+  if(bf.status==='open'&&x.status==='done')return false;
+  if(bf.status==='done'&&x.status!=='done')return false;
+  const mine=myPersonIds(), owns=ownerIds(x.id);
+  if(bf.who==='mine'&&!owns.some(i=>mine.includes(i)))return false;
+  if(bf.who==='team'&&(owns.some(i=>mine.includes(i))||!owns.length))return false;
+  if(bf.goal==='none'&&x.parent_id)return false;
+  if(bf.goal&&bf.goal!=='none'&&x.parent_id!==bf.goal)return false;
+  if(bf.owner==='none'&&owns.length)return false;
+  if(bf.owner&&bf.owner!=='none'&&!owns.includes(bf.owner))return false;
+  if(bf.mgr){const g=items.find(y=>y.id===x.parent_id);
+    if(!g||!ownerIds(g.id).includes(bf.mgr))return false}
+  return hitsQuery(x)&&inWindow(x);
+}
+/** מטרה עוברת אם היא עצמה מתאימה, או אם יש בה משימה שמתאימה */
+function goalPasses(g){
+  if(bf.goal==='none')return false;
+  if(bf.goal&&bf.goal!==g.id)return false;
+  if(bf.status==='open'&&g.status==='done')return false;
+  if(bf.status==='done'&&g.status!=='done')return false;
+  const owns=ownerIds(g.id), mine=myPersonIds();
+  if(bf.mgr&&!owns.includes(bf.mgr))return false;
+  if(bf.who==='mine'&&!owns.some(i=>mine.includes(i)))return false;
+  if(bf.who==='team'&&(owns.some(i=>mine.includes(i))||!owns.length))return false;
+  if(bf.owner){if(!kidsOf(g.id).some(t=>bf.owner==='none'?!ownerIds(t.id).length:ownerIds(t.id).includes(bf.owner)))return false}
+  if(bf.q&&!hitsQuery(g)&&!kidsOf(g.id).some(hitsQuery))return false;
+  return true;
+}
+/** שורת משימה. inGoal=true בתוך פאנל המטרה — שם לא חוזרים על שם המטרה */
+function taskRow(x,inGoal){
+  const g=items.find(y=>y.id===x.parent_id);
+  const late=x.due_date&&x.status!=='done'&&x.due_date<today();
+  const d=x.due_date?dayDiff(x.due_date):null;
+  const when=!x.due_date?'<span class="pill none">בלי תאריך</span>'
+    :`<span class="${late?'late':''}" title="${esc(hebFull(new Date(x.due_date)))}">🗓 ${
+        late?'באיחור · '+fmt(x.due_date):d===0?'היום':d===1?'מחר':fmt(x.due_date)}</span>`;
+  const hol=x.due_date?holidayText(new Date(x.due_date)):'';
+  const names=ownerNames(x.id);
+  return `<div class="trow${x.status==='done'?' done':''}" data-open="${x.id}">
+    <button class="chk${x.status==='done'?' on':''}" data-toggle="${x.id}"
+      title="${x.status==='done'?'לפתוח מחדש':'לסמן כבוצע'}">✓</button>
+    <div class="tbody">
+      <div class="ttext">${esc(x.title)}</div>
+      ${x.action_title?`<div class="tsub">${esc(x.action_title)}</div>`:''}
+      <div class="tmeta">${when}
+        <span class="pill ${names?'who':'none'}">${esc(names||'ללא אחראי')}</span>
+        ${x.status==='waiting'?'<span class="pill">ממתין</span>':''}
+        ${hol?`<span class="pill goal">${esc(hol)}</span>`:''}
+        ${!inGoal&&g?`<span class="pill goal">${esc(g.title)}</span>`:''}
+        ${allMode&&!inGoal?`<span class="pill">${esc(spaceName(x.space_id))}</span>`:''}
+      </div>
+      ${x.notes?`<div class="tsub rt" style="margin-top:5px">${richHtml(String(x.notes).slice(0,160))}</div>`:''}
+    </div></div>`;
+}
+function goalCard(g){
+  const k=kidsOf(g.id), open=k.filter(t=>t.status!=='done').length;
+  const pct=k.length?Math.round((k.length-open)/k.length*100):0;
+  const late=k.filter(t=>t.status!=='done'&&t.due_date&&t.due_date<today()).length;
+  return `<div class="goalcard${g.status==='done'?' done':''}" data-open="${g.id}" tabindex="0">
+    <div class="goaltop"><span class="gtag">מטרה</span>
+      ${g.due_date?`<span class="muted" style="margin-inline-start:auto;font-size:12.5px${g.due_date<today()&&g.status!=='done'?';color:var(--danger);font-weight:600':''}">${fmt(g.due_date)}</span>`:''}</div>
+    <h3>${esc(g.title)}</h3>
+    ${g.action_title?`<div class="gnext"><span>הצעד הבא</span>${esc(g.action_title)}</div>`:''}
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    <div class="gmeta"><span>${k.length?`${open} פתוחות מתוך ${k.length}`:'עדיין בלי משימות'}</span>
+      ${late?`<span class="late">${late} באיחור</span>`:''}
+      <span>מנהל: ${esc(mgrNames(g.id)||'—')}</span>
+      ${allMode?`<span>${esc(spaceName(g.space_id))}</span>`:''}</div>
+  </div>`;
+}
+function fillBoardFilters(){
+  const ppl=people.filter(p=>allMode||!space||p.space_id===space.id);
+  const goals=items.filter(isGoal);
+  $('#fGoal').innerHTML='<option value="">כל המטרות</option><option value="none">בלי מטרה</option>'
+    +goals.map(g=>`<option value="${g.id}"${g.id===bf.goal?' selected':''}>${esc(g.title)}</option>`).join('');
+  $('#fOwner').innerHTML='<option value="">כל האחראים</option><option value="none">ללא אחראי</option>'
+    +ppl.map(p=>`<option value="${p.id}"${p.id===bf.owner?' selected':''}>${esc(p.name)}</option>`).join('');
+  const mgrIds=[...new Set(goals.flatMap(g=>ownerIds(g.id)))];
+  $('#fMgr').innerHTML='<option value="">כל המנהלים</option>'
+    +mgrIds.map(id=>`<option value="${id}"${id===bf.mgr?' selected':''}>${esc(personName(id))}</option>`).join('');
+  $('#fStatus').value=bf.status;
+  $('#fGoal').value=bf.goal;$('#fOwner').value=bf.owner;$('#fMgr').value=bf.mgr;
+  document.querySelectorAll('#segTime button').forEach(b=>b.classList.toggle('on',b.dataset.time===bf.time));
+  document.querySelectorAll('#segWho button').forEach(b=>b.classList.toggle('on',b.dataset.who===bf.who));
+}
+/** למה המסך ריק — ובלי להשאיר את המשתמש לנחש */
+function emptyMsg(){
+  if(!items.some(x=>!isGoal(x)))return 'אין עדיין משימות. אפשר להתחיל מ«＋ משימה חדשה».';
+  if(bf.who==='mine'){
+    const other=items.filter(x=>!isGoal(x)&&x.status!=='done').length;
+    if(other)return `אין משימות פתוחות עליך. יש ${other} באזור — «הכל» מציג אותן.`;
+  }
+  return 'אין משימות שמתאימות לסינון הזה.';
 }
 function render(){
-  const open=items.filter(x=>x.status!=='done');
-  const tasks=open.filter(x=>x.type==='task'), goals=open.filter(x=>x.type==='goal');
-  $('#taskCount').textContent=tasks.length;
-  $('#goalCount').textContent=goals.length;
-  $('#lateCount').textContent=open.filter(x=>x.due_date&&x.due_date<today()).length;
-  $('#doneCount').textContent=items.filter(x=>x.status==='done').length;
-  document.querySelectorAll('[data-stat]').forEach(b=>b.classList.toggle('on',b.dataset.stat===boardFilter));
-  $('#boardFilterBar').classList.toggle('hidden',!boardFilter);
-  if(boardFilter)$('#boardFilterText').innerHTML=`מציג: <b>${esc(FILTER_TEXT[boardFilter])}</b>`;
+  fillBoardFilters();
+  const tasks=items.filter(x=>!isGoal(x)&&passes(x));
+  const goals=items.filter(x=>isGoal(x)&&goalPasses(x));
 
-  const shown=boardPick(items);
-  const blocks=allMode
-    ? spaces.filter(s=>shown.some(i=>i.space_id===s.id)).map(s=>({sp:s,list:shown.filter(i=>i.space_id===s.id)}))
-    : [{sp:null,list:shown}];
+  $('#goalGrid').innerHTML=goals.map(goalCard).join('')
+    ||`<div class="empty">${esc(bf.q||bf.goal||bf.mgr||bf.owner?'אין מטרות שמתאימות לסינון.':'עדיין אין מטרות. «＋ מטרה חדשה» פותחת אחת.')}</div>`;
 
-  const emptyText=boardFilter==='done'
-    ?'עדיין לא סומן כאן שום דבר כבוצע.'
-    :boardFilter?'אין פריטים שמתאימים לבחירה הזו.'
-    :`אין עדיין משימות ${allMode?'באף אזור':'באזור הזה'}. אפשר להתחיל מ«משימה חדשה».`;
+  // בלי מטרה קודם, ואז לפי תאריך — מה שאין לו תאריך בסוף
+  const ord=a=>a.due_date?a.due_date:'9999-99-99';
+  tasks.sort((a,b)=>ord(a).localeCompare(ord(b)));
+  $('#taskHead').textContent=bf.goal==='none'?'משימות בלי מטרה':'משימות';
+  $('#board').innerHTML=tasks.length
+    ?`<div class="tasklist">${tasks.map(t=>taskRow(t,false)).join('')}</div>`
+    :`<div class="empty">${emptyMsg()}</div>`;
 
-  $('#board').innerHTML=(shown.length?blocks.map(bl=>{
-    const bt=bl.list.filter(x=>x.type==='task'), bg=bl.list.filter(x=>x.type==='goal');
-    const head=bl.sp?`<div class="spacehead"><h2>${esc(bl.sp.name)}</h2><span class="count">${bt.length} משימות · ${bg.length} מטרות</span></div>`:'';
-    // בתצוגה מסוננת אין קיבוץ — רשת אחת פשוטה
-    if(boardFilter)return `<div class="spaceblock">${head}<div class="grid">${bl.list.map(card).join('')}</div></div>`;
-    // מטרה עם משימות מקבלת בלוק משלה; מטרה ריקה ומשימה בלי מטרה נכנסות יחד לרשת אחת
-    const groups=bg.map(g=>({goal:g,list:bt.filter(x=>x.parent_id===g.id)})).filter(gr=>gr.list.length);
-    const grouped=new Set(groups.map(gr=>gr.goal.id));
-    const singles=bg.filter(g=>!grouped.has(g.id))
-      .concat(bt.filter(x=>!x.parent_id||!bg.some(g=>g.id===x.parent_id)));
-    return `<div class="spaceblock">${head}`
-      +groups.map(gr=>`<div class="group hasgoal">
-        <div class="grid">${card(gr.goal)}${gr.list.map(card).join('')}</div>
-      </div>`).join('')
-      +(singles.length?`<div class="grid">${singles.map(card).join('')}</div>`:'')
-      +`</div>`;
-  }).join('')
-    :`<div class="empty">${esc(emptyText)}</div>`);
+  const late=tasks.filter(t=>t.status!=='done'&&t.due_date&&t.due_date<today()).length;
+  $('#bcount').innerHTML=`<b>${tasks.length}</b> משימות · <b>${goals.length}</b> מטרות`
+    +(late?` · <b style="color:var(--danger)">${late}</b> באיחור`:'');
 
+  // טבלת "כל המשימות" — ללא שינוי
   const q=$('#search').value.trim(), f=$('#filter').value;
   const filtered=items.filter(x=>(f==='all'||(f==='open'?x.status!=='done':x.status===f))
     &&(!q||[x.title,x.action_title,ownerNames(x.id)].some(v=>(v||'').includes(q))));
@@ -833,7 +993,7 @@ function render(){
   $('#rows').innerHTML=filtered.map(x=>`<tr data-open="${x.id}" style="cursor:pointer">
     ${allMode?`<td>${esc(spaceName(x.space_id))}</td>`:''}
     <td><b>${esc(x.title)}</b></td>
-    <td>${x.type==='goal'?'מטרה':'משימה'}</td>
+    <td>${isGoal(x)?'מטרה':'משימה'}</td>
     <td>${esc(items.find(y=>y.id===x.parent_id)?.title||'—')}</td>
     <td>${esc(x.action_title||'—')}</td>
     <td>${esc(ownerNames(x.id)||'—')}</td>
@@ -842,17 +1002,6 @@ function render(){
     <td><button class="btn small" data-edit="${x.id}">פתיחה</button></td></tr>`).join('')
     ||`<tr><td colspan="${allMode?9:8}" style="text-align:center;padding:40px">לא נמצאו פריטים</td></tr>`;
 }
-const card=x=>`<article class="card${x.type==='goal'?' goal':''}${x.status==='done'?' done':''}" data-open="${x.id}" tabindex="0">
-  <div class="cardtop"><div>${x.type==='goal'?'<span class="goaltag">מטרה</span> ':''}${statusTag(x.status)}<h3 style="margin-top:8px">${esc(x.title)}</h3></div>
-    ${x.status==='done'?`<button class="btn small" data-reopen="${x.id}">↩ פתיחה מחדש</button>`
-                       :`<button class="btn small" data-complete="${x.id}">✓ בוצע</button>`}</div>
-  <div class="next"><span>${x.type==='goal'?'הצעד הבא במטרה':'הפעולה הבאה'}</span><b>${esc(x.action_title||'לא הוגדרה פעולה')}</b></div>
-  ${x.type==='goal'?(()=>{const k=items.filter(y=>y.parent_id===x.id);const open=k.filter(y=>y.status!=='done').length;
-    return `<div class="goalcount">${k.length?`${open} פתוחות מתוך ${k.length} משימות`:'עדיין בלי משימות'}</div>`})():''}
-  <div class="meta"><span>${ownerIds(x.id).length>1?'👥':'👤'} ${esc(ownerNames(x.id)||'ללא אחראי')}</span>
-    <span${x.due_date&&x.due_date<today()?' style="color:#a3251c;font-weight:600"':''}>🗓 ${fmt(x.due_date)}${x.due_date?` · ${esc(hebFull(new Date(x.due_date)))}`:''}</span>
-    ${x.due_date&&holidayText(new Date(x.due_date))?`<span class="tag" style="background:#fbf1dc;color:#8a6509;border-color:#eddcb8">${esc(holidayText(new Date(x.due_date)))}</span>`:''}</div>
-  ${x.notes?`<div class="cardnotes rt">${x.last_note_at?`<span class="stamp">🕒 ${esc(stampOf(x.last_note_at))}${x.last_note_by?' · '+esc(x.last_note_by):''}</span>`:''}${richHtml(x.notes)}</div>`:''}</article>`;
 
 /* ============ לוח שנה ============ */
 /* ---------- תאריך עברי ---------- */
@@ -1091,12 +1240,14 @@ function fillSelects(sel={}){
 let dlgOwners=[];
 function renderOwners(){
   const sid=dlgSpace();
+  const g=$('#itemType').value==='goal';
   $('#ownerChips').innerHTML=dlgOwners.length
     ?dlgOwners.map(id=>`<span class="ochip"><span>${esc(personName(id)||'—')}</span>`
       +`<button type="button" data-rmowner="${id}" title="הסרה">✕</button></span>`).join('')
-    :'<span class="ochipnone">אין עדיין אחראי</span>';
+    :`<span class="ochipnone">${g?'עדיין בלי מנהל':'אין עדיין אחראי'}</span>`;
   const left=people.filter(p=>p.space_id===sid&&!dlgOwners.includes(p.id));
-  $('#owner').innerHTML=`<option value="">${dlgOwners.length?'הוספת אחראי…':'בחירת אחראי…'}</option>`
+  $('#owner').innerHTML=`<option value="">${g?(dlgOwners.length?'הוספת מנהל…':'בחירת מנהל…')
+                                            :(dlgOwners.length?'הוספת אחראי…':'בחירת אחראי…')}</option>`
     +left.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')
     +`<option value="${NEW}">＋ אדם חדש…</option>`;
 }
@@ -1125,12 +1276,46 @@ function syncOwnerId(id){
   const x=items.find(y=>y.id===id); if(!x)return;
   x.owner_id=dlgOwners[0]||null;
 }
+/* מטרה ומשימה הם שני מסכים שונים באותו פאנל:
+   מטרה — שם, מנהל, "הצעד הבא", ובמרכז רשימת המשימות שלה.
+   משימה — שורת תוכן אחת, אחראי, שיוך למטרה, ויומן. בלי שדה "פעולה" חדש;
+   הוא מוצג רק במשימות ישנות שכבר יש בהן טקסט, וניתן למחיקה. */
+let goalPanelId='';
 function typeChanged(){
-  const isGoal=$('#itemType').value==='goal';
-  $('#parentField').classList.toggle('hidden',isGoal);
-  if(isGoal){$('#parent').value='';$('#quickGoalBox').classList.add('hidden')}
-  $('#xKind').textContent=isGoal?'מטרה / פרויקט':'משימה';
-  if(!$('#itemId').value)$('#formTitle').textContent=isGoal?'מטרה / פרויקט חדש':'משימה חדשה';
+  const g=$('#itemType').value==='goal', id=curId();
+  $('#parentField').classList.toggle('hidden',g);
+  if(g){$('#parent').value='';$('#quickGoalBox').classList.add('hidden')}
+  $('#xKind').textContent=g?'מטרה':'משימה';
+  $('#itemTitle').placeholder=g?'שם המטרה או הפרויקט':'מה צריך לעשות?';
+  $('#ownerField').firstChild.textContent=g?'מנהל המטרה':'אחראים';
+  $('#actionField').firstChild.textContent=g?'הצעד הבא במטרה':'הפעולה הבאה';
+  // במשימה השדה מוצג רק אם כבר יש בו תוכן (שדה ישן)
+  $('#actionField').classList.toggle('hidden',!g&&!$('#action').value.trim());
+  renderOwners();                       // הניסוח של "אחראי"/"מנהל" תלוי בסוג
+  goalPanelId=g&&id?id:'';
+  $('#goalTasksBox').classList.toggle('hidden',!goalPanelId);
+  if(goalPanelId)paintGoalTasks();
+  if(!id)$('#formTitle').textContent=g?'מטרה חדשה':'משימה חדשה';
+}
+/** רשימת המשימות של המטרה שבתוך הפאנל */
+function paintGoalTasks(){
+  if(!goalPanelId)return;
+  const k=kidsOf(goalPanelId), open=k.filter(t=>t.status!=='done').length;
+  $('#goalTaskCount').textContent=k.length?`${open} פתוחות מתוך ${k.length}`:'';
+  $('#goalTasks').innerHTML=k.map(t=>taskRow(t,true)).join('')
+    ||'<div class="muted" style="padding:16px;text-align:center">עדיין אין משימות במטרה הזו. אפשר לכתוב אחת למטה.</div>';
+}
+/** הוספה מהירה: שורת טקסט אחת והמשימה נוצרת בתוך המטרה */
+async function addGoalTask(){
+  const t=$('#goalAdd').value.trim(); if(!t||!goalPanelId)return;
+  const g=items.find(y=>y.id===goalPanelId); if(!g)return;
+  $('#goalAdd').disabled=true;
+  const {error}=await db.from('items').insert({space_id:g.space_id,title:t,type:'task',
+    parent_id:goalPanelId,action_title:'',owner_id:null,due_date:null,status:'active',created_by:user.id});
+  $('#goalAdd').disabled=false;
+  if(error){alert(heb(error));return}
+  $('#goalAdd').value='';$('#goalAdd').focus();
+  await loadSpace();paintGoalTasks();
 }
 
 /* ============ טקסט עשיר ============
@@ -1340,6 +1525,7 @@ function openItem(kind='task',id=''){
   $('#quickPersonBox').classList.add('hidden');$('#quickPersonName').value='';
   $('#quickGoalBox').classList.add('hidden');$('#quickGoalName').value='';
   ED().innerHTML='';editingNote=null;dirty=false;notes=[];notesOk=true;
+  goalPanelId='';$('#goalAdd').value='';
   typeChanged();dueHebUpdate();whereUpdate();composerMode();renderNotes();
   $('#itemDialog').showModal();
   $('#itemDialog .xmain').scrollTop=0;
@@ -1401,7 +1587,7 @@ document.addEventListener('click',async e=>{
     $('#adminView').classList.toggle('hidden',view!=='admin');
     $('#newActions').classList.toggle('hidden',view==='team'||view==='admin');
     if(view==='cal')renderCal();
-    const t={board:['לוח עבודה','המשימות הפתוחות'],all:['ניהול משימות','כל המטרות והמשימות'],
+    const t={board:['לוח עבודה','המטרות והמשימות'],all:['ניהול משימות','כל המטרות והמשימות'],
              cal:['לוח שנה','מתי כל דבר צריך לקרות'],
              team:['האזור',(space?space.name+' — צוות ואנשים':'צוות ואנשים')],admin:['ניהול מערכת','מי רשום למערכת']}[view];
     $('#eyebrow').textContent=t[0];$('#title').textContent=t[1];
@@ -1440,26 +1626,21 @@ document.addEventListener('click',async e=>{
   if(b.dataset.newday&&!b.dataset.edit){openItem('task');$('#due').value=b.dataset.newday;return}
   if(b.dataset.new)openItem(b.dataset.new);
   if(b.dataset.edit)openItem('',b.dataset.edit);
-  if(b.dataset.stat){
-    boardFilter=boardFilter===b.dataset.stat?'':b.dataset.stat;render();return;
-  }
-  if(b.dataset.complete){
-    const id=b.dataset.complete, x=items.find(y=>y.id===id)||{}, was=x.status||'active';
-    const {error}=await db.from('items').update({status:'done'}).eq('id',id);
+  // ✓ בשורת המשימה — סימון ופתיחה מחדש, עם ביטול
+  if(b.dataset.toggle){
+    const id=b.dataset.toggle, x=items.find(y=>y.id===id)||{}, was=x.status||'active';
+    const to=was==='done'?'active':'done';
+    const {error}=await db.from('items').update({status:to}).eq('id',id);
     if(error){alert(heb(error));return}
+    x.status=to;render();                       // מיידי, בלי להמתין לטעינה
+    if(curId()===id)$('#itemStatus').value=to;
+    if(goalPanelId)paintGoalTasks();
     await loadSpace();
-    toast(`«${x.title||'הפריט'}» עבר ל«הסתיימו»`,'ביטול',async()=>{
+    toast(to==='done'?`«${(x.title||'הפריט').slice(0,40)}» סומנה כבוצעה`
+                     :`«${(x.title||'הפריט').slice(0,40)}» חזרה לפתוחות`,'ביטול',async()=>{
       const {error:e2}=await db.from('items').update({status:was}).eq('id',id);
-      if(e2){alert(heb(e2));return} await loadSpace();
+      if(e2){alert(heb(e2));return} await loadSpace();if(goalPanelId)paintGoalTasks();
     });
-    return;
-  }
-  if(b.dataset.reopen){
-    const x=items.find(y=>y.id===b.dataset.reopen)||{};
-    const {error}=await db.from('items').update({status:'active'}).eq('id',b.dataset.reopen);
-    if(error){alert(heb(error));return}
-    await loadSpace();
-    toast(`«${x.title||'הפריט'}» חזר ללוח`,'לצפייה',()=>{boardFilter='';render()});
     return;
   }
   if(b.dataset.rmowner){await removeOwner(b.dataset.rmowner);return}
@@ -1506,7 +1687,21 @@ document.addEventListener('click',async e=>{
 });
 
 $('#calPrev').onclick=()=>{calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()-1,1);renderCal()};
-$('#boardFilterClear').onclick=()=>{boardFilter='';render()};
+
+/* ---------- פקדי הסינון של הלוח ---------- */
+let bqTimer=null;
+$('#bq').addEventListener('input',()=>{clearTimeout(bqTimer);
+  bqTimer=setTimeout(()=>{bf.q=$('#bq').value.trim();render()},180)});
+$('#segTime').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;bf.time=b.dataset.time;render()});
+$('#segWho').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;bf.who=b.dataset.who;render()});
+$('#fGoal').onchange=e=>{bf.goal=e.target.value;render()};
+$('#fOwner').onchange=e=>{bf.owner=e.target.value;render()};
+$('#fMgr').onchange=e=>{bf.mgr=e.target.value;render()};
+$('#fStatus').onchange=e=>{bf.status=e.target.value;render()};
+$('#fClear').onclick=()=>{Object.assign(bf,{q:'',time:'all',who:'all',goal:'',owner:'',mgr:'',status:'open'});
+  $('#bq').value='';render()};
+
+$('#goalAddBtn').onclick=addGoalTask;
 $('#calNext').onclick=()=>{calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+1,1);renderCal()};
 $('#calToday').onclick=()=>{calMonth=new Date();renderCal()};
 $('#spaceSel').onchange=async e=>{
@@ -1522,7 +1717,7 @@ $('#renameSpaceBtn').onclick=async()=>{
   if(error){msg(heb(error),'err','#spaceMsg');$('#spaceMsg').classList.remove('hidden');return}
   await loadSpaces();space=spaces.find(s=>s.id===space.id)||space;$('#spaceSel').value=space.id;
   msg('השם עודכן.','ok','#spaceMsg');$('#spaceMsg').classList.remove('hidden');
-  const t={board:['לוח עבודה','המשימות הפתוחות'],all:['ניהול משימות','כל המטרות והמשימות'],
+  const t={board:['לוח עבודה','המטרות והמשימות'],all:['ניהול משימות','כל המטרות והמשימות'],
            team:['האזור',space.name+' — צוות ואנשים'],admin:['ניהול מערכת','מי רשום למערכת']}[view];
   $('#title').textContent=t[1];
 };
@@ -1679,6 +1874,7 @@ $('#addMemberBtn').onclick=async()=>{
   if(data==='ok'){$('#memberEmail').value='';await loadTeam()}
 };
 const onEnter=(sel,fn)=>{const el=$(sel);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fn()}})};
+onEnter('#goalAdd',addGoalTask);
 onEnter('#personName',()=>$('#addPersonBtn').click());
 onEnter('#memberEmail',()=>$('#addMemberBtn').click());
 onEnter('#spaceRename',()=>$('#renameSpaceBtn').click());
