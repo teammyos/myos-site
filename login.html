@@ -154,15 +154,15 @@
     <p class="msg" id="msg" role="status"></p>
     <p class="links">
       <a id="forgot">שכחתי סיסמה</a> ·
-      עדיין אין חשבון? <a id="openRegister">הרשמה לניסיון</a>
+      עדיין אין חשבון? <a id="openRegister">הרשמה חינם</a>
     </p>
     <p class="links" style="margin-top:.45rem"><a id="openContact">או צרו קשר</a></p>
     <p class="links" style="margin-top:.9rem;padding-top:.8rem;border-top:1px solid #2a3a58">עדיין לא התקנתם את התוסף? <a href="/install/">מדריך התקנה ב-4 צעדים</a></p>
   </form>
 
-  <!-- ---------- הרשמה לניסיון ---------- -->
+  <!-- ---------- הרשמה ---------- -->
   <form id="registerForm" class="hidden">
-    <h1>הרשמה — ניסיון MyOS עסקאות</h1>
+    <h1>הרשמה ל-MyOS עסקאות</h1>
     <label for="rName">שם מלא</label>
     <input id="rName" type="text" autocomplete="name" required>
     <label for="rEmail">דוא״ל</label>
@@ -391,7 +391,7 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
   attachEye('password', 'pwEye');
   attachEye('rPassword', 'rEye');
 
-  /* ---------- הרשמה לניסיון ---------- */
+  /* ---------- הרשמה ---------- */
   $('openRegister').addEventListener('click', function () {
     $('loginForm').classList.add('hidden');
     $('registerForm').classList.remove('hidden');
@@ -434,18 +434,18 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     /* ההתרעה על נרשם חדש נשלחת אוטומטית בצד השרת (טריגר DB → notify-signup),
        אמין ב-100% וגם עבור הרשמות Google — אין צורך בשליחה מהדפדפן. */
     $('rSubmit').disabled = false;
-    /* מאז 005_auto_trial הניסיון מאושר אוטומטית — אין המתנה לאישור.
+    /* מאז 005_auto_trial החשבון מאושר אוטומטית — אין המתנה לאישור.
        אם Supabase החזיר session (אימות מייל כבוי): מחוברים; מהתוסף — מעבירים מיד. */
     var sess = r.data && r.data.session;
     var back = extRedirect();
     if (sess && back) { forwardToExt(sess, back); return; }
     $('registerForm').reset();
     if (sess) {
-      showDone(email, 'נרשמת בהצלחה!', 'תקופת הניסיון פעילה ואתם כבר מחוברים. הצעד הבא:', true);
+      showDone(email, 'נרשמת בהצלחה!', 'החשבון פעיל ואתם כבר מחוברים. הצעד הבא:', true);
     } else {
       /* אימות מייל פעיל: קודם מאשרים בקישור שנשלח, ואז מתחברים */
       $('rStatus').className = 'msg ok';
-      $('rStatus').innerHTML = 'נרשמת בהצלחה! תקופת הניסיון פעילה.<br>שלחנו קישור אימות ל-<b dir="ltr">' + esc(email) + '</b> — לחצו עליו, ואז חזרו לכאן ל"התחברות".<br>' +
+      $('rStatus').innerHTML = 'נרשמת בהצלחה! החשבון פעיל.<br>שלחנו קישור אימות ל-<b dir="ltr">' + esc(email) + '</b> — לחצו עליו, ואז חזרו לכאן ל"התחברות".<br>' +
         'בינתיים: <a href="/install/">התקנה ותחילת עבודה — צעד אחר צעד</a>';
     }
   });
@@ -468,7 +468,7 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
         /* Supabase לא מבחין בין "אין חשבון" ל"סיסמה שגויה" — מציגים את שתי האפשרויות */
         $('msg').className = 'msg err';
         $('msg').innerHTML = 'ההתחברות נכשלה. או שהסיסמה שגויה — או ש<b>עדיין אין חשבון</b> עם המייל הזה.<br>' +
-          '<a id="msgRegister">הרשמה לניסיון חינם</a> (דקה, בלי כרטיס אשראי) · <a id="msgForgot">שכחתי סיסמה</a>';
+          '<a id="msgRegister">הרשמה חינם</a> (דקה, בלי כרטיס אשראי) · <a id="msgForgot">שכחתי סיסמה</a>';
         $('msgRegister').addEventListener('click', function () {
           $('rEmail').value = $('email').value.trim();
           $('openRegister').click();
