@@ -183,10 +183,27 @@ dialog.xl::backdrop{background:#0e1a3380;backdrop-filter:blur(6px)}
 .logsum::before{content:'▸';color:var(--muted);font-size:13px;transition:transform .15s}
 #logBox[open] .logsum::before{transform:rotate(-90deg)}
 #logBox{border-top:1px solid var(--line);margin-top:4px}
-.addtask{display:flex;gap:8px;margin-top:10px}
-.addtask input{flex:1;border-style:dashed;background:var(--alt)}
-.addtask input:focus{border-style:solid;background:#fff}
-.xmain .tasklist .trow{padding:11px 13px}
+.sublist{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.subcard{background:#fdf1cf;border:1px solid #e6c65a;border-inline-start:3px solid #d9af34;
+  border-radius:9px;padding:8px 11px}
+.subcard.done{background:#f4f2ec;border-color:#ddd8cc;border-inline-start-color:#c4bdae}
+.subtop{display:flex;align-items:baseline;gap:8px;font-size:12px}
+.subtop b{color:#8a6509}
+.subcard.done .subtop b{color:var(--muted)}
+.subtop .m{margin-inline-start:auto;color:var(--muted)}
+.subtext{margin:4px 0 6px;line-height:1.55;overflow-wrap:anywhere}
+.subcard.done .subtext{text-decoration:line-through;color:#8d96a3}
+.subact{display:flex;gap:16px;font-size:12.5px}
+.subact button{background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--ok);font-weight:600}
+.subact button.plain{color:var(--muted);font-weight:400}
+.subact button:hover{text-decoration:underline}
+.subnew{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:var(--alt)}
+.subnewtop{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.subnewrow{display:flex;gap:8px}
+.subnewrow input{flex:1;background:#fff}
+#doneBox{margin-top:14px;border-top:1px solid var(--line)}
+#doneBox .cnt{background:var(--alt);border:1px solid var(--line);border-radius:999px;
+  font-size:11.5px;font-weight:600;color:var(--muted);padding:0 8px}
 .ochips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px}
 .ochip{display:inline-flex;align-items:center;gap:6px;background:#eaf4f3;border:1px solid #bfdedb;
   border-radius:999px;padding:3px;padding-inline-start:10px;font-size:13px;font-weight:600;color:#134e4a}
@@ -653,29 +670,19 @@ dialog::backdrop{background:#0e1a3388}
     <div class="xmain">
       <label id="actionField">הצעד הבא במטרה<input id="action" class="control" placeholder="מה הדבר הבא שמקדם את המטרה"></label>
       <div id="goalTasksBox">
-        <div class="logh"><span id="subHead">המשימות</span> <span class="muted" id="goalTaskCount"></span></div>
-        <div id="goalTasks" class="tasklist" style="margin-top:8px"></div>
-        <div class="addtask">
-          <input id="goalAdd" class="control" placeholder="להוספת משימה — כותבים ו-Enter" autocomplete="off">
-          <button type="button" id="goalAddBtn" class="btn">הוספה</button>
+        <div class="logh"><span id="subHead">משימות</span> <span class="muted" id="goalTaskCount"></span></div>
+        <div id="goalTasks" class="sublist"></div>
+        <div class="subnew">
+          <div class="subnewtop">מיועד ל: <select id="goalAddWho" class="minisel"></select></div>
+          <div class="subnewrow">
+            <input id="goalAdd" class="control" placeholder="כתוב משימה…" autocomplete="off">
+            <button type="button" id="goalAddBtn" class="btn">הוספה</button>
+          </div>
         </div>
+        <details id="doneBox"><summary class="logsum">היסטוריית משימות <span class="cnt" id="doneCnt">0</span></summary>
+          <div id="doneTasks" class="sublist"></div>
+        </details>
       </div>
-      <details id="logBox"><summary class="logsum">יומן <span class="muted" id="logCount"></span></summary>
-      <div class="log" id="noteList"></div>
-      <div class="composer">
-        <div class="rtbar" id="rtbar">
-          <button type="button" data-rt="bold" title="מודגש (Ctrl+B)"><b>B</b></button>
-          <button type="button" data-rt="underline" title="קו תחתון (Ctrl+U)"><u>U</u></button>
-          <button type="button" data-rt="mark" title="סימון בצבע"><span style="background:#fff0a8;padding:0 4px;border-radius:3px">ס</span></button>
-          <span class="sep"></span>
-          <button type="button" data-rt="bullet" title="רשימה">•</button>
-          <button type="button" data-rt="clear" title="ניקוי עיצוב">⌫</button>
-          <span class="hint" id="rtHint">Enter = שורה חדשה · Ctrl+Enter = הוספה</span>
-        </div>
-        <div id="noteEditor" class="rtedit rt" contenteditable="true" data-ph="כתבו כאן הערה — התאריך, השעה והשם נרשמים לבד"></div>
-        <div class="rtfoot" id="noteFoot"><button type="button" id="noteAdd" class="btn small primary">הוספה ליומן</button></div>
-      </div>
-      </details>
     </div>
     <div class="xside">
       <label id="itemSpaceField" class="hidden">אזור<select id="itemSpace" class="control"></select></label>
@@ -1309,35 +1316,56 @@ function typeChanged(){
   renderOwners();                       // הניסוח של "אחראי"/"מנהל" תלוי בסוג
   $('#titleLabel').textContent=g?'שם המטרה':'שם המשימה';
   // רשימת המשימות קיימת בשני הסוגים: במטרה אלו המשימות שלה, במשימה אלו השלבים
-  $('#subHead').textContent=g?'המשימות במטרה':'מה צריך לעשות';
-  $('#goalAdd').placeholder=g?'משימה חדשה במטרה — כותבים ו-Enter':'שלב נוסף — כותבים ו-Enter';
+  $('#subHead').textContent='משימות';
+  $('#goalAdd').placeholder='כתוב משימה…';
   goalPanelId=id||'';
   $('#goalTasksBox').classList.remove('hidden');
   $('#goalAdd').disabled=$('#goalAddBtn').disabled=!goalPanelId;
   if(goalPanelId)paintGoalTasks();
-  else{$('#goalTaskCount').textContent='';
-    $('#goalTasks').innerHTML=`<div class="muted" style="padding:16px;text-align:center">${
-      g?'הרשימה נפתחת ברגע שהמטרה נוצרת.':'הרשימה נפתחת ברגע שהמשימה נוצרת.'}</div>`}
+  else{$('#goalTaskCount').textContent='';$('#doneBox').classList.add('hidden');
+    $('#goalTasks').innerHTML='<div class="muted" style="font-size:13px;padding:4px 2px">הרשימה נפתחת אחרי היצירה.</div>'}
   if(!id)$('#formTitle').textContent=g?'מטרה חדשה':'משימה חדשה';
 }
 /** רשימת המשימות של המטרה שבתוך הפאנל */
+/** מי כתב את המשימה — דרך רשומת האדם שמקושרת לחשבון */
+const creatorName=x=>{const p=people.find(q=>q.user_id&&q.user_id===x.created_by);return p?p.name:''};
+function subCard(x){
+  const names=ownerNames(x.id), done=x.status==='done';
+  return `<div class="subcard${done?' done':''}" data-open="${x.id}">
+    <div class="subtop"><b>${esc(creatorName(x))}</b>
+      <span class="m">${esc(stampOf(x.created_at))}${names?' · '+esc(names):''}</span></div>
+    <div class="subtext">${esc(x.title)}</div>
+    <div class="subact">
+      <button type="button" data-toggle="${x.id}">${done?'↩ פתיחה מחדש':'✓ בוצע'}</button>
+      <button type="button" class="plain" data-open="${x.id}">פתיחה</button>
+    </div></div>`;
+}
 function paintGoalTasks(){
   if(!goalPanelId)return;
   const g=$('#itemType').value==='goal';
-  const k=kidsOf(goalPanelId), open=k.filter(t=>t.status!=='done').length;
-  $('#goalTaskCount').textContent=k.length?`${open} פתוחות מתוך ${k.length}`:'';
-  $('#goalTasks').innerHTML=k.map(t=>taskRow(t,true)).join('')
-    ||`<div class="muted" style="padding:16px;text-align:center">${
-        g?'עדיין אין משימות במטרה הזו. אפשר לכתוב אחת למטה.'
-         :'אפשר לפרט כאן מה צריך לעשות, שורה אחר שורה.'}</div>`;
+  const k=kidsOf(goalPanelId);
+  const open=k.filter(t=>t.status!=='done'), done=k.filter(t=>t.status==='done');
+  $('#goalTaskCount').textContent=k.length?`${open.length} פתוחות`:'';
+  $('#goalTasks').innerHTML=open.map(subCard).join('')
+    ||'<div class="muted" style="font-size:13px;padding:4px 2px">אין משימות פתוחות.</div>';
+  $('#doneCnt').textContent=done.length;
+  $('#doneBox').classList.toggle('hidden',!done.length);
+  $('#doneTasks').innerHTML=done.map(subCard).join('');
+  // "מיועד ל" — אנשי האזור, ברירת מחדל ללא
+  const sid=dlgSpace(), cur=$('#goalAddWho').value;
+  $('#goalAddWho').innerHTML='<option value="">— ללא —</option>'
+    +people.filter(p=>p.space_id===sid).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  if(cur)$('#goalAddWho').value=cur;
 }
-/** הוספה מהירה: שורת טקסט אחת והמשימה נוצרת בתוך המטרה */
+/** הוספה: שורת טקסט אחת, ואם נבחר אדם — גם שיוך */
 async function addGoalTask(){
   const t=$('#goalAdd').value.trim(); if(!t||!goalPanelId)return;
   const g=items.find(y=>y.id===goalPanelId); if(!g)return;
+  const who=$('#goalAddWho').value;
   $('#goalAdd').disabled=true;
-  const {error}=await db.from('items').insert({space_id:g.space_id,title:t,type:'task',
-    parent_id:goalPanelId,action_title:'',owner_id:null,due_date:null,status:'active',created_by:user.id});
+  const {data,error}=await db.from('items').insert({space_id:g.space_id,title:t,type:'task',
+    parent_id:goalPanelId,action_title:'',owner_id:who||null,due_date:null,status:'active',
+    created_by:user.id}).select();
   $('#goalAdd').disabled=false;
   if(error){alert(heb(error));return}
   $('#goalAdd').value='';$('#goalAdd').focus();
@@ -1383,9 +1411,12 @@ function editorText(el,raw=false){
   if(raw)return out.replace(/\u00a0/g,' ');
   return out.replace(/\u00a0/g,' ').replace(/\*\*\*\*|____|====/g,'').replace(/\n{3,}/g,'\n\n').trim();
 }
+/* היומן הוסר מהמסך (019). הפונקציות נשארות מנוטרלות כדי שלא יהיו קריסות,
+   והשרת ממשיך לתעד שינויים בשקט ב-item_notes. */
 const ED=()=>$('#noteEditor');
+const noLog=()=>!$('#noteList');
 function rtCommand(cmd){
-  const ed=ED(); ed.focus();
+  const ed=ED(); if(!ed)return; ed.focus();
   try{document.execCommand('styleWithCSS',false,false)}catch(_){}
   if(cmd==='bold'||cmd==='underline'){document.execCommand(cmd);return}
   const sel=getSelection(); if(!sel.rangeCount)return;
@@ -1410,7 +1441,7 @@ function rtCommand(cmd){
 }
 /** הטקסט של השורה הנוכחית, עד הסמן */
 function lineBeforeCaret(){
-  const ed=ED(), sel=getSelection(); if(!sel.rangeCount)return '';
+  const ed=ED(); if(!ed)return ''; const sel=getSelection(); if(!sel.rangeCount)return '';
   const r=sel.getRangeAt(0), pre=document.createRange();
   pre.selectNodeContents(ed); pre.setEnd(r.startContainer,r.startOffset);
   const tmp=document.createElement('div'); tmp.appendChild(pre.cloneContents());
@@ -1452,6 +1483,7 @@ function whereUpdate(){
 }
 
 function renderNotes(){
+  if(noLog())return;
   const id=curId();
   if(!id){
     $('#logCount').textContent='';
@@ -1478,6 +1510,7 @@ function renderNotes(){
     ||'<div class="muted" style="font-size:13px">עוד אין הערות.</div>';
 }
 async function loadNotes(id){
+  if(noLog())return;
   const {data,error}=await db.from('item_notes').select('*').eq('item_id',id).order('created_at',{ascending:true});
   if(curId()!==id)return;
   notesOk=!error;
@@ -1485,12 +1518,14 @@ async function loadNotes(id){
   renderNotes();
 }
 function composerMode(){
+  if(noLog())return;
   const id=curId();
   $('#noteFoot').classList.toggle('hidden',!id);
   $('#noteAdd').textContent=editingNote?'שמירת העריכה':'הוספה ליומן';
   $('#rtHint').textContent=id?(editingNote?'עורכים הערה קיימת · Esc = ביטול':'Enter = שורה חדשה · Ctrl+Enter = הוספה'):'Enter = שורה חדשה';
 }
 async function addNote(){
+  if(noLog())return true;
   const id=curId(), body=editorText(ED());
   if(!id||!body)return true;
   const q=editingNote
@@ -1498,7 +1533,7 @@ async function addNote(){
     :db.from('item_notes').insert({item_id:id,body,author_id:user.id});
   const {error}=await q;
   if(error){alert(heb(error));return false}
-  editingNote=null;ED().innerHTML='';composerMode();touchedList=true;
+  editingNote=null;if(ED())ED().innerHTML='';composerMode();touchedList=true;
   await loadNotes(id);
   const x=items.find(y=>y.id===id);
   if(x){const last=[...notes].reverse().find(z=>z.kind==='note');x.notes=last?last.body:null;x.last_note_at=last?last.created_at:null;x.last_note_by=last?last.author_name:null}
@@ -1551,8 +1586,8 @@ function openItem(kind='task',id=''){
   $('#xFootNote').textContent=x?'כל שינוי נשמר לבד':'';
   $('#quickPersonBox').classList.add('hidden');$('#quickPersonName').value='';
   $('#quickGoalBox').classList.add('hidden');$('#quickGoalName').value='';
-  ED().innerHTML='';editingNote=null;dirty=false;notes=[];notesOk=true;
-  goalPanelId='';$('#goalAdd').value='';$('#logBox').open=false;
+  if(ED())ED().innerHTML='';editingNote=null;dirty=false;notes=[];notesOk=true;
+  goalPanelId='';$('#goalAdd').value='';
   typeChanged();dueHebUpdate();whereUpdate();composerMode();renderNotes();
   $('#itemDialog').showModal();
   $('#itemDialog .xmain').scrollTop=0;
@@ -1566,9 +1601,9 @@ async function closeItem(){
     if(!$('#itemTitle').value.trim()){const x=items.find(y=>y.id===id);if(x)$('#itemTitle').value=x.title;dirty=true}
     if(!(await saveNow()))return;
     if($('#goalAdd').value.trim())await addGoalTask();      // שורה שנכתבה ולא נוספה
-    if(editorText(ED())&&!(await addNote()))return;
+
   }else{
-    const hasTitle=$('#itemTitle').value.trim(), hasMore=editorText(ED())||$('#action').value.trim();
+    const hasTitle=$('#itemTitle').value.trim(), hasMore=$('#goalAdd').value.trim()||$('#action').value.trim();
     if(hasTitle){await createItem();return}
     if(hasMore&&!confirm('לסגור בלי ליצור? מה שנכתב לא יישמר.'))return;
   }
@@ -1585,7 +1620,7 @@ async function createItem(){
   const row={space_id:sid,title:$('#itemTitle').value.trim(),type:$('#itemType').value,
     parent_id:$('#itemType').value==='goal'?null:($('#parent').value||null),action_title:$('#action').value.trim(),
     owner_id:dlgOwners[0]||null,due_date:$('#due').value||null,status:$('#itemStatus').value,
-    notes:editorText(ED())||null,created_by:user.id};
+    notes:null,created_by:user.id};
   const {data,error}=await db.from('items').insert(row).select();
   if(error){alert(heb(error));return}
   // האחראי הראשון נכנס ל-item_owners דרך השרת; השאר נכתבים כאן
@@ -1802,7 +1837,7 @@ $('#deleteItem').onclick=async()=>{
   dlg.addEventListener('mousedown',e=>{downOut=e.target===dlg});
   dlg.addEventListener('click',e=>{if(e.target===dlg&&downOut)closeItem()});
   dlg.addEventListener('cancel',e=>{e.preventDefault();
-    if(editingNote){editingNote=null;ED().innerHTML='';composerMode();renderNotes();return}
+    if(editingNote&&ED()){editingNote=null;ED().innerHTML='';composerMode();renderNotes();return}
     closeItem()});
   dlg.addEventListener('close',()=>{if(touchedList){touchedList=false;render()}});
 }
@@ -1817,10 +1852,10 @@ $('#itemTitle').addEventListener('input',()=>{
 $('#action').addEventListener('input',()=>schedSave(900));
 $('#itemTitle').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();curId()?$('#action').focus():createItem()}});
 // עורך ההערות
-$('#rtbar').addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()}); // לא לאבד את הסימון
-$('#rtbar').addEventListener('click',e=>{const b=e.target.closest('[data-rt]');if(b)rtCommand(b.dataset.rt)});
-$('#noteAdd').onclick=()=>addNote();
-ED().addEventListener('keydown',e=>{
+if($('#rtbar'))$('#rtbar').addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()}); // לא לאבד את הסימון
+if($('#rtbar'))$('#rtbar').addEventListener('click',e=>{const b=e.target.closest('[data-rt]');if(b)rtCommand(b.dataset.rt)});
+if($('#noteAdd'))$('#noteAdd').onclick=()=>addNote();
+if(ED())ED().addEventListener('keydown',e=>{
   if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();if(curId())addNote();else createItem();return}
   if(e.key==='Enter'){e.preventDefault();
     const line=lineBeforeCaret();
@@ -1829,8 +1864,8 @@ ED().addEventListener('keydown',e=>{
     return}
   if((e.ctrlKey||e.metaKey)&&/^[bu]$/i.test(e.key)){e.preventDefault();rtCommand(e.key.toLowerCase()==='b'?'bold':'underline')}
 });
-ED().addEventListener('paste',e=>{e.preventDefault();document.execCommand('insertText',false,e.clipboardData.getData('text/plain'))});
-$('#noteList').addEventListener('click',async e=>{
+if(ED())ED().addEventListener('paste',e=>{e.preventDefault();document.execCommand('insertText',false,e.clipboardData.getData('text/plain'))});
+if($('#noteList'))$('#noteList').addEventListener('click',async e=>{
   const ed=e.target.closest('[data-noteedit]'), del=e.target.closest('[data-notedel]');
   if(ed){const z=notes.find(n=>n.id===ed.dataset.noteedit);if(!z)return;
     editingNote=z.id;ED().innerHTML=richHtml(z.body,false);composerMode();renderNotes();ED().focus();
