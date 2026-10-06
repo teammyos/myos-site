@@ -375,8 +375,11 @@
   });
   $('q').addEventListener('input', render);
 
+  /* מ-008: משתמש חינמי = plan 'free' + valid_until ריק. מבדילים אותו ממנהל
+   * עם 'lifetime', שגם לו אין תאריך — אחרת כל הלוח נראה "לצמיתות". */
   function validCell(u){
-    if(!u.valid_until) return '<td class="nw"><b style="color:var(--accent)">ללא הגבלה</b></td>';
+    if(!u.valid_until) return '<td class="nw"><b style="color:var(--accent)">'+
+      (u.plan === 'lifetime' ? 'ללא הגבלה' : 'חינם — ללא תאריך')+'</b></td>';
     var days=Math.ceil((new Date(u.valid_until).getTime()-Date.now())/864e5);
     var cls=days<0?' expired':days<=3?' expiring':'';
     return '<td class="nw'+cls+'">'+esc(fmtDate(u.valid_until))+(days<0?' (פג)':days<=7?' ('+days+' ימים)':'')+'</td>';
@@ -464,7 +467,7 @@
       tr.innerHTML=
         '<td class="idx">'+(i+1)+'</td>'+
         '<td class="nmcell">'+nameHtml(u)+'</td>'+
-        '<td class="nw">'+(unlimited?'<span class="pill life">לצמיתות</span>':'<span class="pill active">פעיל</span>')+'</td>'+
+        '<td class="nw">'+(unlimited?(u.plan==='lifetime'?'<span class="pill life">לצמיתות</span>':'<span class="pill active">חינם</span>'):'<span class="pill active">פעיל</span>')+'</td>'+
         validCell(u)+
         lastCell(u)+
         stageCell(u)+
