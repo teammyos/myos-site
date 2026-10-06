@@ -140,7 +140,7 @@
   table.ut .miniadd{padding:.25rem .55rem;font-size:.74rem}
   table.ut .acts{justify-content:flex-start;flex-wrap:nowrap}
   table.ut .noexp{color:#ffb3a4;font-size:.82rem}
-  /* עמודת "שלב" — ציר ההתקדמות של הנרשם: נרשם ← אימת ← התקין ← ייצא */
+  /* עמודת "שלב" — ציר ההתקדמות: נרשם ← אימת ← שליפה ראשונה ← ייצא */
   table.ut .stg{display:inline-block;font-size:.78rem;padding:.18rem .55rem;border-radius:999px;
                 border:1px solid;white-space:nowrap;font-weight:600}
   table.ut .stg-1{color:#ffb3a4;border-color:rgba(255,179,164,.45);background:rgba(255,179,164,.09)}
@@ -357,8 +357,8 @@
     allUsers.forEach(function(u){ f[stageNo(u)]++; });
     $('cnt').innerHTML=(q?'מוצגים '+users.length+' מתוך '+allUsers.length:allUsers.length+' נרשמים')+
       '<span class="sdot"><span class="stg stg-1">'+f[1]+' לא אימתו</span></span>'+
-      '<span class="sdot"><span class="stg stg-2">'+f[2]+' לא התקינו</span></span>'+
-      '<span class="sdot"><span class="stg stg-3">'+f[3]+' התקינו ולא ייצאו</span></span>'+
+      '<span class="sdot"><span class="stg stg-2">'+f[2]+' לא שלפו</span></span>'+
+      '<span class="sdot"><span class="stg stg-3">'+f[3]+' שלפו ולא ייצאו</span></span>'+
       '<span class="sdot"><span class="stg stg-4">'+f[4]+' עובדים</span></span>';
     document.querySelectorAll('table.ut th[data-k]').forEach(function(th){
       var which=th.closest('table').classList.contains('pend')?'pending':'active';
@@ -384,20 +384,23 @@
   /* ---------- עמודת "שלב" ----------
    * ציר אחד במקום להצליב ארבע עמודות בעין. כל שלב נשען על עובדה בשרת:
    *   1 נרשם   — יש שורה, אבל email_confirmed_at ריק (לא לחץ על הקישור במייל)
-   *   2 אימת   — המייל אומת (או נרשם דרך Google), אבל אין מחשב רשום = לא התקין
-   *   3 התקין  — יש מחשב פעיל ב-devices (כלומר גם התחבר בתוסף), אבל 0 ייצואים
+   *   2 אימת          — המייל אומת (או נרשם דרך Google), אבל אין מחשב רשום
+   *   3 שליפה ראשונה  — יש מחשב פעיל ב-devices (נוצר בשליפה/שמירה-לסל), 0 ייצואים
    *   4 ייצא   — יש רשומה ב-export_logs; זה המשתמש שבאמת עובד
    * מה שאי אפשר למדוד: הצמדת האייקון לסרגל — לכרום אין API לזה.
    * (שרתים ישנים שלא מחזירים email_confirmed_at: מתייחסים אליו כ"אומת"
    *  כדי לא לסמן את כולם באדום בטעות.) */
+  /* ⚠ מה באמת נמדד (אומת בקוד, 6.10): שורת מחשב נוצרת **רק** ב-build-excel —
+   * כלומר בשליפה/שמירה-לסל ראשונה. התקנה + התחברות בתוסף לא מייצרות שום
+   * רישום בשרת, ולכן **אין לנו אות ל"התקין"**. התוויות משקפות את מה שנמדד. */
   var STAGES=[null,
-    {t:'נרשם',  s:'לא אימת מייל'},
-    {t:'אימת',  s:'לא התקין'},
-    {t:'התקין', s:'לא ייצא'},
-    {t:'ייצא',  s:''}];
+    {t:'נרשם',         s:'לא אימת מייל'},
+    {t:'אימת',         s:'עוד לא שלף'},
+    {t:'שליפה ראשונה', s:'לא הוריד קובץ'},
+    {t:'ייצא',         s:''}];
   function stageNo(u){
     if((u.export_count||0)>0) return 4;
-    if((u.device_count||0)>0) return 3;
+    if((u.device_count||0)>0) return 3;   /* יש מחשב רשום => כבר ביצע שליפה */
     var known=('email_confirmed_at' in u);
     if(!known || u.email_confirmed_at) return 2;
     return 1;
@@ -408,7 +411,7 @@
     if(n===4){
       sub=(u.export_count||0)+' ייצואים · אחרון '+fmtDateTime(u.last_export_at);
     }else if(n===3 && u.device_count){
-      sub='מחשב רשום · '+(u.last_sign_in_at?'נכנס '+fmtDateTime(u.last_sign_in_at):'');
+      sub='שלף · '+(u.last_sign_in_at?'נכנס '+fmtDateTime(u.last_sign_in_at):'');
     }
     return '<td class="nw"><span class="stg stg-'+n+'">'+n+'. '+esc(st.t)+'</span>'+
            (sub?'<span class="stgsub">'+esc(sub)+'</span>':'')+'</td>';
