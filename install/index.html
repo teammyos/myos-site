@@ -350,6 +350,39 @@
 </script>
 <script src="../js/supabase.umd.js"></script>
 <script>
+/* ---------- דיווח "התקין / התחבר" (6.10.2026) ----------
+ * הדף הזה הוא המקום היחיד שיודע בו-זמנית **מי המשתמש** (session של האתר)
+ * ו**אם התוסף מותקן** (MYOS_PING). בלי הדיווח הזה הלוח לא מבדיל בין
+ * "לא התקין" לבין "התקין ונתקע" — וזה בדיוק ההבדל שקובע למי מרימים טלפון.
+ *
+ * נכתב דרך ה-RPC‏ ext_seen (009) — חותמת זמן + מספר גרסה בלבד. **לא** נרשמת
+ * שורת devices: זו מכסת הרישוי, ורישום שלה כאן היה חוסם למשתמש את המחשב
+ * השני בלי שהוריד קובץ אחד.
+ *
+ * שולח-ושוכח: כישלון לא מוצג, לא נרשם ולא חוסם כלום בדף. */
+window.myosExtReport = (function () {
+  var client = null, pending = null, sentPlain = false, sentLogged = false;
+  function flush() {
+    if (!client || !pending) return;
+    if (pending.logged ? sentLogged : sentPlain) return;
+    if (pending.logged) sentLogged = true; else sentPlain = true;
+    try {
+      client.rpc('ext_seen', { p_version: pending.version || null, p_logged: !!pending.logged })
+            .then(function () {}, function () {});
+    } catch (e) {}
+  }
+  return {
+    /* נקרא כשהתברר שיש session — יכול להגיע אחרי תשובת התוסף, ולהפך */
+    setClient: function (c) { client = c; flush(); },
+    report: function (version, logged) {
+      if (pending && pending.logged && !logged) return;   /* לא יורדים דרגה */
+      pending = { version: version, logged: !!logged };
+      flush();
+    }
+  };
+})();
+</script>
+<script>
 (async function () {
   /* אם כבר יש חשבון מחובר (נרשמו/התחברו ב-login.html) — מסמנים: "מחובר" למעלה, וצעד 1 ב-✓ */
   try {
@@ -359,6 +392,8 @@
       { auth: { autoRefreshToken: false } });
     var sess = (await client.auth.getSession()).data.session;
     if (!sess || !sess.user) return;
+    /* יש חשבון מחובר — מכאן אפשר לדווח על מצב התוסף (ראו myosExtReport) */
+    try { window.myosExtReport.setClient(client); } catch (e) {}
     var email = sess.user.email || '';
     var a = document.getElementById('acct');
     a.className = 'lnk on'; a.innerHTML = '<span class="dot"></span>מחובר ✓ ' + email.replace(/[<>&]/g, '');
@@ -504,6 +539,8 @@
     }
     function onReply(r) {
       if (chrome.runtime.lastError || !r || !r.installed) return;   /* לא מותקן / גרסה ישנה */
+      /* התוסף ענה => מותקן. מדווחים (אם יש חשבון מחובר) — שולח-ושוכח. */
+      try { window.myosExtReport.report(r.version, r.loggedIn); } catch (e) {}
       if (!installedOnce) {
         installedOnce = true;
         markDone('flow2', 'flow2n', null, 'בוצע — התוסף מותקן (גרסה ' + (r.version || '') + ')');
