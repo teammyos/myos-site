@@ -357,8 +357,8 @@
     allUsers.forEach(function(u){ f[stageNo(u)]++; });
     $('cnt').innerHTML=(q?'מוצגים '+users.length+' מתוך '+allUsers.length:allUsers.length+' נרשמים')+
       '<span class="sdot"><span class="stg stg-1">'+f[1]+' לא אימתו</span></span>'+
-      '<span class="sdot"><span class="stg stg-2">'+f[2]+' לא שלפו</span></span>'+
-      '<span class="sdot"><span class="stg stg-3">'+f[3]+' שלפו ולא ייצאו</span></span>'+
+      '<span class="sdot"><span class="stg stg-2">'+f[2]+' לא התקינו</span></span>'+
+      '<span class="sdot"><span class="stg stg-3">'+f[3]+' התקינו ולא שלפו</span></span>'+
       '<span class="sdot"><span class="stg stg-4">'+f[4]+' עובדים</span></span>';
     document.querySelectorAll('table.ut th[data-k]').forEach(function(th){
       var which=th.closest('table').classList.contains('pend')?'pending':'active';
@@ -393,17 +393,22 @@
    * מה שאי אפשר למדוד: הצמדת האייקון לסרגל — לכרום אין API לזה.
    * (שרתים ישנים שלא מחזירים email_confirmed_at: מתייחסים אליו כ"אומת"
    *  כדי לא לסמן את כולם באדום בטעות.) */
-  /* ⚠ מה באמת נמדד (אומת בקוד, 6.10): שורת מחשב נוצרת **רק** ב-build-excel —
-   * כלומר בשליפה/שמירה-לסל ראשונה. התקנה + התחברות בתוסף לא מייצרות שום
-   * רישום בשרת, ולכן **אין לנו אות ל"התקין"**. התוויות משקפות את מה שנמדד. */
+  /* ⚠ מה נמדד בפועל (6.10):
+   *   devices  — נוצר **רק** ב-build-excel (שליפה או שמירה-לסל). כלומר
+   *              "יש מחשב" = "כבר שלף", ולא "התקין".
+   *   ext_*    — מ-009: דף /install מדווח דרך RPC ext_seen כשהתוסף עונה
+   *              ל-MYOS_PING ויש חשבון מחובר. **זה** האות ל"התקין".
+   * מה שעדיין אי אפשר למדוד: הצמדת האייקון לסרגל — לכרום אין API לזה.
+   * (שרת ישן בלי ext_*: הערך undefined, וכל מי שלא שלף נשאר בשלב 2 כמו קודם.) */
   var STAGES=[null,
-    {t:'נרשם',         s:'לא אימת מייל'},
-    {t:'אימת',         s:'עוד לא שלף'},
-    {t:'שליפה ראשונה', s:'לא הוריד קובץ'},
-    {t:'ייצא',         s:''}];
+    {t:'נרשם',  s:'לא אימת מייל'},
+    {t:'אימת',  s:'לא התקין'},
+    {t:'התקין', s:'עוד לא שלף'},
+    {t:'שלף',   s:''}];
   function stageNo(u){
     if((u.export_count||0)>0) return 4;
-    if((u.device_count||0)>0) return 3;   /* יש מחשב רשום => כבר ביצע שליפה */
+    if((u.device_count||0)>0) return 4;   /* מחשב רשום => שלף (אולי רק לסל) */
+    if(u.ext_first_seen) return 3;        /* התוסף זוהה מ-/install */
     var known=('email_confirmed_at' in u);
     if(!known || u.email_confirmed_at) return 2;
     return 1;
@@ -412,9 +417,14 @@
     var n=stageNo(u), st=STAGES[n];
     var sub=st.s;
     if(n===4){
-      sub=(u.export_count||0)+' ייצואים · אחרון '+fmtDateTime(u.last_export_at);
-    }else if(n===3 && u.device_count){
-      sub='שלף · '+(u.last_sign_in_at?'נכנס '+fmtDateTime(u.last_sign_in_at):'');
+      /* מחשב רשום בלי ייצוא = שמר לסל ולא הוריד. שווה טלפון — הוא כמעט שם. */
+      sub=(u.export_count||0)>0
+        ? (u.export_count||0)+' ייצואים · אחרון '+fmtDateTime(u.last_export_at)
+        : 'שמר לסל — עדיין לא הוריד קובץ';
+    }else if(n===3){
+      sub=(u.ext_logged_at?'התחבר בתוסף':'התקין — לא התחבר בתוסף')+
+          (u.ext_version?' · '+u.ext_version:'')+
+          (u.ext_last_seen?' · נראה '+fmtDateTime(u.ext_last_seen):'');
     }
     return '<td class="nw"><span class="stg stg-'+n+'">'+n+'. '+esc(st.t)+'</span>'+
            (sub?'<span class="stgsub">'+esc(sub)+'</span>':'')+'</td>';
