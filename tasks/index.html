@@ -176,6 +176,13 @@ dialog.xl::backdrop{background:#0e1a3380;backdrop-filter:blur(6px)}
 .xmain{overflow:auto;padding:20px 24px 24px;display:flex;flex-direction:column;gap:14px;min-height:0}
 .xside{overflow:auto;padding:20px 20px 24px;border-inline-start:1px solid var(--line);background:#f6f4ef;display:grid;gap:14px;align-content:start}
 .xside .hebnote{font-size:12px;color:var(--accent);font-weight:600;margin-top:-6px}
+.xlabel{display:block;font-size:12px;color:#8fa2bd;font-weight:600;margin:10px 0 2px}
+.logsum{cursor:pointer;font-size:15px;font-weight:700;color:var(--navy);padding:9px 0;list-style:none;
+  display:flex;align-items:center;gap:8px}
+.logsum::-webkit-details-marker{display:none}
+.logsum::before{content:'▸';color:var(--muted);font-size:13px;transition:transform .15s}
+#logBox[open] .logsum::before{transform:rotate(-90deg)}
+#logBox{border-top:1px solid var(--line);margin-top:4px}
 .addtask{display:flex;gap:8px;margin-top:10px}
 .addtask input{flex:1;border-style:dashed;background:var(--alt)}
 .addtask input:focus{border-style:solid;background:#fff}
@@ -548,13 +555,13 @@ dialog::backdrop{background:#0e1a3388}
         </div>
       </div>
       <div class="count" id="bcount"></div>
-      <div class="sect" id="goalSect">
-        <div class="secthead"><h2>מטרות</h2><div class="line"></div></div>
-        <div class="goals" id="goalGrid"></div>
-      </div>
       <div class="sect">
         <div class="secthead"><h2 id="taskHead">משימות</h2><div class="line"></div></div>
         <div id="board"></div>
+      </div>
+      <div class="sect" id="goalSect">
+        <div class="secthead"><h2>מטרות</h2><div class="line"></div></div>
+        <div class="goals" id="goalGrid"></div>
       </div>
     </section>
 
@@ -638,21 +645,22 @@ dialog::backdrop{background:#0e1a3388}
       <button type="button" class="x" id="xClose" title="סגירה (Esc)">✕</button>
     </div>
     <input type="hidden" id="itemId">
+    <label class="xlabel" id="titleLabel" for="itemTitle">שם המשימה</label>
     <input id="itemTitle" class="xtitle" placeholder="מה צריך לעשות?" autocomplete="off">
     <div class="where" id="formTitle" style="margin-top:4px"></div>
   </div>
   <div class="xbody">
     <div class="xmain">
       <label id="actionField">הצעד הבא במטרה<input id="action" class="control" placeholder="מה הדבר הבא שמקדם את המטרה"></label>
-      <div id="goalTasksBox" class="hidden">
-        <div class="logh">המשימות במטרה <span class="muted" id="goalTaskCount"></span></div>
+      <div id="goalTasksBox">
+        <div class="logh"><span id="subHead">המשימות</span> <span class="muted" id="goalTaskCount"></span></div>
         <div id="goalTasks" class="tasklist" style="margin-top:8px"></div>
         <div class="addtask">
-          <input id="goalAdd" class="control" placeholder="משימה חדשה במטרה — כותבים ומוסיפים" autocomplete="off">
+          <input id="goalAdd" class="control" placeholder="להוספת משימה — כותבים ו-Enter" autocomplete="off">
           <button type="button" id="goalAddBtn" class="btn">הוספה</button>
         </div>
       </div>
-      <div class="logh">יומן <span class="muted" id="logCount"></span></div>
+      <details id="logBox"><summary class="logsum">יומן <span class="muted" id="logCount"></span></summary>
       <div class="log" id="noteList"></div>
       <div class="composer">
         <div class="rtbar" id="rtbar">
@@ -667,6 +675,7 @@ dialog::backdrop{background:#0e1a3388}
         <div id="noteEditor" class="rtedit rt" contenteditable="true" data-ph="כתבו כאן הערה — התאריך, השעה והשם נרשמים לבד"></div>
         <div class="rtfoot" id="noteFoot"><button type="button" id="noteAdd" class="btn small primary">הוספה ליומן</button></div>
       </div>
+      </details>
     </div>
     <div class="xside">
       <label id="itemSpaceField" class="hidden">אזור<select id="itemSpace" class="control"></select></label>
@@ -855,6 +864,8 @@ async function loadUsers(){
 const bf={q:'',time:'all',who:'all',goal:'',owner:'',mgr:'',status:'open'};
 const isGoal=x=>x.type==='goal';
 const kidsOf=id=>items.filter(y=>y.parent_id===id&&y.type==='task');
+/** שלב בתוך משימה — לא מופיע ברשימה הראשית, רק בתוך ההורה שלו */
+const isStep=x=>{const p=items.find(y=>y.id===x.parent_id);return !!p&&p.type!=='goal'};
 const mgrNames=id=>ownerNames(id);                 // על מטרה, "אחראי" נקרא מנהל
 /** כמה ימים מהיום (שלילי = עבר) */
 const dayDiff=d=>Math.round((new Date(d+'T12:00:00Z')-new Date(today()+'T12:00:00Z'))/864e5);
@@ -903,7 +914,8 @@ function taskRow(x,inGoal){
   const g=items.find(y=>y.id===x.parent_id);
   const late=x.due_date&&x.status!=='done'&&x.due_date<today();
   const d=x.due_date?dayDiff(x.due_date):null;
-  const when=!x.due_date?'<span class="pill none">בלי תאריך</span>'
+  // בתוך פריט, שורה נקייה: תאריך ואחראי מוצגים רק אם נקבעו
+  const when=!x.due_date?(inGoal?'':'<span class="pill none">בלי תאריך</span>')
     :`<span class="${late?'late':''}" title="${esc(hebFull(new Date(x.due_date)))}">🗓 ${
         late?'באיחור · '+fmt(x.due_date):d===0?'היום':d===1?'מחר':fmt(x.due_date)}</span>`;
   const hol=x.due_date?holidayText(new Date(x.due_date)):'';
@@ -915,7 +927,10 @@ function taskRow(x,inGoal){
       <div class="ttext">${esc(x.title)}</div>
       ${x.action_title?`<div class="tsub">${esc(x.action_title)}</div>`:''}
       <div class="tmeta">${when}
-        <span class="pill ${names?'who':'none'}">${esc(names||'ללא אחראי')}</span>
+        ${names?`<span class="pill who">${esc(names)}</span>`
+               :(inGoal?'':'<span class="pill none">ללא אחראי</span>')}
+        ${(()=>{const k=kidsOf(x.id);return k.length
+            ?`<span class="pill">${k.filter(t=>t.status!=='done').length}/${k.length} שלבים</span>`:''})()}
         ${x.status==='waiting'?'<span class="pill">ממתין</span>':''}
         ${hol?`<span class="pill goal">${esc(hol)}</span>`:''}
         ${!inGoal&&g?`<span class="pill goal">${esc(g.title)}</span>`:''}
@@ -966,7 +981,7 @@ function emptyMsg(){
 }
 function render(){
   fillBoardFilters();
-  const tasks=items.filter(x=>!isGoal(x)&&passes(x));
+  const tasks=items.filter(x=>!isGoal(x)&&!isStep(x)&&passes(x));
   const goals=items.filter(x=>isGoal(x)&&goalPasses(x));
 
   $('#goalGrid').innerHTML=goals.map(goalCard).join('')
@@ -1292,18 +1307,29 @@ function typeChanged(){
   // במשימה השדה מוצג רק אם כבר יש בו תוכן (שדה ישן)
   $('#actionField').classList.toggle('hidden',!g&&!$('#action').value.trim());
   renderOwners();                       // הניסוח של "אחראי"/"מנהל" תלוי בסוג
-  goalPanelId=g&&id?id:'';
-  $('#goalTasksBox').classList.toggle('hidden',!goalPanelId);
+  $('#titleLabel').textContent=g?'שם המטרה':'שם המשימה';
+  // רשימת המשימות קיימת בשני הסוגים: במטרה אלו המשימות שלה, במשימה אלו השלבים
+  $('#subHead').textContent=g?'המשימות במטרה':'מה צריך לעשות';
+  $('#goalAdd').placeholder=g?'משימה חדשה במטרה — כותבים ו-Enter':'שלב נוסף — כותבים ו-Enter';
+  goalPanelId=id||'';
+  $('#goalTasksBox').classList.remove('hidden');
+  $('#goalAdd').disabled=$('#goalAddBtn').disabled=!goalPanelId;
   if(goalPanelId)paintGoalTasks();
+  else{$('#goalTaskCount').textContent='';
+    $('#goalTasks').innerHTML=`<div class="muted" style="padding:16px;text-align:center">${
+      g?'הרשימה נפתחת ברגע שהמטרה נוצרת.':'הרשימה נפתחת ברגע שהמשימה נוצרת.'}</div>`}
   if(!id)$('#formTitle').textContent=g?'מטרה חדשה':'משימה חדשה';
 }
 /** רשימת המשימות של המטרה שבתוך הפאנל */
 function paintGoalTasks(){
   if(!goalPanelId)return;
+  const g=$('#itemType').value==='goal';
   const k=kidsOf(goalPanelId), open=k.filter(t=>t.status!=='done').length;
   $('#goalTaskCount').textContent=k.length?`${open} פתוחות מתוך ${k.length}`:'';
   $('#goalTasks').innerHTML=k.map(t=>taskRow(t,true)).join('')
-    ||'<div class="muted" style="padding:16px;text-align:center">עדיין אין משימות במטרה הזו. אפשר לכתוב אחת למטה.</div>';
+    ||`<div class="muted" style="padding:16px;text-align:center">${
+        g?'עדיין אין משימות במטרה הזו. אפשר לכתוב אחת למטה.'
+         :'אפשר לפרט כאן מה צריך לעשות, שורה אחר שורה.'}</div>`;
 }
 /** הוספה מהירה: שורת טקסט אחת והמשימה נוצרת בתוך המטרה */
 async function addGoalTask(){
@@ -1439,6 +1465,7 @@ function renderNotes(){
   }
   const n=notes.filter(z=>z.kind==='note').length;
   $('#logCount').textContent=n?`${n} הערות`:'';
+  if(n)$('#logBox').open=true;      // יש מה לקרוא — לא מסתירים את זה
   $('#noteList').innerHTML=notes.map(z=>z.kind==='system'
     ?`<div class="logsys"><span>${esc(z.body)}${z.author_name?' · '+esc(z.author_name):''}</span><time title="${esc(hebFull(new Date(z.created_at)))}">${esc(stampOf(z.created_at))}</time></div>`
     :`<div class="lognote${editingNote===z.id?' editing':''}" data-note="${z.id}">
@@ -1525,7 +1552,7 @@ function openItem(kind='task',id=''){
   $('#quickPersonBox').classList.add('hidden');$('#quickPersonName').value='';
   $('#quickGoalBox').classList.add('hidden');$('#quickGoalName').value='';
   ED().innerHTML='';editingNote=null;dirty=false;notes=[];notesOk=true;
-  goalPanelId='';$('#goalAdd').value='';
+  goalPanelId='';$('#goalAdd').value='';$('#logBox').open=false;
   typeChanged();dueHebUpdate();whereUpdate();composerMode();renderNotes();
   $('#itemDialog').showModal();
   $('#itemDialog .xmain').scrollTop=0;
@@ -1538,6 +1565,7 @@ async function closeItem(){
   if(id){
     if(!$('#itemTitle').value.trim()){const x=items.find(y=>y.id===id);if(x)$('#itemTitle').value=x.title;dirty=true}
     if(!(await saveNow()))return;
+    if($('#goalAdd').value.trim())await addGoalTask();      // שורה שנכתבה ולא נוספה
     if(editorText(ED())&&!(await addNote()))return;
   }else{
     const hasTitle=$('#itemTitle').value.trim(), hasMore=editorText(ED())||$('#action').value.trim();
