@@ -221,6 +221,13 @@
           <option value="4">עובדים (שלפו)</option>
           <option value="all">כולם</option>
         </select>
+        <select id="segSide" class="segsel" aria-label="חתך לפי תאריך הרשמה">
+          <option value="all">כל התאריכים</option>
+          <option value="before">נרשמו לפני</option>
+          <option value="after">נרשמו אחרי</option>
+        </select>
+        <input type="datetime-local" id="segWhen" class="segsel" value="2026-10-06T15:30"
+               aria-label="נקודת החיתוך">
         <button class="csvbtn" id="segBtn" type="button">⬇ חתך ל-Resend</button>
         <button class="csvbtn" id="csvBtn" type="button">⬇ מאגר מלא (CSV)</button>
       </div>
@@ -620,7 +627,14 @@
    * פורמט העמודות הוא מה ש-Resend מצפה לו בייבוא: email,first_name,last_name.
    * השם המלא מפוצל במילה הראשונה; מי שאין לו שם נשאר ריק (Resend סובל ריק).
    * לא מייצאים את המנהלים — אין טעם לשלוח לעצמך קמפיין. */
-  var ADMIN_MAILS = ['team@myos.co.il','mr@mrr.co.il'];
+  var ADMIN_MAILS = ['team@myos.co.il','mr@mrr.co.il','a035098902@gmail.com'];
+  /* תווי כיווניות בלתי נראים (RLE/PDF/LRM...) מגיעים משמות שהודבקו מוורד או
+     מהמייל, ונראים כג'יבריש בברודקאסט. מנקים גם רווחים כפולים. */
+  function cleanName(v){
+    return String(v||'')
+      .replace(/[\u200E\u200F\u061C\u202A-\u202E\u2066-\u2069]/g,'')
+      .replace(/\s+/g,' ').trim();
+  }
   function inSegment(u, seg){
     var n = stageNo(u);
     if (seg === 'all')  return true;
@@ -641,21 +655,39 @@
   $('segBtn').addEventListener('click', function(){
     var seg = $('segSel').value;
     var label = $('segSel').options[$('segSel').selectedIndex].text;
+    /* חיתוך לפי מועד הרשמה. נקודת ברירת המחדל היא 6.10.2026 15:30 — הרגע
+       שבו המודל השתנה: מי שנרשם לפניה ראה "ניסיון" (7 ימים, ואז ללא מספר),
+       ומי שאחריה כבר ראה "חינם". שתי הקבוצות צריכות הודעה שונה. */
+    var side = $('segSide').value, whenRaw = $('segWhen').value;
+    var cut = whenRaw ? new Date(whenRaw).getTime() : NaN;
+    if (side !== 'all' && !isFinite(cut)) {
+      $('boardMsg').className='msg err'; $('boardMsg').textContent='בחר תאריך ושעה לחיתוך'; return;
+    }
+    function inWindow(u){
+      if (side === 'all') return true;
+      var t = u.created_at ? new Date(u.created_at).getTime() : NaN;
+      if (!isFinite(t)) return false;
+      return side === 'before' ? t < cut : t >= cut;
+    }
     var list = allUsers.filter(function(u){
-      return u.email && ADMIN_MAILS.indexOf(String(u.email).toLowerCase()) < 0 && inSegment(u, seg);
+      return u.email && ADMIN_MAILS.indexOf(String(u.email).toLowerCase()) < 0 &&
+             inSegment(u, seg) && inWindow(u);
     });
+    if (side !== 'all') {
+      label += (side === 'before' ? ' · נרשמו לפני ' : ' · נרשמו אחרי ') + fmtDateTime(new Date(cut).toISOString());
+    }
     if(!list.length){
       $('boardMsg').className='msg'; $('boardMsg').textContent='אין נמענים בחתך "'+label+'"'; return;
     }
     var lines = ['email,first_name,last_name'];
     list.forEach(function(u){
-      var parts = String(u.full_name||'').trim().split(/\s+/).filter(Boolean);
+      var parts = cleanName(u.full_name).split(' ').filter(Boolean);
       var first = parts.length ? parts[0] : '';
       var last  = parts.length > 1 ? parts.slice(1).join(' ') : '';
       lines.push([u.email, first, last].map(csvCell).join(','));
     });
     var stamp = new Date().toISOString().slice(0,10);
-    downloadCsv('myos-'+seg+'-'+stamp+'.csv', lines);
+    downloadCsv('myos-'+seg+(side==='all'?'':'-'+side)+'-'+stamp+'.csv', lines);
     $('boardMsg').className='msg ok';
     $('boardMsg').textContent='יוצאו '+list.length+' נמענים — '+label+'. מעלים ב-Resend ל-Audience, ומשם Broadcast.';
   });
