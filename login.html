@@ -84,6 +84,14 @@
   #switchCard .who,#doneCard .who{display:flex;align-items:center;justify-content:center;gap:.6rem;background:#0f3d2e;border:1px solid #22c55e;color:#d9fbe7;border-radius:.65rem;padding:.7rem .9rem;margin-bottom:1.1rem;font-weight:600;word-break:break-all}
   #switchCard .dot,#doneCard .dot{flex:none;width:.65rem;height:.65rem;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.25)}
   button.ghost{background:none;border:1px solid #2a3a58;color:#b9c5dd;margin-top:.6rem;font-weight:500}
+  /* 7.10: התוסף עובד במחשב בלבד. מי שנרשם מהנייד (אחרי הודעה בוואטסאפ)
+     נוחת כאן, ועד היום שמע את זה רק במייל "ברוכים הבאים" — שנחסם כשמכסת
+     Resend נגמרת. ההודעה הזו לא תלויה בכלום. */
+  .mobnote{display:none;text-align:right;line-height:1.6;font-size:.95rem;border-radius:.8rem;
+    padding:.85rem 1rem;margin:.2rem 0 1rem;background:rgba(255,207,107,.09);
+    border:1px solid rgba(255,207,107,.45);color:#ffe3ad}
+  .mobnote b{display:block;color:#ffcf6b;margin-bottom:.25rem;font-size:1rem}
+  .mobnote.on{display:block}
   a.btnlink{display:block;width:100%;text-align:center;text-decoration:none;font:inherit;font-weight:600;font-size:1.02rem;background:#2ff0e6;color:#04121a;border-radius:.7rem;padding:.85rem;box-sizing:border-box}
   a.btnlink:hover{background:#8dfff4}
   a.btnlink.ghost{background:none;border:1px solid #2a3a58;color:#b9c5dd;margin-top:.6rem;font-weight:500}
@@ -133,6 +141,11 @@
     <h1 id="doneTitle">מחוברים לחשבון</h1>
     <p class="next" id="doneSub" style="margin:-.4rem 0 .9rem"></p>
     <div class="who"><span class="dot"></span><span id="doneEmail"></span></div>
+    <div id="mobileNote" class="mobnote">
+      <b>התוסף עובד במחשב בלבד</b>
+      תוספי Chrome לא נתמכים בטלפון. כדי להמשיך, פתחו במחשב את
+      <span dir="ltr" style="white-space:nowrap">myos.co.il/install</span>
+    </div>
     <p class="next hidden" id="autoNext" style="margin:.2rem 0 .7rem">ממשיכים להדרכת ההתקנה בעוד <b id="autoCount">5</b>… · <a id="autoStop">להישאר כאן</a></p>
     <a class="btnlink" href="/install/">התקנה ותחילת עבודה — צעד אחר צעד</a>
     <p class="links" style="margin-top:1.2rem"><a id="doneLogout">להתנתק</a></p>
@@ -266,6 +279,15 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     $(id).textContent = text;
   }
   /* מסך "מחוברים" — כשמתחברים מהאתר (לא מתוך התוסף) */
+  /* זיהוי נייד — UA קודם, ומסך מגע צר כגיבוי לדפדפנים שמסתירים UA */
+  function isMobile() {
+    try {
+      if (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '')) return true;
+      return (navigator.maxTouchPoints || 0) > 0 &&
+             Math.min(screen.width || 9999, screen.height || 9999) < 820;
+    } catch (e) { return false; }
+  }
+
   function showDone(email, title, sub, autoNext) {
     ['loginForm', 'registerForm', 'contactForm', 'switchCard'].forEach(function (id) { var el = $(id); if (el) el.classList.add('hidden'); });
     $('doneTitle').textContent = title || 'מחוברים לחשבון';
@@ -274,7 +296,11 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
     $('doneEmail').textContent = email || '';
     $('doneCard').classList.remove('hidden');
     $('main').focus();
-    if (autoNext) startAutoNext();
+    var mob = isMobile();
+    $('mobileNote').classList.toggle('on', mob);
+    /* בנייד לא מקפיצים ל-/install — שם יש כפתור התקנה שלא יעבוד לו.
+       עדיף שיישאר כאן עם הוראה ברורה אחת. */
+    if (autoNext && !mob) startAutoNext();
   }
 
   /* אחרי הרשמה: לא עוצרים כאן. סופרים 5 שניות וממשיכים להדרכת ההתקנה,
