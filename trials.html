@@ -91,6 +91,8 @@
   .row .info,.ucard .info{flex:1 1 15rem}
   .rangebar{flex-basis:100%;display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap;border-top:1px dashed var(--line);padding-top:.55rem}
   .rangebar .hint{color:var(--dim);font-size:.78rem}
+  .segsel{padding:.5rem .7rem;border-radius:.6rem;font:inherit;font-size:.9rem;
+    background:#16264a;color:var(--text);border:1px solid var(--line)}
   .range{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;justify-content:flex-end}
   .range input{width:auto;margin:0;padding:.38rem .5rem;font-size:.85rem;border-radius:.5rem;background:#f5f8fc;color:#12233f;border:1.5px solid #cdd8ec}
   .range input[type=number]{width:4.2rem;text-align:center}
@@ -207,7 +209,21 @@
   <div class="wrap hidden" id="board">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.1rem">
       <h1 style="margin:0">ניהול משתמשים</h1>
-      <button class="csvbtn" id="csvBtn" type="button">⬇ הורדת מאגר נרשמים (CSV)</button>
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+        <!-- 7.10: ייצוא חתך ל-Resend Audience. המסלול השיווקי של Resend
+             נפרד מהטרנזקציוני (1,000 אנשי קשר מול 100 מיילים ליום), ולכן
+             קמפיין דרך Broadcasts לא אוכל את מכסת "ברוכים הבאים". -->
+        <select id="segSel" class="segsel" aria-label="חתך לייצוא">
+          <option value="2">לא התקינו</option>
+          <option value="3">התקינו ולא שלפו</option>
+          <option value="3nl">התקינו ולא התחברו בתוסף</option>
+          <option value="3li">התחברו ולא שלפו</option>
+          <option value="4">עובדים (שלפו)</option>
+          <option value="all">כולם</option>
+        </select>
+        <button class="csvbtn" id="segBtn" type="button">⬇ חתך ל-Resend</button>
+        <button class="csvbtn" id="csvBtn" type="button">⬇ מאגר מלא (CSV)</button>
+      </div>
     </div>
     <div class="toolbar">
       <input id="q" type="search" placeholder="חיפוש לפי שם או מייל…" aria-label="חיפוש מנוי">
@@ -598,6 +614,50 @@
     a.href=URL.createObjectURL(blob); a.download='myos-registrants.csv';
     document.body.appendChild(a); a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+
+  /* ---------- ייצוא חתך ל-Resend Audience ----------
+   * פורמט העמודות הוא מה ש-Resend מצפה לו בייבוא: email,first_name,last_name.
+   * השם המלא מפוצל במילה הראשונה; מי שאין לו שם נשאר ריק (Resend סובל ריק).
+   * לא מייצאים את המנהלים — אין טעם לשלוח לעצמך קמפיין. */
+  var ADMIN_MAILS = ['team@myos.co.il','mr@mrr.co.il'];
+  function inSegment(u, seg){
+    var n = stageNo(u);
+    if (seg === 'all')  return true;
+    if (seg === '2')    return n === 2;
+    if (seg === '4')    return n === 4;
+    if (seg === '3')    return n === 3;
+    if (seg === '3nl')  return n === 3 && !u.ext_logged_at;   /* התקין, לא התחבר */
+    if (seg === '3li')  return n === 3 && !!u.ext_logged_at;  /* התחבר, לא שלף */
+    return false;
+  }
+  function downloadCsv(name, lines){
+    var blob = new Blob(['\uFEFF' + lines.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  $('segBtn').addEventListener('click', function(){
+    var seg = $('segSel').value;
+    var label = $('segSel').options[$('segSel').selectedIndex].text;
+    var list = allUsers.filter(function(u){
+      return u.email && ADMIN_MAILS.indexOf(String(u.email).toLowerCase()) < 0 && inSegment(u, seg);
+    });
+    if(!list.length){
+      $('boardMsg').className='msg'; $('boardMsg').textContent='אין נמענים בחתך "'+label+'"'; return;
+    }
+    var lines = ['email,first_name,last_name'];
+    list.forEach(function(u){
+      var parts = String(u.full_name||'').trim().split(/\s+/).filter(Boolean);
+      var first = parts.length ? parts[0] : '';
+      var last  = parts.length > 1 ? parts.slice(1).join(' ') : '';
+      lines.push([u.email, first, last].map(csvCell).join(','));
+    });
+    var stamp = new Date().toISOString().slice(0,10);
+    downloadCsv('myos-'+seg+'-'+stamp+'.csv', lines);
+    $('boardMsg').className='msg ok';
+    $('boardMsg').textContent='יוצאו '+list.length+' נמענים — '+label+'. מעלים ב-Resend ל-Audience, ומשם Broadcast.';
   });
 
   $('loginBtn').addEventListener('click', async function(){
