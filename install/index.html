@@ -125,6 +125,12 @@
   details.more .morebody{margin-top:.8rem}
   .flow .fc.here{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,240,230,.18)}
   /* דרישת ההזדהות של רשות המיסים (30.9.2026) */
+  /* 7.10: אזהרת נייד — לא תלויה במייל "ברוכים הבאים" (ראו login.html) */
+  .mobnote{display:none;text-align:right;line-height:1.6;max-width:46rem;margin:1.2rem auto 0;
+    border-radius:.8rem;padding:.9rem 1.1rem;background:rgba(255,207,107,.09);
+    border:1px solid rgba(255,207,107,.45);color:#ffe3ad;font-size:.97rem}
+  .mobnote b{display:block;color:#ffcf6b;margin-bottom:.25rem;font-size:1.05rem}
+  html.is-mobile .mobnote{display:block}
   .idreq{display:flex;gap:.7rem;align-items:flex-start;max-width:46rem;margin:1.2rem auto 0;
          text-align:right;background:rgba(47,240,230,.07);border:1px solid rgba(47,240,230,.32);
          border-radius:.8rem;padding:.85rem 1rem;font-size:.95rem;line-height:1.65}
@@ -169,11 +175,26 @@
     <a class="lnk" id="acct" href="../login.html">התחברות לחשבון</a>
   </div>
 
-  <main class="wrap" id="main" tabindex="-1">
+  <script>
+/* נקבע לפני הציור כדי שלא תהיה הבהוב של האזהרה */
+(function(){try{
+  var m=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'') ||
+        ((navigator.maxTouchPoints||0)>0 &&
+         Math.min(screen.width||9999,screen.height||9999)<820);
+  if(m) document.documentElement.classList.add('is-mobile');
+}catch(e){}})();
+</script>
+<main class="wrap" id="main" tabindex="-1">
     <section class="hero">
       <h1>התקנת MyOS עסקאות ב-4 צעדים</h1>
       <p>תוסף לדפדפן Chrome שמושך עסקאות נדל״ן מאתר רשות המיסים ישירות לקובץ Excel מסודר. ההרשמה וההתקנה לוקחות כשלוש דקות — עוברים צעד אחרי צעד, מלמעלה למטה.</p>
 
+      <div class="mobnote">
+        <b>התוסף עובד במחשב בלבד</b>
+        אתם בטלפון, ותוספי Chrome לא נתמכים בו. הצעדים שלמטה לא יעבדו כאן —
+        פתחו במחשב את <span dir="ltr" style="white-space:nowrap">myos.co.il/install</span>
+        והמשיכו משם. החשבון שלכם כבר פעיל וממתין.
+      </div>
       <div class="idreq"><span class="i">i</span><span><b>לפני שמתחילים — דרישה של רשות המיסים:</b>
         מאז ספטמבר 2026 הכניסה לאתר עסקאות הנדל״ן מחייבת <b>הזדהות אישית</b> — מספר זהות
         וקוד משתמש של רשות המיסים, או כרטיס חכם. זו דרישה של רשות המיסים והיא חלה על כל
