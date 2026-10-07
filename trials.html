@@ -261,7 +261,10 @@
   /* בלוק פקדי הטווח (ימים / תאריך סיום) + כפתור פעולה + ללא הגבלה */
   function rangeHtml(actionLabel){
     return '<div class="range">'+
-               '<input type="number" min="1" max="3650" value="7" data-days aria-label="מספר ימים"><span class="lbl">ימים</span>'+
+               /* 7.10: הערך היה 7 כברירת מחדל — שריד מתקופת הניסיון. במודל
+                  חינם-ללא-תאריך לחיצה מהירה על הכפתור הייתה *מגבילה* משתמש
+                  לשבוע במקום להאריך לו. ריק = לא קורה כלום בלי כוונה. */
+               '<input type="number" min="1" max="3650" value="" placeholder="—" data-days aria-label="מספר ימים"><span class="lbl">ימים</span>'+
                '<span class="sep">|</span>'+
                '<input type="date" data-until aria-label="תאריך סיום">'+
                '<button class="grant" data-grant="1">'+esc(actionLabel)+'</button>'+
@@ -277,12 +280,16 @@
     return null;
   }
   function wireRange(el, uid){
-    el.querySelector('[data-grant]').addEventListener('click',function(){
+    /* 7.10 — היפוך: עד 008 ברירת המחדל הייתה תוקף מוגבל, ולכן "ללא הגבלה"
+       היה המסוכן. עכשיו ההפך: לכולם אין תאריך, ולקבוע תאריך = לחסום מישהו
+       בעתיד. לכן האישור-הכפול עבר לכפתור שקובע תאריך. */
+    var gb = el.querySelector('[data-grant]');
+    confirmClick(gb, 'בטוח? יוגבל בזמן', function(b){
       var opt=readRange(el);
       if(!opt){ $('boardMsg').className='msg err'; $('boardMsg').textContent='ציין מספר ימים או בחר תאריך סיום'; return; }
-      grant(uid, this, opt);
+      grant(uid, b, opt);
     });
-    confirmClick(el.querySelector('[data-unlim]'),'בטוח? ללא הגבלה',function(b){ grant(uid, b, {unlimited:true}); });
+    el.querySelector('[data-unlim]').addEventListener('click',function(){ grant(uid, this, {unlimited:true}); });
     /* בחירת תאריך מנקה את שדה הימים כדי שיהיה ברור מה נשלח */
     el.querySelector('[data-until]').addEventListener('change',function(){ if(this.value) el.querySelector('[data-days]').value=''; });
     el.querySelector('[data-days]').addEventListener('input',function(){ if(this.value) el.querySelector('[data-until]').value=''; });
