@@ -246,25 +246,35 @@
           <option value="free">אחרי הכרזת החינם (6.10–8.10)</option>
           <option value="v107">מפרסום 1.0.7 (8.10 ואילך)</option>
         </select>
+        <select id="verSel" class="segsel" aria-label="סינון לפי הגרסה שרצה בפועל">
+          <option value="all">כל הגרסאות</option>
+          <option value="1.0.7">מריצים 1.0.7</option>
+          <option value="1.0.6">מריצים 1.0.6</option>
+          <option value="old">גרסה ישנה אחרת</option>
+          <option value="none">לא נראה בשרת</option>
+        </select>
         <button class="csvbtn" id="segBtn" type="button">⬇ חתך ל-Resend</button>
+        <button class="csvbtn" id="vizBtn" type="button">📊 פילוח</button>
       </div>
     </div>
     <div class="toolbar">
       <input id="q" type="search" placeholder="חיפוש לפי שם או מייל…" aria-label="חיפוש מנוי">
       <span class="cnt" id="cnt"></span>
     </div>
-    <div class="viz" id="viz"></div>
-    <h2 style="margin-top:0">ממתינים לאישור</h2>
-    <div class="tblwrap"><table class="ut pend"><thead><tr>
-      <th class="ns idx">#</th><th data-k="name">שם / מייל</th><th data-k="created_at">נרשם</th>
-      <th data-k="last_sign_in_at">התחברות אחרונה</th><th data-k="stage">שלב</th><th class="ns">רישיון</th><th class="ns">אישור מנוי</th><th class="ns">פעולות</th>
-    </tr></thead><tbody id="pending"><tr><td colspan="8" class="empty">טוען…</td></tr></tbody></table></div>
-    <h2>מנויים פעילים</h2>
+    <!-- 8.10: מסך הפילוח נפרד ונפתח בכפתור. בטעינה רואים את המשתמשים.
+         "ממתינים לאישור" ירד — הכול חינם ללא תאריך, ואין יותר תור אישורים.
+         משתמש מושהה/פג תוקף מופיע באותה טבלה עם תג סטטוס. -->
+    <section id="viewViz" class="hidden">
+      <div class="viz" id="viz"></div>
+    </section>
+    <section id="viewUsers">
+    <h2 style="margin-top:0">משתמשים</h2>
     <div class="tblwrap"><table class="ut"><thead><tr>
       <th class="ns idx">#</th><th data-k="name">שם / מייל</th><th data-k="status">סטטוס</th><th data-k="valid_until">בתוקף עד</th>
       <th data-k="last_sign_in_at">התחברות אחרונה</th><th data-k="stage">שלב</th><th class="ns">חידוש — נספר מסוף התוקף הנוכחי</th>
       <th data-k="devices">מחשבים</th><th class="ns">פעולות</th>
     </tr></thead><tbody id="active"><tr><td colspan="9" class="empty">טוען…</td></tr></tbody></table></div>
+    </section>
     <p class="msg" id="boardMsg" role="status"></p>
   </div>
 
@@ -358,9 +368,8 @@
     $('whoEmail').textContent=email||'';
   }
 
-  var sortKey={pending:'created_at',active:'valid_until'}, sortDir={pending:-1,active:1};
+  var sortKey={active:'created_at'}, sortDir={active:-1};
   function loadingRows(){
-    $('pending').innerHTML='<tr><td colspan="8" class="empty">טוען…</td></tr>';
     $('active').innerHTML='<tr><td colspan="9" class="empty">טוען…</td></tr>';
   }
   async function load(){
@@ -368,7 +377,6 @@
     var r=await fn('list');
     if(r.status===403){ $('board').classList.add('hidden'); $('loginCard').classList.remove('hidden'); $('loginMsg').className='msg err'; $('loginMsg').textContent='החשבון הזה אינו מנהל.'; return; }
     if(!r.j.ok){
-      $('pending').innerHTML='<tr><td colspan="8" class="empty">—</td></tr>';
       $('active').innerHTML='<tr><td colspan="9" class="empty">—</td></tr>';
       $('boardMsg').className='msg err'; $('boardMsg').textContent='שגיאה: '+(r.j.error||r.status);
       return;
@@ -398,21 +406,21 @@
      העיקרון: מה שרואים הוא מה שמייצאים — בלי שני מצבים נפרדים. */
   function filtered(){
     var q   = ($('q').value||'').trim().toLowerCase();
-    var seg = $('segSel').value, per = $('segPer').value;
+    var seg = $('segSel').value, per = $('segPer').value, ver = $('verSel').value;
     return allUsers.filter(function(u){
-      return matches(u,q) && inSegment(u,seg) && (per==='all' || periodOf(u)===per);
+      return matches(u,q) && inSegment(u,seg) &&
+             (per==='all' || periodOf(u)===per) &&
+             (ver==='all' || verOf(u)===ver);
     });
   }
   function render(){
     var q=($('q').value||'').trim().toLowerCase();
     var users=filtered();
-    var pending=users.filter(function(u){return !u.active;});
-    var active=users.filter(function(u){return u.active;});
-    renderPending(sorted(pending,'pending')); renderActive(sorted(active,'active'));
+    renderActive(sorted(users,'active'));
     /* משפך: כמה נתקעו בכל שלב. זו השורה שאומרת למי כדאי להרים טלפון. */
     var f=[0,0,0,0,0];
     allUsers.forEach(function(u){ f[stageNo(u)]++; });
-    renderViz(users);
+    if(vizOpen) renderViz(users);
     var narrowed = users.length !== allUsers.length;
     $('cnt').innerHTML=(narrowed?'מוצגים '+users.length+' מתוך '+allUsers.length:allUsers.length+' נרשמים')+
       '<span class="sdot"><span class="stg stg-1">'+f[1]+' לא אימתו</span></span>'+
@@ -420,14 +428,14 @@
       '<span class="sdot"><span class="stg stg-3">'+f[3]+' התקינו ולא שלפו</span></span>'+
       '<span class="sdot"><span class="stg stg-4">'+f[4]+' עובדים</span></span>';
     document.querySelectorAll('table.ut th[data-k]').forEach(function(th){
-      var which=th.closest('table').classList.contains('pend')?'pending':'active';
+      var which='active';
       var a=th.querySelector('.arr'); if(a) a.remove();
       if(th.getAttribute('data-k')===sortKey[which]){ var sp=document.createElement('span'); sp.className='arr'; sp.textContent=sortDir[which]>0?'▲':'▼'; th.appendChild(sp); }
     });
   }
   document.querySelectorAll('table.ut th[data-k]').forEach(function(th){
     th.addEventListener('click',function(){
-      var which=th.closest('table').classList.contains('pend')?'pending':'active', k=th.getAttribute('data-k');
+      var which='active', k=th.getAttribute('data-k');
       if(sortKey[which]===k) sortDir[which]*=-1; else { sortKey[which]=k; sortDir[which]=1; }
       render();
     });
@@ -435,6 +443,17 @@
   $('q').addEventListener('input', render);
   $('segSel').addEventListener('change', render);
   $('segPer').addEventListener('change', render);
+  $('verSel').addEventListener('change', render);
+
+  /* מסך הפילוח נפרד — בטעינה רואים את רשימת המשתמשים, לא את התרשים. */
+  var vizOpen = false;
+  $('vizBtn').addEventListener('click', function(){
+    vizOpen = !vizOpen;
+    $('viewViz').classList.toggle('hidden', !vizOpen);
+    $('viewUsers').classList.toggle('hidden', vizOpen);
+    this.textContent = vizOpen ? '← חזרה לרשימה' : '📊 פילוח';
+    if(vizOpen) renderViz(filtered());
+  });
 
   /* מ-008: משתמש חינמי = plan 'free' + valid_until ריק. מבדילים אותו ממנהל
    * עם 'lifetime', שגם לו אין תאריך — אחרת כל הלוח נראה "לצמיתות". */
@@ -479,9 +498,10 @@
     var sub=st.s;
     if(n===4){
       /* מחשב רשום בלי ייצוא = שמר לסל ולא הוריד. שווה טלפון — הוא כמעט שם. */
-      sub=(u.export_count||0)>0
+      sub=((u.export_count||0)>0
         ? (u.export_count||0)+' ייצואים · אחרון '+fmtDateTime(u.last_export_at)
-        : 'שמר לסל — עדיין לא הוריד קובץ';
+        : 'שמר לסל — עדיין לא הוריד קובץ')+
+        (u.ext_version?' · '+u.ext_version:'');
     }else if(n===3){
       sub=(u.ext_logged_at?'התחבר בתוסף':'התקין — לא התחבר בתוסף')+
           (u.ext_version?' · '+u.ext_version:'')+
@@ -494,35 +514,12 @@
     return '<td class="nw"><span class="ls">'+(u.last_sign_in_at?esc(fmtDateTime(u.last_sign_in_at)):'טרם התחבר')+'</span></td>';
   }
 
-  function renderPending(list){
-    var box=$('pending');
-    if(!list.length){ box.innerHTML='<tr><td colspan="8" class="empty">אין נרשמים ממתינים.</td></tr>'; return; }
+  function renderActive(list){
+    var box=$('active');
+    if(!list.length){ box.innerHTML='<tr><td colspan="9" class="empty">אין משתמשים בסינון הנוכחי.</td></tr>'; return; }
     box.innerHTML='';
     list.forEach(function(u,i){
       var blocked = u.license_status==='blocked';
-      var tr=document.createElement('tr');
-      tr.innerHTML='<td class="idx">'+(i+1)+'</td>'+
-                   '<td class="nmcell">'+nameHtml(u)+'</td>'+
-                   '<td class="nw">'+esc(fmtDate(u.created_at))+'</td>'+
-                   lastCell(u)+
-                   stageCell(u)+
-                   '<td class="nw">'+(blocked?'<span class="pill susp">מושהה</span>':esc(u.license_status||'—'))+'</td>'+
-                   '<td>'+(blocked ? '—' : rangeHtml('אשר'))+'</td>'+
-                   '<td><div class="acts">'+
-                     (blocked ? '<button class="grant" data-react="1">הפעל מחדש</button>' : '')+
-                     '<button class="delbtn" data-del="1">מחק</button>'+
-                   '</div></td>';
-      if(!blocked) wireRange(tr, u.user_id);
-      var rc=tr.querySelector('[data-react]'); if(rc) rc.addEventListener('click',function(){ reactivateUser(u.user_id, this); });
-      confirmClick(tr.querySelector('[data-del]'),'בטוח? מחק',function(b){ deleteUser(u.user_id, b); });
-      box.appendChild(tr);
-    });
-  }
-  function renderActive(list){
-    var box=$('active');
-    if(!list.length){ box.innerHTML='<tr><td colspan="9" class="empty">אין מנויים פעילים.</td></tr>'; return; }
-    box.innerHTML='';
-    list.forEach(function(u,i){
       var max=u.max_devices==null?1:u.max_devices, cnt=u.device_count||0, full=cnt>=max;
       var devs=u.devices||[];
       var devRows = devs.length
@@ -533,12 +530,11 @@
                    '<button class="relbtn" data-rel="'+esc(d.id)+'">שחרר</button></div>';
           }).join('')+'</div>'
         : '<div class="devnone">אין מחשבים מחוברים עדיין.</div>';
-      var unlimited=!u.valid_until;
       var tr=document.createElement('tr');
       tr.innerHTML=
         '<td class="idx">'+(i+1)+'</td>'+
         '<td class="nmcell">'+nameHtml(u)+'</td>'+
-        '<td class="nw">'+(unlimited?(u.plan==='lifetime'?'<span class="pill life">לצמיתות</span>':'<span class="pill active">חינם</span>'):'<span class="pill active">פעיל</span>')+'</td>'+
+        '<td class="nw">'+statusPill(u)+'</td>'+
         validCell(u)+
         lastCell(u)+
         stageCell(u)+
@@ -549,11 +545,15 @@
           devRows+
         '</td>'+
         '<td><div class="acts">'+
-          '<button class="warnbtn" data-suspend="1">השהה</button>'+
+          (blocked ? '<button class="grant" data-react="1">הפעל מחדש</button>'
+                   : '<button class="warnbtn" data-suspend="1">השהה</button>')+
           '<button class="delbtn" data-del="1">מחק</button>'+
         '</div></td>';
       wireRange(tr, u.user_id);
-      tr.querySelector('[data-suspend]').addEventListener('click',function(){ suspendUser(u.user_id, this); });
+      var rc=tr.querySelector('[data-react]');
+      if(rc) rc.addEventListener('click',function(){ reactivateUser(u.user_id, this); });
+      var sb=tr.querySelector('[data-suspend]');
+      if(sb) sb.addEventListener('click',function(){ suspendUser(u.user_id, this); });
       confirmClick(tr.querySelector('[data-del]'),'בטוח? מחק',function(b){ deleteUser(u.user_id, b); });
       tr.querySelector('[data-add]').addEventListener('click',function(){ addDevice(u.user_id, this); });
       tr.querySelectorAll('[data-rel]').forEach(function(b){
@@ -692,6 +692,23 @@
                 '<span class="rtot">'+tot+'</span>'+
               '</div>';
     });
+    /* חתך שני באותו מסך: מי בפועל עוד לא קיבל את 1.0.7.
+       אפור = "אין דיווח", לא קטגוריה — לכן לא מצבע הפלטה. */
+    var vc = {}; VER_ORDER.forEach(function(k){ vc[k] = 0; });
+    list.forEach(function(u){ vc[verOf(u)]++; });
+    var vmax = 0; VER_ORDER.forEach(function(k){ if(vc[k] > vmax) vmax = vc[k]; });
+    html += '<h3 style="margin-top:1.5rem">הגרסה שרצה בפועל</h3>' +
+            '<p class="vsub">לפי הדיווח האחרון של התוסף — לא לפי תאריך ההרשמה</p>';
+    VER_ORDER.forEach(function(k){
+      var v = vc[k], w = vmax ? (v / vmax * 100) : 0;
+      html += '<div class="row" title="'+esc(VER_LABELS[k])+' — '+v+'">'+
+                '<span class="rlbl">'+esc(VER_LABELS[k])+'</span>'+
+                '<span class="bar" style="width:'+w.toFixed(1)+'%">'+
+                  (v ? '<i style="background:'+VER_COLORS[k]+';flex:1"></i>' : '')+
+                '</span>'+
+                '<span class="rtot">'+v+'</span>'+
+              '</div>';
+    });
     box.innerHTML = html;
   }
 
@@ -702,6 +719,31 @@
    *   CUT_V107  — פרסום גרסה 1.0.7 בחנות. מי שנרשם לפניה התקין 1.0.6.
    * ⚠ זו תקופת ההרשמה, לא הגרסה שרצה אצלו עכשיו — תוספים מתעדכנים לבד.
    *   ל"מה הוא מריץ היום" יש עמודה נפרדת: ext_version. */
+  /* תג הסטטוס בטבלה המאוחדת. מחליף את ההפרדה הישנה לשתי טבלאות. */
+  function statusPill(u){
+    if(u.license_status==='blocked') return '<span class="pill susp">מושהה</span>';
+    if(!u.valid_until) return u.plan==='lifetime'
+      ? '<span class="pill life">לצמיתות</span>'
+      : '<span class="pill active">חינם</span>';
+    if(new Date(u.valid_until).getTime() < Date.now()) return '<span class="pill susp">פג</span>';
+    return '<span class="pill active">פעיל</span>';
+  }
+
+  /* ---------- הגרסה שרצה בפועל ----------
+   * זה לא תקופת ההרשמה: כרום מעדכן תוספים לבד, ולכן מי שנרשם בתקופת 1.0.6
+   * כנראה כבר על 1.0.7. 'none' = התוסף לא דיווח לשרת אף פעם (לא התקין,
+   * או התקין ולא נפתח). ערך מגיע מ-ext_version (009). */
+  var VER_LABELS = {'1.0.7':'מריצים 1.0.7','1.0.6':'מריצים 1.0.6',
+                    old:'גרסה ישנה אחרת', none:'לא נראה בשרת'};
+  var VER_ORDER  = ['1.0.7','1.0.6','old','none'];
+  var VER_COLORS = {'1.0.7':'#199e70','1.0.6':'#d95926', old:'#3987e5', none:'#4a5a7a'};
+  function verOf(u){
+    var v = u.ext_version || '';
+    if(v === '1.0.7') return '1.0.7';
+    if(v === '1.0.6') return '1.0.6';
+    return v ? 'old' : 'none';
+  }
+
   var CUT_FREE = new Date(2026, 9, 6, 15, 30).getTime();
   var CUT_V107 = new Date(2026, 9, 8,  8,  0).getTime();
   var PERIODS = {
