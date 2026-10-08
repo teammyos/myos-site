@@ -239,6 +239,7 @@
           <option value="3nl">— מתוכם: לא התחברו בתוסף</option>
           <option value="3li">— מתוכם: התחברו</option>
           <option value="4">שלפו</option>
+          <option value="4dor">— מתוכם: לא חזרו מאז 6.10</option>
         </select>
         <select id="segPer" class="segsel" aria-label="סינון לפי תקופת הרשמה">
           <option value="all">כל התקופות</option>
@@ -642,7 +643,10 @@
    * פורמט העמודות הוא מה ש-Resend מצפה לו בייבוא: email,first_name,last_name.
    * השם המלא מפוצל במילה הראשונה; מי שאין לו שם נשאר ריק (Resend סובל ריק).
    * לא מייצאים את המנהלים — אין טעם לשלוח לעצמך קמפיין. */
-  var ADMIN_MAILS = ['team@myos.co.il','mr@mrr.co.il','a035098902@gmail.com'];
+  /* חשבונות פנימיים — שלנו ושל המשרד. לא נכנסים לשום ייצוא קמפיין.
+     8.10: התגלה שרק שלושת הראשונים היו כאן, ושאר חשבונות המשרד נכנסו לחתכים. */
+  var ADMIN_MAILS = ['team@myos.co.il','mr@mrr.co.il','a035098902@gmail.com',
+                     'yr@yrr.co.il','office@yrr.co.il','a0504105070@gmail.com'];
   /* תווי כיווניות בלתי נראים (RLE/PDF/LRM...) מגיעים משמות שהודבקו מוורד או
      מהמייל, ונראים כג'יבריש בברודקאסט. מנקים גם רווחים כפולים. */
   function cleanName(v){
@@ -762,9 +766,23 @@
 
   /* קוד החתך בשורה — כדי שאפשר יהיה לסנן באקסל בלי לשחזר את הלוגיקה ביד.
      הערכים זהים לערכי הבורר, כך שהניתוח והשליחה מדברים באותה שפה. */
+  /* הפעילות האחרונה שאפשר להישען עליה: ייצוא קודם לכול (הוא המעשה עצמו),
+     ואם אין — ההתחברות האחרונה לאתר. */
+  function lastActivity(u){
+    var t = u.last_export_at || u.ext_last_seen || u.last_sign_in_at;
+    var d = t ? new Date(t).getTime() : NaN;
+    return isFinite(d) ? d : null;
+  }
+  /* "שלפו ולא חזרו": הוציאו קובץ, ומאז הכרזת החינם לא נראו.
+     אלה שהתרשמו בתקופת הניסיון והניחו שהשבוע שלהם נגמר. */
+  function dormant(u){
+    if (stageNo(u) !== 4) return false;
+    var a = lastActivity(u);
+    return a !== null && a < CUT_FREE;
+  }
   function segCode(u){
     var n = stageNo(u);
-    if (n === 4) return '4';
+    if (n === 4) return dormant(u) ? '4dor' : '4';
     if (n === 3) return u.ext_logged_at ? '3li' : '3nl';
     return String(n);
   }
@@ -774,6 +792,7 @@
     if (seg === '1')    return n === 1;
     if (seg === '2')    return n === 2;
     if (seg === '4')    return n === 4;
+    if (seg === '4dor') return dormant(u);
     if (seg === '3')    return n === 3;
     if (seg === '3nl')  return n === 3 && !u.ext_logged_at;   /* התקין, לא התחבר */
     if (seg === '3li')  return n === 3 && !!u.ext_logged_at;  /* התחבר, לא שלף */
