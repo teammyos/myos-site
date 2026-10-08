@@ -91,6 +91,23 @@
   .row .info,.ucard .info{flex:1 1 15rem}
   .rangebar{flex-basis:100%;display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap;border-top:1px dashed var(--line);padding-top:.55rem}
   .rangebar .hint{color:var(--dim);font-size:.78rem}
+  /* ---- תרשים חתכים (8.10) ---- */
+  .viz{background:#16264a;border:1px solid var(--line);border-radius:.9rem;
+       padding:1rem 1.1rem 1.15rem;margin:0 0 1.1rem}
+  .viz h3{margin:0 0 .15rem;font-size:1rem;color:var(--heading)}
+  .viz .vsub{margin:0 0 .85rem;font-size:.82rem;color:var(--dim)}
+  .viz .legend{display:flex;gap:1rem;flex-wrap:wrap;margin:.2rem 0 .9rem;font-size:.82rem;color:var(--dim)}
+  .viz .legend span{display:inline-flex;align-items:center;gap:.4rem}
+  .viz .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .viz .row{display:grid;grid-template-columns:11.5rem 1fr 3.2rem;align-items:center;
+            gap:.6rem;margin-bottom:.5rem}
+  .viz .rlbl{font-size:.85rem;color:var(--text);text-align:left}
+  .viz .rtot{font-size:.9rem;font-weight:700;color:var(--heading);text-align:right;
+             font-variant-numeric:tabular-nums}
+  .viz .bar{display:flex;height:16px;border-radius:4px;overflow:hidden;background:#101d3a}
+  .viz .bar i{display:block;height:100%;box-shadow:-2px 0 0 0 #16264a}
+  .viz .bar i:first-child{box-shadow:none}
+  .viz .empty{font-size:.85rem;color:var(--dim)}
   .segsel{padding:.5rem .7rem;border-radius:.6rem;font:inherit;font-size:.9rem;
     background:#16264a;color:var(--text);border:1px solid var(--line)}
   .range{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;justify-content:flex-end}
@@ -210,32 +227,33 @@
     <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.1rem">
       <h1 style="margin:0">ניהול משתמשים</h1>
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+        <button class="csvbtn" id="xlsBtn" type="button">⬇ Excel מלא</button>
         <!-- 7.10: ייצוא חתך ל-Resend Audience. המסלול השיווקי של Resend
              נפרד מהטרנזקציוני (1,000 אנשי קשר מול 100 מיילים ליום), ולכן
              קמפיין דרך Broadcasts לא אוכל את מכסת "ברוכים הבאים". -->
-        <select id="segSel" class="segsel" aria-label="חתך לייצוא">
+        <select id="segSel" class="segsel" aria-label="סינון לפי חתך">
+          <option value="all">כל החתכים</option>
+          <option value="1">לא אימתו מייל</option>
           <option value="2">לא התקינו</option>
           <option value="3">התקינו ולא שלפו</option>
-          <option value="3nl">התקינו ולא התחברו בתוסף</option>
-          <option value="3li">התחברו ולא שלפו</option>
-          <option value="4">עובדים (שלפו)</option>
-          <option value="all">כולם</option>
+          <option value="3nl">— מתוכם: לא התחברו בתוסף</option>
+          <option value="3li">— מתוכם: התחברו</option>
+          <option value="4">שלפו</option>
         </select>
-        <select id="segSide" class="segsel" aria-label="חתך לפי תאריך הרשמה">
-          <option value="all">כל התאריכים</option>
-          <option value="before">נרשמו לפני</option>
-          <option value="after">נרשמו אחרי</option>
+        <select id="segPer" class="segsel" aria-label="סינון לפי תקופת הרשמה">
+          <option value="all">כל התקופות</option>
+          <option value="pre">תקופת הניסיון (עד 6.10 15:30)</option>
+          <option value="free">אחרי הכרזת החינם (6.10–8.10)</option>
+          <option value="v107">מפרסום 1.0.7 (8.10 ואילך)</option>
         </select>
-        <input type="datetime-local" id="segWhen" class="segsel" value="2026-10-06T15:30"
-               aria-label="נקודת החיתוך">
         <button class="csvbtn" id="segBtn" type="button">⬇ חתך ל-Resend</button>
-        <button class="csvbtn" id="csvBtn" type="button">⬇ מאגר מלא (CSV)</button>
       </div>
     </div>
     <div class="toolbar">
       <input id="q" type="search" placeholder="חיפוש לפי שם או מייל…" aria-label="חיפוש מנוי">
       <span class="cnt" id="cnt"></span>
     </div>
+    <div class="viz" id="viz"></div>
     <h2 style="margin-top:0">ממתינים לאישור</h2>
     <div class="tblwrap"><table class="ut pend"><thead><tr>
       <th class="ns idx">#</th><th data-k="name">שם / מייל</th><th data-k="created_at">נרשם</th>
@@ -376,16 +394,27 @@
     var k=sortKey[which], d=sortDir[which];
     return list.slice().sort(function(a,b){ var x=sortVal(a,k), y=sortVal(b,k); return x<y?-d:x>y?d:0; });
   }
+  /* מסנן אחד שמשרת את הטבלה, את התרשים ואת שני הייצואים.
+     העיקרון: מה שרואים הוא מה שמייצאים — בלי שני מצבים נפרדים. */
+  function filtered(){
+    var q   = ($('q').value||'').trim().toLowerCase();
+    var seg = $('segSel').value, per = $('segPer').value;
+    return allUsers.filter(function(u){
+      return matches(u,q) && inSegment(u,seg) && (per==='all' || periodOf(u)===per);
+    });
+  }
   function render(){
     var q=($('q').value||'').trim().toLowerCase();
-    var users=allUsers.filter(function(u){return matches(u,q);});
+    var users=filtered();
     var pending=users.filter(function(u){return !u.active;});
     var active=users.filter(function(u){return u.active;});
     renderPending(sorted(pending,'pending')); renderActive(sorted(active,'active'));
     /* משפך: כמה נתקעו בכל שלב. זו השורה שאומרת למי כדאי להרים טלפון. */
     var f=[0,0,0,0,0];
     allUsers.forEach(function(u){ f[stageNo(u)]++; });
-    $('cnt').innerHTML=(q?'מוצגים '+users.length+' מתוך '+allUsers.length:allUsers.length+' נרשמים')+
+    renderViz(users);
+    var narrowed = users.length !== allUsers.length;
+    $('cnt').innerHTML=(narrowed?'מוצגים '+users.length+' מתוך '+allUsers.length:allUsers.length+' נרשמים')+
       '<span class="sdot"><span class="stg stg-1">'+f[1]+' לא אימתו</span></span>'+
       '<span class="sdot"><span class="stg stg-2">'+f[2]+' לא התקינו</span></span>'+
       '<span class="sdot"><span class="stg stg-3">'+f[3]+' התקינו ולא שלפו</span></span>'+
@@ -404,6 +433,8 @@
     });
   });
   $('q').addEventListener('input', render);
+  $('segSel').addEventListener('change', render);
+  $('segPer').addEventListener('change', render);
 
   /* מ-008: משתמש חינמי = plan 'free' + valid_until ריק. מבדילים אותו ממנהל
    * עם 'lifetime', שגם לו אין תאריך — אחרת כל הלוח נראה "לצמיתות". */
@@ -607,22 +638,6 @@
 
   /* ---------- ייצוא מאגר נרשמים ל-CSV ---------- */
   function csvCell(v){ v=String(v==null?'':v); return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
-  $('csvBtn').addEventListener('click', function(){
-    if(!allUsers.length){ $('boardMsg').className='msg'; $('boardMsg').textContent='אין נתונים לייצוא'; return; }
-    var head=['שם','אימייל','שלב','שלב #','תאריך הרשמה','אימות מייל','התחברות אחרונה','מחשבים','ייצואים','ייצוא אחרון','סטטוס רישיון','בתוקף עד','פעיל'];
-    var lines=[head.map(csvCell).join(',')];
-    allUsers.forEach(function(u){
-      var sn=stageNo(u);
-      lines.push([u.full_name||'', u.email||'', STAGES[sn].t+(STAGES[sn].s?' — '+STAGES[sn].s:''), sn, fmtDateTime(u.created_at), u.email_confirmed_at?fmtDateTime(u.email_confirmed_at):'', fmtDateTime(u.last_sign_in_at), u.device_count||0, u.export_count||0, u.last_export_at?fmtDateTime(u.last_export_at):'', u.license_status||'', u.valid_until?fmtDate(u.valid_until):(u.active?'ללא הגבלה':''), u.active?'כן':'לא'].map(csvCell).join(','));
-    });
-    var csv='\uFEFF'+lines.join('\r\n');
-    var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-    var a=document.createElement('a');
-    a.href=URL.createObjectURL(blob); a.download='myos-registrants.csv';
-    document.body.appendChild(a); a.click();
-    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
-  });
-
   /* ---------- ייצוא חתך ל-Resend Audience ----------
    * פורמט העמודות הוא מה ש-Resend מצפה לו בייבוא: email,first_name,last_name.
    * השם המלא מפוצל במילה הראשונה; מי שאין לו שם נשאר ריק (Resend סובל ריק).
@@ -635,9 +650,86 @@
       .replace(/[\u200E\u200F\u061C\u202A-\u202E\u2066-\u2069]/g,'')
       .replace(/\s+/g,' ').trim();
   }
+  /* ---------- התרשים ----------
+   * עמודות מוערמות אופקיות: שורה לכל שלב, מחולקת לשלוש תקופות ההרשמה.
+   * אופקי ולא אנכי כי תוויות השלבים בעברית ארוכות. המספר הכולל מודפס בקצה
+   * כל שורה (תווית ישירה), והמקרא נוכח תמיד — כך הזהות אף פעם לא בצבע בלבד.
+   * פלטת שלוש התקופות אומתה מול בודק הנגישות: עומדת ברצועת הבהירות,
+   * ברצפת הכרומה, ובהפרדת עיוורון־צבעים (ΔE 9.4 deutan / 32.4 tritan).
+   * יש גם מרווח 2px בין מקטעים — קידוד משני, לא רק צבע. */
+  var VIZ_STAGES = [
+    {n:1, t:'נרשם — לא אימת'},
+    {n:2, t:'אימת — לא התקין'},
+    {n:3, t:'התקין — לא שלף'},
+    {n:4, t:'שלף'}
+  ];
+  function renderViz(list){
+    var box = $('viz'); if(!box) return;
+    if(!list.length){ box.innerHTML='<h3>פילוח משתמשים</h3><p class="empty">אין נתונים בסינון הנוכחי.</p>'; return; }
+    /* ספירה: שלב × תקופה */
+    var grid = {}, totals = {}, max = 0;
+    VIZ_STAGES.forEach(function(st){ grid[st.n]={pre:0,free:0,v107:0}; totals[st.n]=0; });
+    list.forEach(function(u){
+      var n = stageNo(u); if(!grid[n]) return;
+      grid[n][periodOf(u)]++; totals[n]++;
+      if(totals[n] > max) max = totals[n];
+    });
+    var html = '<h3>פילוח משתמשים</h3>' +
+      '<p class="vsub">' + list.length + ' נרשמים בסינון הנוכחי · מחולק לפי תקופת ההרשמה</p>' +
+      '<div class="legend">' + PERIOD_ORDER.map(function(k){
+        return '<span><i style="background:'+PERIODS[k].c+'"></i>'+esc(PERIODS[k].t)+'</span>';
+      }).join('') + '</div>';
+    VIZ_STAGES.forEach(function(st){
+      var tot = totals[st.n], w = max ? (tot/max*100) : 0;
+      var segs = PERIOD_ORDER.map(function(k){
+        var v = grid[st.n][k]; if(!v) return '';
+        return '<i style="background:'+PERIODS[k].c+';flex:'+v+'" title="'+
+               esc(PERIODS[k].t)+': '+v+'"></i>';
+      }).join('');
+      html += '<div class="row" title="'+esc(st.t)+' — '+tot+'">'+
+                '<span class="rlbl">'+esc(st.t)+'</span>'+
+                '<span class="bar" style="width:'+(w||0).toFixed(1)+'%">'+segs+'</span>'+
+                '<span class="rtot">'+tot+'</span>'+
+              '</div>';
+    });
+    box.innerHTML = html;
+  }
+
+  /* ---------- תקופות ----------
+   * שתי נקודות חיתוך אמיתיות בחיי המוצר. ערוך אותן כאן בלבד.
+   *   CUT_FREE  — ההודעה לקבוצת השמאים + מעבר למודל חינם ללא תאריך (008).
+   *               לפניה המשתמשים ראו "ניסיון"; אחריה "חינם".
+   *   CUT_V107  — פרסום גרסה 1.0.7 בחנות. מי שנרשם לפניה התקין 1.0.6.
+   * ⚠ זו תקופת ההרשמה, לא הגרסה שרצה אצלו עכשיו — תוספים מתעדכנים לבד.
+   *   ל"מה הוא מריץ היום" יש עמודה נפרדת: ext_version. */
+  var CUT_FREE = new Date(2026, 9, 6, 15, 30).getTime();
+  var CUT_V107 = new Date(2026, 9, 8,  8,  0).getTime();
+  var PERIODS = {
+    pre:  {t:'תקופת הניסיון',     c:'#3987e5'},
+    free: {t:'אחרי הכרזת החינם',  c:'#d95926'},
+    v107: {t:'מגרסה 1.0.7',       c:'#199e70'}
+  };
+  var PERIOD_ORDER = ['pre','free','v107'];
+  function periodOf(u){
+    var t = u.created_at ? new Date(u.created_at).getTime() : NaN;
+    if (!isFinite(t)) return 'pre';
+    if (t < CUT_FREE) return 'pre';
+    if (t < CUT_V107) return 'free';
+    return 'v107';
+  }
+
+  /* קוד החתך בשורה — כדי שאפשר יהיה לסנן באקסל בלי לשחזר את הלוגיקה ביד.
+     הערכים זהים לערכי הבורר, כך שהניתוח והשליחה מדברים באותה שפה. */
+  function segCode(u){
+    var n = stageNo(u);
+    if (n === 4) return '4';
+    if (n === 3) return u.ext_logged_at ? '3li' : '3nl';
+    return String(n);
+  }
   function inSegment(u, seg){
     var n = stageNo(u);
     if (seg === 'all')  return true;
+    if (seg === '1')    return n === 1;
     if (seg === '2')    return n === 2;
     if (seg === '4')    return n === 4;
     if (seg === '3')    return n === 3;
@@ -652,44 +744,102 @@
     document.body.appendChild(a); a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
   }
+  function activeLabel(){
+    var a = $('segSel').options[$('segSel').selectedIndex].text;
+    var b = $('segPer').value === 'all' ? '' : ' · ' + $('segPer').options[$('segPer').selectedIndex].text;
+    return a + b;
+  }
+  function activeSlug(){
+    return $('segSel').value + ($('segPer').value==='all' ? '' : '-' + $('segPer').value);
+  }
+  /* ---------- ייצוא ל-Resend Audience ----------
+   * רק שלוש העמודות שהייבוא שלהם מצפה להן. המנהלים מסוננים. */
   $('segBtn').addEventListener('click', function(){
-    var seg = $('segSel').value;
-    var label = $('segSel').options[$('segSel').selectedIndex].text;
-    /* חיתוך לפי מועד הרשמה. נקודת ברירת המחדל היא 6.10.2026 15:30 — הרגע
-       שבו המודל השתנה: מי שנרשם לפניה ראה "ניסיון" (7 ימים, ואז ללא מספר),
-       ומי שאחריה כבר ראה "חינם". שתי הקבוצות צריכות הודעה שונה. */
-    var side = $('segSide').value, whenRaw = $('segWhen').value;
-    var cut = whenRaw ? new Date(whenRaw).getTime() : NaN;
-    if (side !== 'all' && !isFinite(cut)) {
-      $('boardMsg').className='msg err'; $('boardMsg').textContent='בחר תאריך ושעה לחיתוך'; return;
-    }
-    function inWindow(u){
-      if (side === 'all') return true;
-      var t = u.created_at ? new Date(u.created_at).getTime() : NaN;
-      if (!isFinite(t)) return false;
-      return side === 'before' ? t < cut : t >= cut;
-    }
-    var list = allUsers.filter(function(u){
-      return u.email && ADMIN_MAILS.indexOf(String(u.email).toLowerCase()) < 0 &&
-             inSegment(u, seg) && inWindow(u);
+    var list = filtered().filter(function(u){
+      return u.email && ADMIN_MAILS.indexOf(String(u.email).toLowerCase()) < 0;
     });
-    if (side !== 'all') {
-      label += (side === 'before' ? ' · נרשמו לפני ' : ' · נרשמו אחרי ') + fmtDateTime(new Date(cut).toISOString());
-    }
     if(!list.length){
-      $('boardMsg').className='msg'; $('boardMsg').textContent='אין נמענים בחתך "'+label+'"'; return;
+      $('boardMsg').className='msg'; $('boardMsg').textContent='אין נמענים בסינון הנוכחי'; return;
     }
     var lines = ['email,first_name,last_name'];
     list.forEach(function(u){
       var parts = cleanName(u.full_name).split(' ').filter(Boolean);
-      var first = parts.length ? parts[0] : '';
-      var last  = parts.length > 1 ? parts.slice(1).join(' ') : '';
-      lines.push([u.email, first, last].map(csvCell).join(','));
+      lines.push([u.email, parts[0]||'', parts.slice(1).join(' ')].map(csvCell).join(','));
     });
-    var stamp = new Date().toISOString().slice(0,10);
-    downloadCsv('myos-'+seg+(side==='all'?'':'-'+side)+'-'+stamp+'.csv', lines);
+    downloadCsv('myos-'+activeSlug()+'-'+new Date().toISOString().slice(0,10)+'.csv', lines);
     $('boardMsg').className='msg ok';
-    $('boardMsg').textContent='יוצאו '+list.length+' נמענים — '+label+'. מעלים ב-Resend ל-Audience, ומשם Broadcast.';
+    $('boardMsg').textContent='יוצאו '+list.length+' נמענים — '+activeLabel()+'. מעלים ב-Resend ל-Audience, ומשם Broadcast.';
+  });
+
+  /* ---------- ייצוא Excel מלא ----------
+   * SheetJS נטען מ-CDN רק כאן, בדף הניהול — לא מגיע לאף משתמש.
+   * אם הטעינה נכשלת (רשת/חוסם), נפילה חיננית ל-CSV עם אותן עמודות. */
+  var XLSX_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  function withXlsx(cb){
+    if (window.XLSX) return cb(true);
+    var el = document.createElement('script');
+    el.src = XLSX_SRC;
+    el.onload  = function(){ cb(!!window.XLSX); };
+    el.onerror = function(){ cb(false); };
+    document.head.appendChild(el);
+  }
+  function fullRows(){
+    var head = ['שם','אימייל','שלב','שלב #','קוד חתך','תקופת הרשמה',
+                'תאריך הרשמה','אימות מייל','התחברות אחרונה',
+                'זוהה התוסף','התחבר בתוסף','גרסת תוסף','נראה לאחרונה',
+                'מחשבים','ייצואים','ייצוא אחרון','סטטוס רישיון','בתוקף עד','פעיל'];
+    var rows = [head];
+    filtered().forEach(function(u){
+      var sn = stageNo(u);
+      rows.push([
+        cleanName(u.full_name), u.email||'',
+        STAGES[sn].t+(STAGES[sn].s?' — '+STAGES[sn].s:''), sn, segCode(u),
+        PERIODS[periodOf(u)].t,
+        fmtDateTime(u.created_at),
+        u.email_confirmed_at?fmtDateTime(u.email_confirmed_at):'',
+        fmtDateTime(u.last_sign_in_at),
+        u.ext_first_seen?fmtDateTime(u.ext_first_seen):'',
+        u.ext_logged_at?fmtDateTime(u.ext_logged_at):'',
+        u.ext_version||'',
+        u.ext_last_seen?fmtDateTime(u.ext_last_seen):'',
+        u.device_count||0, u.export_count||0,
+        u.last_export_at?fmtDateTime(u.last_export_at):'',
+        u.license_status||'',
+        u.valid_until?fmtDate(u.valid_until):(u.active?'ללא הגבלה':''),
+        u.active?'כן':'לא'
+      ]);
+    });
+    return rows;
+  }
+  $('xlsBtn').addEventListener('click', function(){
+    var rows = fullRows();
+    if (rows.length < 2){
+      $('boardMsg').className='msg'; $('boardMsg').textContent='אין נתונים בסינון הנוכחי'; return;
+    }
+    var stamp = new Date().toISOString().slice(0,10);
+    var name  = 'myos-' + activeSlug() + '-' + stamp;
+    var btn = this; btn.disabled = true; var o = btn.textContent; btn.textContent = 'בונה…';
+    withXlsx(function(ok){
+      btn.disabled = false; btn.textContent = o;
+      if (!ok){
+        downloadCsv(name + '.csv', rows.map(function(r){ return r.map(csvCell).join(','); }));
+        $('boardMsg').className='msg';
+        $('boardMsg').textContent='לא הצלחנו לטעון את מנוע ה-Excel — ירד CSV עם אותן עמודות ('+(rows.length-1)+' שורות).';
+        return;
+      }
+      var ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [{wch:22},{wch:30},{wch:20},{wch:7},{wch:9},{wch:20},
+                     {wch:17},{wch:17},{wch:17},{wch:17},{wch:17},{wch:11},{wch:17},
+                     {wch:9},{wch:9},{wch:17},{wch:13},{wch:15},{wch:7}];
+      ws['!freeze'] = {xSplit:'0', ySplit:'1'};                 /* הקפאת הכותרת */
+      ws['!autofilter'] = {ref: XLSX.utils.encode_range({s:{r:0,c:0},e:{r:rows.length-1,c:rows[0].length-1}})};
+      var wb = XLSX.utils.book_new();
+      wb.Workbook = { Views: [{ RTL: true }] };                 /* גיליון מימין לשמאל */
+      XLSX.utils.book_append_sheet(wb, ws, 'משתמשים');
+      XLSX.writeFile(wb, name + '.xlsx');
+      $('boardMsg').className='msg ok';
+      $('boardMsg').textContent='יוצאו '+(rows.length-1)+' שורות — '+activeLabel()+'.';
+    });
   });
 
   $('loginBtn').addEventListener('click', async function(){
