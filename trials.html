@@ -256,6 +256,7 @@
         </select>
         <button class="csvbtn" id="segBtn" type="button">⬇ חתך ל-Resend</button>
         <button class="csvbtn" id="vizBtn" type="button">📊 פילוח</button>
+        <button class="csvbtn" id="expBtn" type="button">🔎 חיפושים</button>
       </div>
     </div>
     <div class="toolbar">
@@ -268,6 +269,24 @@
     <section id="viewViz" class="hidden">
       <div class="viz" id="viz"></div>
     </section>
+    <!-- 10.10: מסך "חיפושים" — מה כל משתמש חיפש בכל ייצוא.
+         המקור: v_export_history (מיגרציה 010), דרך admin-trials action=exports.
+         חייב service_role: RLS על export_logs מרשה למשתמש לראות רק את עצמו. -->
+    <section id="viewExp" class="hidden">
+      <h2 style="margin-top:0">חיפושים אחרונים</h2>
+      <div class="toolbar" style="margin-bottom:10px">
+        <input id="expQ" type="search" placeholder="סינון — מייל, גוש, ישוב…"
+               style="flex:1;min-width:200px;padding:8px 10px;border-radius:8px;
+                      border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:inherit">
+        <button class="csvbtn" id="expReload" type="button">↻ רענון</button>
+        <span id="expSum" style="opacity:.75;font-size:13.5px"></span>
+      </div>
+      <div class="tblwrap"><table class="ut"><thead><tr>
+        <th class="ns idx">#</th><th>שעה</th><th>משתמש</th><th>מה חיפשו</th>
+        <th class="ns">שורות</th><th class="ns">כשלים</th>
+      </tr></thead><tbody id="expBody"></tbody></table></div>
+    </section>
+
     <section id="viewUsers">
     <h2 style="margin-top:0">משתמשים</h2>
     <div class="tblwrap"><table class="ut"><thead><tr>
@@ -421,7 +440,7 @@
     /* משפך: כמה נתקעו בכל שלב. זו השורה שאומרת למי כדאי להרים טלפון. */
     var f=[0,0,0,0,0];
     allUsers.forEach(function(u){ f[stageNo(u)]++; });
-    if(vizOpen) renderViz(users);
+    if(curView === 'viz') renderViz(users);   /* רענון התרשים רק כשהוא מוצג */
     var narrowed = users.length !== allUsers.length;
     $('cnt').innerHTML=(narrowed?'מוצגים '+users.length+' מתוך '+allUsers.length:allUsers.length+' נרשמים')+
       '<span class="sdot"><span class="stg stg-1">'+f[1]+' לא אימתו</span></span>'+
@@ -446,15 +465,72 @@
   $('segPer').addEventListener('change', render);
   $('verSel').addEventListener('change', render);
 
-  /* מסך הפילוח נפרד — בטעינה רואים את רשימת המשתמשים, לא את התרשים. */
-  var vizOpen = false;
-  $('vizBtn').addEventListener('click', function(){
-    vizOpen = !vizOpen;
-    $('viewViz').classList.toggle('hidden', !vizOpen);
-    $('viewUsers').classList.toggle('hidden', vizOpen);
-    this.textContent = vizOpen ? '← חזרה לרשימה' : '📊 פילוח';
-    if(vizOpen) renderViz(filtered());
-  });
+  /* בטעינה רואים את רשימת המשתמשים — לא תרשים ולא חיפושים.
+   * שלושה מסכים, מתג אחד. לחיצה על הכפתור של המסך הפתוח מחזירה לרשימה. */
+  var curView = 'users';
+  function showView(v){
+    curView = (curView === v) ? 'users' : v;
+    $('viewUsers').classList.toggle('hidden', curView !== 'users');
+    $('viewViz').classList.toggle('hidden',   curView !== 'viz');
+    $('viewExp').classList.toggle('hidden',   curView !== 'exp');
+    $('vizBtn').textContent = curView === 'viz' ? '← חזרה לרשימה' : '📊 פילוח';
+    $('expBtn').textContent = curView === 'exp' ? '← חזרה לרשימה' : '🔎 חיפושים';
+    if (curView === 'viz') renderViz(filtered());
+    if (curView === 'exp' && !expRows) loadExports();
+  }
+  $('vizBtn').addEventListener('click', function(){ showView('viz'); });
+  $('expBtn').addEventListener('click', function(){ showView('exp'); });
+
+  /* ---------- מסך החיפושים ---------- */
+  var expRows = null;                       /* נטען פעם אחת; ↻ טוען מחדש */
+
+  async function loadExports(){
+    $('expBody').innerHTML = '<tr><td colspan="6" style="opacity:.7">טוען…</td></tr>';
+    var r = await fn('exports', { limit: 300 });
+    if(!r.j || !r.j.ok){
+      $('expBody').innerHTML = '<tr><td colspan="6" style="color:#ff8f7d">' +
+        esc((r.j && r.j.error) || 'שגיאה בטעינת החיפושים') + '</td></tr>';
+      $('expSum').textContent = ''; return;
+    }
+    expRows = r.j.rows || [];
+    renderExports();
+  }
+
+  function fmtAt(v){
+    if(!v) return '';
+    var m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+    return m ? (m[3]+'/'+m[2]+' '+m[4]+':'+m[5]) : String(v).slice(0,16);
+  }
+
+  function renderExports(){
+    var q = ($('expQ').value || '').trim().toLowerCase();
+    var list = (expRows || []).filter(function(r){
+      if(!q) return true;
+      return ((r.email||'') + ' ' + (r.search||'')).toLowerCase().indexOf(q) >= 0;
+    });
+    var users = {}, fails = 0;
+    list.forEach(function(r){ if(r.email) users[r.email]=1; fails += (r.failed_count||0); });
+    $('expSum').textContent = list.length + ' ייצואים · ' +
+      Object.keys(users).length + ' משתמשים · ' + fails + ' כשלים';
+    if(!list.length){ $('expBody').innerHTML =
+      '<tr><td colspan="6" style="opacity:.7">אין תוצאות</td></tr>'; return; }
+    $('expBody').innerHTML = list.map(function(r,i){
+      /* כשל בולט — זה מה שמחפשים כשמשהו לא עובד אצל לקוח */
+      var bad = (r.failed_count||0) > 0;
+      return '<tr' + (bad ? ' style="background:rgba(255,143,125,.09)"' : '') + '>' +
+        '<td class="idx">'+(i+1)+'</td>' +
+        '<td style="white-space:nowrap">'+esc(fmtAt(r.at))+'</td>' +
+        '<td>'+esc(r.email||'—')+'</td>' +
+        '<td>'+esc(r.search||'')+ (r.derived ?
+          ' <span style="opacity:.6;font-size:12px">(נגזר)</span>' : '') +'</td>' +
+        '<td class="idx">'+(r.row_count==null?'':r.row_count)+'</td>' +
+        '<td class="idx"'+(bad?' style="color:#ff8f7d;font-weight:700"':'')+'>' +
+          (r.failed_count||0)+'</td></tr>';
+    }).join('');
+  }
+
+  $('expQ').addEventListener('input', function(){ if(expRows) renderExports(); });
+  $('expReload').addEventListener('click', function(){ expRows=null; loadExports(); });
 
   /* מ-008: משתמש חינמי = plan 'free' + valid_until ריק. מבדילים אותו ממנהל
    * עם 'lifetime', שגם לו אין תאריך — אחרת כל הלוח נראה "לצמיתות". */
