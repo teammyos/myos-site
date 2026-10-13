@@ -154,29 +154,44 @@ nav .badge{display:inline-block;min-width:19px;padding:1px 6px;margin-inline-sta
 .cardnotes .stamp{display:block;font-size:11px;color:#8a95a3;margin-bottom:2px}
 
 /* ============ פאנל הפריט — נפתח מכרטיס, לחיצה בחוץ סוגרת ============ */
-dialog.xl{width:min(980px,96vw);height:min(92dvh,900px);max-height:none;border-radius:20px;overflow:hidden;
-  background:var(--bg);box-shadow:0 32px 100px #0e1a3375}
+dialog.xl{width:min(720px,96vw);max-height:min(86dvh,820px);border-radius:18px;overflow:hidden;
+  border:0;padding:0;background:var(--surface);box-shadow:0 30px 80px #0e1a3359}
 dialog.xl[open]{display:flex;flex-direction:column;animation:zoomIn .18s cubic-bezier(.3,.7,.3,1)}
 dialog.xl::backdrop{background:#0e1a3380;backdrop-filter:blur(6px)}
-@keyframes zoomIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.xhead{background:var(--navy);color:#eef3fa;padding:18px 24px 16px;border-bottom:3px solid var(--turq);flex:none}
+
+/* כותרת: שם המשימה והפעולה הבאה זה לצד זה */
+.xhead{background:var(--navy);color:#eef3fa;padding:13px 20px 14px;border-bottom:3px solid var(--turq);flex:none}
 .xhead .row1{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .xhead .kind{font-size:12px;border:1px solid #2ff0e655;color:var(--turq);border-radius:999px;padding:2px 10px}
 .xhead .where{font-size:12.5px;color:#aebbcd}
 .xhead .saved{margin-inline-start:auto;font-size:12px;color:#8fd9d2;opacity:0;transition:opacity .3s}
 .xhead .saved.on{opacity:1}
-.xhead .x{background:none;border:0;color:#cfd8e6;font-size:22px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:8px}
+.xhead .x{background:none;border:0;color:#cfd8e6;font-size:20px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:8px}
 .xhead .x:hover{background:#ffffff14}
-.xtitle{width:100%;margin-top:10px;background:transparent;border:0;border-bottom:1px dashed transparent;color:#fff;
-  font:inherit;font-size:22px;font-weight:700;padding:2px 0;outline:none}
-.xtitle:focus{border-bottom-color:#2ff0e688}
-.xtitle::placeholder{color:#8797ad}
-.xbody{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 340px;overflow:hidden}
-.xmain{overflow:auto;padding:20px 24px 24px;display:flex;flex-direction:column;gap:14px;min-height:0}
-.xside{overflow:auto;padding:20px 20px 24px;border-inline-start:1px solid var(--line);background:#f6f4ef;display:grid;gap:14px;align-content:start}
-.xside .hebnote{font-size:12px;color:var(--accent);font-weight:600;margin-top:-6px}
-.xlabel{display:block;font-size:12px;color:#8fa2bd;font-weight:600;margin:10px 0 2px}
+.xnames{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;margin-top:9px}
+.xn{display:block;min-width:0}
+.xn>span{display:block;font-size:11.5px;color:#8fa2bd;font-weight:600;margin-bottom:1px}
+.xtitle{width:100%;background:transparent;border:0;border-bottom:1px solid #ffffff2e;color:#fff;
+  font:700 20px/1.35 inherit;padding:2px 0 4px}
+.xtitle.sub{font-weight:500;font-size:16px;color:#dbe4f0}
+.xtitle:focus{outline:0;border-bottom-color:var(--turq)}
+.xtitle::placeholder{color:#7a8aa0;font-weight:400}
+
+/* שורת הפקדים — הכול למעלה, בלי כותרות שדה גדולות */
+.xctl{flex:none;display:flex;flex-wrap:wrap;gap:7px 10px;align-items:center;
+  padding:9px 20px;background:#f6f4ef;border-bottom:1px solid var(--line)}
+.xctl .c1{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.xctl .c1>b{font-size:12px;color:var(--muted);font-weight:600}
+.xctl .minisel{padding:5px 8px;font-size:13px;max-width:190px}
+.xctl .hebnote{font-size:11.5px;color:var(--accent);font-weight:600}
+.xctl .grow{flex:1;text-align:end;font-size:12px}
+.xctl .ochips{margin:0;gap:4px}
+.xctl .ochip{font-size:12px;padding:2px;padding-inline-start:8px}
+.quickbox{flex:none;display:flex;gap:8px;padding:9px 20px;background:#fffaf0;border-bottom:1px solid var(--line)}
+.quickbox input{flex:1}
+
+.xbody{flex:1;min-height:0;display:flex;overflow:hidden}
+.xmain{flex:1;overflow:auto;padding:16px 20px 20px;display:flex;flex-direction:column;gap:12px;min-height:0}
 .logsum{cursor:pointer;font-size:15px;font-weight:700;color:var(--navy);padding:9px 0;list-style:none;
   display:flex;align-items:center;gap:8px}
 .logsum::-webkit-details-marker{display:none}
@@ -211,7 +226,7 @@ dialog.xl::backdrop{background:#0e1a3380;backdrop-filter:blur(6px)}
   line-height:1;font-size:12px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
 .ochip button:hover{background:#a9d3ce}
 .ochipnone{font-size:13px;color:var(--muted);padding:2px 0 4px}
-.xfoot{flex:none;display:flex;gap:8px;align-items:center;padding:12px 24px;border-top:1px solid var(--line);background:var(--surface)}
+.xfoot{flex:none;display:flex;gap:8px;align-items:center;padding:10px 20px;border-top:1px solid var(--line);background:var(--surface)}
 .xfoot .grow{flex:1}
 .logh{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--navy)}
 .logh .muted{font-weight:400;font-size:12px}
@@ -241,12 +256,12 @@ dialog.xl::backdrop{background:#0e1a3380;backdrop-filter:blur(6px)}
 .rtedit:empty::before{content:attr(data-ph);color:#9aa4b0;pointer-events:none}
 .rtfoot{display:flex;gap:8px;justify-content:flex-end;padding:0 8px 8px}
 @media(max-width:820px){
-  dialog.xl{width:100vw;height:96dvh;margin:auto 0 0;border-radius:18px 18px 0 0}
+  dialog.xl{width:100vw;max-height:94dvh;height:94dvh;margin:auto 0 0;border-radius:18px 18px 0 0}
   dialog.xl[open]{animation:slideUp .22s ease}
-  .xbody{grid-template-columns:1fr;overflow:auto}
-  .xmain,.xside{overflow:visible}
-  .xside{border-inline-start:0;border-top:1px solid var(--line);order:-1}
-  .lognote .who .tools{opacity:1}
+  .xnames{grid-template-columns:1fr;gap:9px}
+  .xctl{padding:9px 14px}
+  .xhead{padding:12px 14px}
+  .xmain{padding:14px}
 }
 .cardtop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.cardtop>div{min-width:0}.cardtop .btn{flex:none}
 .next{background:var(--alt);border-radius:11px;padding:12px}
@@ -662,13 +677,34 @@ dialog::backdrop{background:#0e1a3388}
       <button type="button" class="x" id="xClose" title="סגירה (Esc)">✕</button>
     </div>
     <input type="hidden" id="itemId">
-    <label class="xlabel" id="titleLabel" for="itemTitle">שם המשימה</label>
-    <input id="itemTitle" class="xtitle" placeholder="מה צריך לעשות?" autocomplete="off">
-    <div class="where" id="formTitle" style="margin-top:4px"></div>
+    <div class="xnames">
+      <label class="xn"><span id="titleLabel">שם המשימה</span>
+        <input id="itemTitle" class="xtitle" placeholder="מה צריך לעשות?" autocomplete="off"></label>
+      <label class="xn" id="actionField"><span id="actionLabel">הפעולה הבאה</span>
+        <input id="action" class="xtitle sub" placeholder="הצעד הבא שמקדם את זה" autocomplete="off"></label>
+    </div>
   </div>
+
+  <div class="xctl">
+    <span class="c1"><select id="itemType" class="minisel"><option value="task">משימה</option><option value="goal">מטרה / פרויקט</option></select></span>
+    <span class="c1"><select id="itemStatus" class="minisel"><option value="active">פעיל</option><option value="waiting">ממתין</option><option value="done">הסתיים</option></select></span>
+    <span class="c1" id="ownerField"><b>אחראים</b><span id="ownerChips" class="ochips"></span><select id="owner" class="minisel"></select></span>
+    <span class="c1"><b>יעד</b><input id="due" type="date" class="minisel"><span class="hebnote" id="dueHeb"></span></span>
+    <span class="c1" id="parentField"><b>במטרה</b><select id="parent" class="minisel"></select></span>
+    <span class="c1 hidden" id="itemSpaceField"><b>אזור</b><select id="itemSpace" class="minisel"></select></span>
+    <span class="grow muted" id="formTitle"></span>
+  </div>
+  <div id="quickPersonBox" class="quickbox hidden">
+    <input id="quickPersonName" class="control" placeholder="שם האדם החדש">
+    <button type="button" id="quickPersonSave" class="btn small primary">הוספה</button>
+  </div>
+  <div id="quickGoalBox" class="quickbox hidden">
+    <input id="quickGoalName" class="control" placeholder="שם המטרה או הפרויקט">
+    <button type="button" id="quickGoalSave" class="btn small primary">הוספה</button>
+  </div>
+
   <div class="xbody">
     <div class="xmain">
-      <label id="actionField">הצעד הבא במטרה<input id="action" class="control" placeholder="מה הדבר הבא שמקדם את המטרה"></label>
       <div id="goalTasksBox">
         <div class="logh"><span id="subHead">משימות</span> <span class="muted" id="goalTaskCount"></span></div>
         <div id="goalTasks" class="sublist"></div>
@@ -684,24 +720,8 @@ dialog::backdrop{background:#0e1a3388}
         </details>
       </div>
     </div>
-    <div class="xside">
-      <label id="itemSpaceField" class="hidden">אזור<select id="itemSpace" class="control"></select></label>
-      <label>סוג<select id="itemType" class="control"><option value="task">משימה</option><option value="goal">מטרה / פרויקט</option></select></label>
-      <label>מצב<select id="itemStatus" class="control"><option value="active">פעיל</option><option value="waiting">ממתין</option><option value="done">הסתיים</option></select></label>
-      <label id="ownerField">אחראים<div id="ownerChips" class="ochips"></div><select id="owner" class="control"></select></label>
-      <div id="quickPersonBox" class="inline hidden">
-        <label style="flex:1">שם האדם החדש<input id="quickPersonName" class="control" placeholder="למשל: יוסי / נהג"></label>
-        <button type="button" id="quickPersonSave" class="btn primary">הוספה</button>
-      </div>
-      <label>תאריך יעד<input id="due" type="date" class="control"></label>
-      <div class="hebnote" id="dueHeb"></div>
-      <label id="parentField">שייך למטרה / פרויקט<select id="parent" class="control"></select></label>
-      <div id="quickGoalBox" class="inline hidden">
-        <label style="flex:1">שם המטרה או הפרויקט<input id="quickGoalName" class="control" placeholder="למשל: פרויקט מגדל צפת"></label>
-        <button type="button" id="quickGoalSave" class="btn primary">הוספה</button>
-      </div>
-    </div>
   </div>
+
   <div class="xfoot">
     <button type="button" id="deleteItem" class="btn danger small hidden">מחיקה</button>
     <span class="grow muted" id="xFootNote"></span>
@@ -1309,24 +1329,26 @@ function typeChanged(){
   if(g){$('#parent').value='';$('#quickGoalBox').classList.add('hidden')}
   $('#xKind').textContent=g?'מטרה':'משימה';
   $('#itemTitle').placeholder=g?'שם המטרה או הפרויקט':'מה צריך לעשות?';
-  $('#ownerField').firstChild.textContent=g?'מנהל המטרה':'אחראים';
-  $('#actionField').firstChild.textContent=g?'הצעד הבא במטרה':'הפעולה הבאה';
-  // במשימה השדה מוצג רק אם כבר יש בו תוכן (שדה ישן)
-  $('#actionField').classList.toggle('hidden',!g&&!$('#action').value.trim());
-  renderOwners();                       // הניסוח של "אחראי"/"מנהל" תלוי בסוג
   $('#titleLabel').textContent=g?'שם המטרה':'שם המשימה';
-  // רשימת המשימות קיימת בשני הסוגים: במטרה אלו המשימות שלה, במשימה אלו השלבים
+  $('#actionLabel').textContent=g?'הצעד הבא במטרה':'הפעולה הבאה';
+  $('#ownerField').querySelector('b').textContent=g?'מנהל':'אחראים';
+  renderOwners();                       // הניסוח של "אחראי"/"מנהל" תלוי בסוג
   $('#subHead').textContent='משימות';
-  $('#goalAdd').placeholder='כתוב משימה…';
   goalPanelId=id||'';
-  $('#goalTasksBox').classList.remove('hidden');
-  $('#goalAdd').disabled=$('#goalAddBtn').disabled=!goalPanelId;
+  fillSubWho();                         // "מיועד ל" זמין כבר ביצירה
+  $('#goalAdd').disabled=$('#goalAddBtn').disabled=$('#goalAddWho').disabled=false;
   if(goalPanelId)paintGoalTasks();
   else{$('#goalTaskCount').textContent='';$('#doneBox').classList.add('hidden');
-    $('#goalTasks').innerHTML='<div class="muted" style="font-size:13px;padding:4px 2px">הרשימה נפתחת אחרי היצירה.</div>'}
+    $('#goalTasks').innerHTML='<div class="muted" style="font-size:13px;padding:4px 2px">אפשר לכתוב כאן משימה — הפריט ייווצר יחד איתה.</div>'}
   if(!id)$('#formTitle').textContent=g?'מטרה חדשה':'משימה חדשה';
 }
-/** רשימת המשימות של המטרה שבתוך הפאנל */
+/** רשימת "מיועד ל" של שורת ההוספה — נבנית תמיד, גם לפני שהפריט נוצר */
+function fillSubWho(){
+  const sid=dlgSpace(), cur=$('#goalAddWho').value;
+  $('#goalAddWho').innerHTML='<option value="">— ללא —</option>'
+    +people.filter(p=>p.space_id===sid).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  if(cur)$('#goalAddWho').value=cur;
+}
 /** מי כתב את המשימה — דרך רשומת האדם שמקושרת לחשבון */
 const creatorName=x=>{const p=people.find(q=>q.user_id&&q.user_id===x.created_by);return p?p.name:''};
 function subCard(x){
@@ -1351,21 +1373,23 @@ function paintGoalTasks(){
   $('#doneCnt').textContent=done.length;
   $('#doneBox').classList.toggle('hidden',!done.length);
   $('#doneTasks').innerHTML=done.map(subCard).join('');
-  // "מיועד ל" — אנשי האזור, ברירת מחדל ללא
-  const sid=dlgSpace(), cur=$('#goalAddWho').value;
-  $('#goalAddWho').innerHTML='<option value="">— ללא —</option>'
-    +people.filter(p=>p.space_id===sid).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
-  if(cur)$('#goalAddWho').value=cur;
+  fillSubWho();
 }
-/** הוספה: שורת טקסט אחת, ואם נבחר אדם — גם שיוך */
+/** הוספה: שורת טקסט אחת, ואם נבחר אדם — גם שיוך.
+    על פריט שעוד לא נוצר — יוצרים אותו קודם, ואז מוסיפים. */
 async function addGoalTask(){
-  const t=$('#goalAdd').value.trim(); if(!t||!goalPanelId)return;
+  const t=$('#goalAdd').value.trim(); if(!t)return;
+  if(!goalPanelId){
+    const id=await createItem(true);            // דורש שם; אם אין — createItem מסביר
+    if(!id)return;
+    goalPanelId=id;
+  }
   const g=items.find(y=>y.id===goalPanelId); if(!g)return;
   const who=$('#goalAddWho').value;
   $('#goalAdd').disabled=true;
-  const {data,error}=await db.from('items').insert({space_id:g.space_id,title:t,type:'task',
+  const {error}=await db.from('items').insert({space_id:g.space_id,title:t,type:'task',
     parent_id:goalPanelId,action_title:'',owner_id:who||null,due_date:null,status:'active',
-    created_by:user.id}).select();
+    created_by:user.id});
   $('#goalAdd').disabled=false;
   if(error){alert(heb(error));return}
   $('#goalAdd').value='';$('#goalAdd').focus();
@@ -1609,7 +1633,7 @@ async function closeItem(){
   }
   $('#itemDialog').close();
 }
-async function createItem(){
+async function createItem(keepOpen){
   if(!$('#itemTitle').value.trim()){
     const t=$('#itemTitle');
     t.focus();t.style.borderBottomColor='#ff8f86';t.placeholder='צריך שם כדי ליצור';
@@ -1629,6 +1653,12 @@ async function createItem(){
     const rest=dlgOwners.slice(1).map(pid=>({item_id:made.id,person_id:pid,space_id:sid}));
     const {error:e2}=await db.from('item_owners').insert(rest);
     if(e2)alert(heb(e2));
+  }
+  if(keepOpen&&made){                 // נשארים בפאנל — ממשיכים להוסיף משימות
+    $('#itemId').value=made.id;
+    $('#saveItem').textContent='סגירה';$('#cancelItem').classList.add('hidden');
+    $('#deleteItem').classList.remove('hidden');$('#xFootNote').textContent='כל שינוי נשמר לבד';
+    await loadSpace();typeChanged();return made.id;
   }
   $('#itemDialog').close();await loadSpace();
 }
