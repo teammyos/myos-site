@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>נכסים · BBM</title>
+<link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div><h1>נכסים</h1><p class="sub">חיפוש, סינון וייצוא של מאגר הנכסים</p></div>
+    <div class="actions">
+      <button id="exportBtn" type="button">ייצוא לאקסל (CSV)</button>
+      <a class="btn primary" id="newBtn" href="edit.html">+ נכס חדש</a>
+    </div>
+  </div>
+
+  <form class="card filters" id="filters" autocomplete="off">
+    <label class="f wide">חיפוש חופשי<input name="q" placeholder="מספר נכס, שם, כתובת, מחזיק, גוש/חלקה"></label>
+    <label class="f">גוש<input name="gush" inputmode="numeric"></label>
+    <label class="f">חלקה<input name="helka" inputmode="numeric"></label>
+    <label class="f">סוג פיזי<span data-select="physical_type"></span></label>
+    <label class="f">קיים / עתידי<span data-select="record_status"></span></label>
+    <label class="f">מקור הזכות<span data-select="right_source"></span></label>
+    <label class="f">מטרת החזקה<span data-select="holding_purpose"></span></label>
+    <label class="f">תחום שימוש<span data-select="use_domain"></span></label>
+    <label class="f">מצב תפעולי<span data-select="operational_status"></span></label>
+    <label class="f">שלב תמורה<span data-select="consideration_stage"></span></label>
+    <label class="f">פנוי / בשימוש
+      <select name="occupancy"><option value="">הכול</option><option value="vacant">פנוי / לא בשימוש</option><option value="in_use">בשימוש</option></select></label>
+    <label class="f">מחזיק<select name="holder_id" id="holderSel"><option value="">הכול</option></select></label>
+    <label class="f">מתחם<select name="complex_id" id="complexSel"><option value="">הכול</option></select></label>
+    <div><button type="reset">ניקוי סינון</button></div>
+  </form>
+
+  <p class="count" id="count" aria-live="polite"></p>
+  <div class="table-wrap"><table class="data" id="table"></table></div>
+</main>
+<script src="../js/config.js"></script>
+<script src="../js/vendor/supabase.umd.js"></script>
+<script src="../js/lookups.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/ui.js"></script>
+<script src="list.js"></script>
+</body>
+</html>

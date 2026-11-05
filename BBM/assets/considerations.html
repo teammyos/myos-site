@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>תמורות ציבוריות · BBM</title>
+<link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div><h1>תמורות ציבוריות</h1><p class="sub">רשימת תהליכי התמורה מול יזמים. טופס הסקר יתווסף בשלב הבא.</p></div>
+    <div class="actions"><button id="exportBtn" type="button">ייצוא לאקסל (CSV)</button></div>
+  </div>
+  <form class="card filters" id="filters" autocomplete="off">
+    <label class="f wide">חיפוש<input name="q" placeholder="יזם, פרויקט, כתובת, מספר תהליך"></label>
+    <label class="f">שלב<span data-select="stage"></span></label>
+    <label class="f">התאמת שטחים<span data-select="area_match"></span></label>
+    <label class="f">ביקורת<select name="surveyed"><option value="">הכול</option><option value="no">טרם נבדקו</option><option value="yes">נבדקו</option></select></label>
+    <div><button type="reset">ניקוי סינון</button></div>
+  </form>
+  <p class="count" id="count" aria-live="polite"></p>
+  <div class="table-wrap"><table class="data" id="table"></table></div>
+</main>
+<script src="../js/config.js"></script>
+<script src="../js/vendor/supabase.umd.js"></script>
+<script src="../js/lookups.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/ui.js"></script>
+<script>
+(async function () {
+  const { ui, data } = BBM;
+  if (!(await ui.start({ base: '../', active: 'considerations' }))) return;
+  const esc = ui.esc, L = data.label, form = document.getElementById('filters');
+  const lists = { stage: 'consideration_stage', area_match: 'area_match' };
+  form.querySelectorAll('[data-select]').forEach(s => { s.outerHTML = ui.selectHtml(s.dataset.select, lists[s.dataset.select], '', { empty: 'הכול' }); });
+  const yesNo = (b, d) => b ? 'יש' + (d ? ' · ' + ui.fmtDate(d) : '') : b === false ? 'אין' : '';
+  const assetLinks = c => c.assets.map(a => `<a href="asset.html?id=${encodeURIComponent(a.id)}">${esc(a.asset_number)}</a>`).join(', ');
+  const columns = [
+    { title: 'מספר תהליך', value: c => c.process_number, cls: 'num' },
+    { title: 'יזם ופרויקט', value: c => [c.developer, c.project_name].filter(Boolean).join(' · ') },
+    { title: 'כתובת', value: c => c.address },
+    { title: 'נכסים', value: c => c.assets.map(a => a.asset_number).join(', '), html: assetLinks },
+    { title: 'שטח שהובטח', value: c => c.promised_area, cls: 'num' },
+    { title: 'שטח שנמסר', value: c => c.delivered_area, cls: 'num',
+      html: c => c.delivered_area == null ? '' : `<span class="${c.delivered_is_calc ? 'calc' : ''}">${ui.fmtNum(c.delivered_area)}</span>` },
+    { title: 'שלב', value: c => L('consideration_stage', c.stage) },
+    { title: 'היתר', value: c => yesNo(c.has_permit, c.permit_date) },
+    { title: 'טופס 4', value: c => yesNo(c.has_form4, c.form4_date) },
+    { title: 'מסירה וחזקה', value: c => c.handover_status },
+    { title: 'פנוי/בשימוש', value: c => c.is_vacant ? 'פנוי' : c.is_vacant === false ? 'בשימוש' : '' },
+    { title: 'שימוש בפועל', value: c => c.actual_use },
+    { title: 'התאמת שטחים', value: c => L('area_match', c.area_match),
+      html: c => `<span class="tag ${c.area_match === 'shortage' || c.area_match === 'surplus' ? 'warn' : ''}">${esc(L('area_match', c.area_match))}</span>` },
+    { title: 'פעולה נדרשת', value: c => c.required_action },
+    { title: 'ביקורת אחרונה', value: c => c.last_survey ? ui.fmtDate(c.last_survey.survey_date) : 'טרם נבדק', cls: 'num' }
+  ];
+  let rows = [];
+  function render() {
+    const f = Object.fromEntries(new FormData(form));
+    const all = data.listConsiderations();
+    rows = all.filter(c => {
+      if (f.q && ![c.process_number, c.developer, c.project_name, c.address].join(' ').toLowerCase().includes(f.q.toLowerCase())) return false;
+      if (f.stage && c.stage !== f.stage) return false;
+      if (f.area_match && c.area_match !== f.area_match) return false;
+      if (f.surveyed === 'no' && c.last_survey) return false;
+      if (f.surveyed === 'yes' && !c.last_survey) return false;
+      return true;
+    });
+    document.getElementById('count').textContent = `${rows.length} מתוך ${all.length} תמורות`;
+    document.getElementById('table').innerHTML = '<thead><tr>' + columns.map(c => `<th scope="col">${c.title}</th>`).join('') + '</tr></thead><tbody>' +
+      (rows.map(r => '<tr>' + columns.map(c => `<td class="${c.cls || ''}">${c.html ? c.html(r) : esc(c.value(r))}</td>`).join('') + '</tr>').join('')
+        || `<tr><td colspan="${columns.length}" class="empty">לא נמצאו תמורות</td></tr>`) + '</tbody>';
+  }
+  form.addEventListener('input', render); form.addEventListener('reset', () => setTimeout(render));
+  form.addEventListener('submit', e => e.preventDefault());
+  document.getElementById('exportBtn').onclick = () => ui.download(`תמורות-${new Date().toISOString().slice(0, 10)}.csv`, data.toCsv(rows, columns));
+  render();
+})();
+</script>
+</body>
+</html>

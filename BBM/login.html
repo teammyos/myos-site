@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>כניסה · BBM</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<main>
+  <div class="card login">
+    <h1>כניסה למערכת</h1>
+    <p class="sub" id="modeNote"></p>
+    <form id="form">
+      <label class="f">דוא"ל<input name="email" type="email" required autocomplete="username"></label>
+      <label class="f">סיסמה<input name="password" type="password" required minlength="8" autocomplete="current-password"></label>
+      <button class="primary" type="submit">כניסה</button>
+      <button type="button" id="signup">יצירת חשבון חדש</button>
+      <p class="hint">חשבון חדש ממתין לאישור מנהל לפני שאפשר לצפות בנתונים.</p>
+    </form>
+  </div>
+</main>
+<script src="js/config.js"></script>
+<script src="js/vendor/supabase.umd.js"></script>
+<script src="js/lookups.js"></script>
+<script src="js/demo-data.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script>
+(function () {
+  const { data, ui } = BBM, form = document.getElementById('form');
+  if (data.mode === 'demo') {
+    document.getElementById('modeNote').textContent = 'האתר במצב הדגמה ואינו דורש כניסה.';
+    form.innerHTML = '<a class="btn primary" href="index.html">כניסה לאתר</a>'; return;
+  }
+  const next = ui.param('next') || 'index.html';
+  const creds = () => ({ email: form.elements.email.value.trim(), password: form.elements.password.value });
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const { error } = await data.supabase.auth.signInWithPassword(creds());
+    if (error) return ui.toast('הכניסה נכשלה: ' + error.message, 'err');
+    location.href = next;
+  });
+  document.getElementById('signup').onclick = async () => {
+    if (!form.reportValidity()) return;
+    const { error } = await data.supabase.auth.signUp(creds());
+    if (error) return ui.toast(error.message, 'err');
+    ui.toast('החשבון נוצר. אם נשלח מייל אימות – יש לאשר אותו, ואז להיכנס.');
+  };
+})();
+</script>
+</body>
+</html>
