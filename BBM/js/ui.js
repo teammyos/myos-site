@@ -16,7 +16,7 @@
     const nav = items.map(([href, text, key]) =>
       `<a href="${base}${href}"${key === active ? ' aria-current="page"' : ''}>${text}</a>`).join('');
     const demo = BBM.data.mode === 'demo'
-      ? '<div class="demo-bar" role="status">מצב הדגמה: נתוני דוגמה בלבד. שינויים נשמרים רק בלשונית הזו ונמחקים כשסוגרים אותה. <button class="link" type="button" onclick="BBM.data.resetDemo()">איפוס נתוני הדוגמה</button></div>' : '';
+      ? '<div class="demo-bar" role="status">מצב הדגמה: נתוני דוגמה בלבד. שינויים נשמרים רק בלשונית הזו ונמחקים כשסוגרים אותה. <button class="link" type="button" onclick="BBM.data.resetDemo()">איפוס נתוני הדוגמה</button> · <a href="?demo=0">יציאה ממצב הדגמה</a></div>' : '';
     return `${demo}<header class="top"><a class="brand" href="${base}index.html">BBM · ניהול נכסים</a>
       <nav>${nav}</nav><div class="user" id="userBox"></div></header>`;
   }

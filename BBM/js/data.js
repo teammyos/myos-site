@@ -10,7 +10,15 @@
     'considerations', 'consideration_assets', 'consideration_surveys'];
 
   const cfg = window.BBM_CONFIG || {};
-  const mode = cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY ? 'live' : 'demo';
+  // ?demo=1 מפעיל מצב הדגמה בלשונית הנוכחית, ?demo=0 מבטל
+  const demoParam = new URLSearchParams(location.search).get('demo');
+  try {
+    if (demoParam === '1') sessionStorage.setItem('bbm_force_demo', '1');
+    if (demoParam === '0') sessionStorage.removeItem('bbm_force_demo');
+  } catch (e) { /* לא חובה */ }
+  let forceDemo = false;
+  try { forceDemo = sessionStorage.getItem('bbm_force_demo') === '1'; } catch (e) { forceDemo = demoParam === '1'; }
+  const mode = !forceDemo && cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY ? 'live' : 'demo';
   let sb = null;
   if (mode === 'live') sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
 
