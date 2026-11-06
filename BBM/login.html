@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>כניסה · BBM</title>
-<link rel="stylesheet" href="css/app.css?v=20261106a">
+<link rel="stylesheet" href="css/app.css?v=20261106b">
 </head>
 <body>
 <main>
@@ -16,16 +16,17 @@
       <label class="f">סיסמה<input name="password" type="password" required minlength="8" autocomplete="current-password"></label>
       <button class="primary" type="submit">כניסה</button>
       <button type="button" id="signup">יצירת חשבון חדש</button>
+      <button type="button" class="link" id="forgot">שכחתי סיסמה</button>
       <p class="hint">חשבון חדש ממתין לאישור מנהל לפני שאפשר לצפות בנתונים.</p>
     </form>
   </div>
 </main>
-<script src="js/config.js?v=20261106a"></script>
-<script src="js/vendor/supabase.umd.js?v=20261106a"></script>
-<script src="js/lookups.js?v=20261106a"></script>
-<script src="js/demo-data.js?v=20261106a"></script>
-<script src="js/data.js?v=20261106a"></script>
-<script src="js/ui.js?v=20261106a"></script>
+<script src="js/config.js?v=20261106b"></script>
+<script src="js/vendor/supabase.umd.js?v=20261106b"></script>
+<script src="js/lookups.js?v=20261106b"></script>
+<script src="js/demo-data.js?v=20261106b"></script>
+<script src="js/data.js?v=20261106b"></script>
+<script src="js/ui.js?v=20261106b"></script>
 <script>
 (function () {
   const { data, ui } = BBM, form = document.getElementById('form');
@@ -48,6 +49,14 @@
     const { error } = await data.supabase.auth.signUp({ ...creds(), options: { emailRedirectTo: home } });
     if (error) return ui.toast(error.message, 'err');
     ui.toast('החשבון נוצר. אם נשלח מייל אימות – יש לאשר אותו, ואז להיכנס.');
+  };
+  document.getElementById('forgot').onclick = async () => {
+    const email = form.elements.email.value.trim();
+    if (!email || !form.elements.email.checkValidity()) { form.elements.email.focus(); return ui.toast('יש להקליד את כתובת הדוא"ל, ואז ללחוץ שוב על "שכחתי סיסמה"', 'err'); }
+    const redirectTo = new URL('reset.html', location.href).href;
+    const { error } = await data.supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) return ui.toast(error.message, 'err');
+    ui.toast('נשלח מייל לאיפוס סיסמה. יש ללחוץ על הקישור שבו.');
   };
 })();
 </script>

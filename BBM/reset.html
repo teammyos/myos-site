@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>סיסמה חדשה · BBM</title>
+<link rel="stylesheet" href="css/app.css?v=20261106b">
+</head>
+<body>
+<main>
+  <div class="card login">
+    <h1>בחירת סיסמה חדשה</h1>
+    <p class="sub" id="note">מאמת את הקישור…</p>
+    <form id="form" hidden>
+      <label class="f">סיסמה חדשה<input name="p1" type="password" required minlength="8" autocomplete="new-password"></label>
+      <label class="f">הקלדה חוזרת<input name="p2" type="password" required minlength="8" autocomplete="new-password"></label>
+      <p class="hint">לפחות 8 תווים. מומלץ לשמור במנהל הסיסמאות.</p>
+      <button class="primary" type="submit">שמירת הסיסמה</button>
+    </form>
+  </div>
+</main>
+<script src="js/config.js?v=20261106b"></script>
+<script src="js/vendor/supabase.umd.js?v=20261106b"></script>
+<script src="js/lookups.js?v=20261106b"></script>
+<script src="js/demo-data.js?v=20261106b"></script>
+<script src="js/data.js?v=20261106b"></script>
+<script src="js/ui.js?v=20261106b"></script>
+<script>
+(async function () {
+  const { data, ui } = BBM, form = document.getElementById('form'), note = document.getElementById('note');
+  // supabase-js קורא את קוד האיפוס מהכתובת ויוצר חיבור זמני
+  await new Promise(r => setTimeout(r, 600));
+  const { data: s } = await data.supabase.auth.getSession();
+  if (!s.session) { note.innerHTML = 'הקישור אינו תקף או שפג תוקפו. <a href="login.html">חזרה לכניסה</a> ובקשת קישור חדש.'; return; }
+  note.textContent = 'החשבון: ' + s.session.user.email;
+  form.hidden = false;
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const p1 = form.elements.p1.value, p2 = form.elements.p2.value;
+    if (p1 !== p2) return ui.toast('שתי הסיסמאות אינן זהות', 'err');
+    const { error } = await data.supabase.auth.updateUser({ password: p1 });
+    if (error) return ui.toast(error.message, 'err');
+    ui.toast('הסיסמה עודכנה');
+    setTimeout(() => { location.href = 'index.html'; }, 800);
+  });
+})();
+</script>
+</body>
+</html>
