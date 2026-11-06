@@ -43,7 +43,9 @@
   });
   document.getElementById('signup').onclick = async () => {
     if (!form.reportValidity()) return;
-    const { error } = await data.supabase.auth.signUp(creds());
+    // קישור האימות במייל יחזיר לאתר BBM (ולא לדף הראשי של myos.co.il)
+    const home = new URL('index.html', location.href).href;
+    const { error } = await data.supabase.auth.signUp({ ...creds(), options: { emailRedirectTo: home } });
     if (error) return ui.toast(error.message, 'err');
     ui.toast('החשבון נוצר. אם נשלח מייל אימות – יש לאשר אותו, ואז להיכנס.');
   };
