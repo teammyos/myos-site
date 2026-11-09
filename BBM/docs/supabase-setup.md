@@ -54,3 +54,10 @@ where email = 'המייל@שלך';
 | editor_limited – עריכה מוגבלת | צפייה + הוספת ביקורות/סקר ועדכון מחזיקים |
 | editor – עריכה מלאה | הכול חוץ מניהול משתמשים ורשימות |
 | admin – מנהל | הכול, כולל אישור משתמשים ועריכת רשימות |
+
+## שליחת מיילים (SMTP) – הוגדר 9.11.2026
+- Authentication → Emails → SMTP Settings: שולח `bbm@myos.co.il`, שם "BBM ניהול נכסים", Host `smtp.resend.com`, Port `465`, Username `resend`.
+- Password = מפתח Resend בשם "BBM Supabase" (חשבון Resend של MyOS, דומיין myos.co.il). המפתח לא נשמר בשום קובץ; ניתן לבטל אותו ב-Resend בלי לפגוע ב-MyOS.
+- מכסת Resend (תוכנית חינמית): 100 מיילים ביום לכל חשבון MyOS – משותפת לתוסף, למשימות ול-BBM.
+- התבניות בעברית נמצאות ב-`supabase/email-templates.js` (מקור) ו-`email-templates.json` (תוצר). אחרי שינוי – להדביק מחדש ב-Authentication → Emails → Templates.
+- גיבוי ידני: מנהל יכול לאשר משתמש בלי מייל מ-Authentication → Users.
