@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>כניסה · BBM</title>
-<link rel="stylesheet" href="css/app.css?v=20261106b">
+<link rel="stylesheet" href="css/app.css?v=20261110a">
 </head>
 <body>
 <main>
@@ -21,12 +21,12 @@
     </form>
   </div>
 </main>
-<script src="js/config.js?v=20261106b"></script>
-<script src="js/vendor/supabase.umd.js?v=20261106b"></script>
-<script src="js/lookups.js?v=20261106b"></script>
-<script src="js/demo-data.js?v=20261106b"></script>
-<script src="js/data.js?v=20261106b"></script>
-<script src="js/ui.js?v=20261106b"></script>
+<script src="js/config.js?v=20261110a"></script>
+<script src="js/vendor/supabase.umd.js?v=20261110a"></script>
+<script src="js/lookups.js?v=20261110a"></script>
+<script src="js/demo-data.js?v=20261110a"></script>
+<script src="js/data.js?v=20261110a"></script>
+<script src="js/ui.js?v=20261110a"></script>
 <script>
 (function () {
   const { data, ui } = BBM, form = document.getElementById('form');
@@ -39,7 +39,7 @@
   form.addEventListener('submit', async e => {
     e.preventDefault();
     const { error } = await data.supabase.auth.signInWithPassword(creds());
-    if (error) return ui.toast('הכניסה נכשלה: ' + error.message, 'err');
+    if (error) return ui.toast(ui.authError(error), 'err');
     location.href = next;
   });
   document.getElementById('signup').onclick = async () => {
@@ -47,7 +47,7 @@
     // קישור האימות במייל יחזיר לאתר BBM (ולא לדף הראשי של myos.co.il)
     const home = new URL('index.html', location.href).href;
     const { error } = await data.supabase.auth.signUp({ ...creds(), options: { emailRedirectTo: home } });
-    if (error) return ui.toast(error.message, 'err');
+    if (error) return ui.toast(ui.authError(error), 'err');
     ui.toast('החשבון נוצר. אם נשלח מייל אימות – יש לאשר אותו, ואז להיכנס.');
   };
   document.getElementById('forgot').onclick = async () => {
@@ -55,7 +55,7 @@
     if (!email || !form.elements.email.checkValidity()) { form.elements.email.focus(); return ui.toast('יש להקליד את כתובת הדוא"ל, ואז ללחוץ שוב על "שכחתי סיסמה"', 'err'); }
     const redirectTo = new URL('reset.html', location.href).href;
     const { error } = await data.supabase.auth.resetPasswordForEmail(email, { redirectTo });
-    if (error) return ui.toast(error.message, 'err');
+    if (error) return ui.toast(ui.authError(error), 'err');
     ui.toast('נשלח מייל לאיפוס סיסמה. יש ללחוץ על הקישור שבו.');
   };
 })();

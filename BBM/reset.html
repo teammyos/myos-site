@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>סיסמה חדשה · BBM</title>
-<link rel="stylesheet" href="css/app.css?v=20261106b">
+<link rel="stylesheet" href="css/app.css?v=20261110a">
 </head>
 <body>
 <main>
@@ -19,12 +19,12 @@
     </form>
   </div>
 </main>
-<script src="js/config.js?v=20261106b"></script>
-<script src="js/vendor/supabase.umd.js?v=20261106b"></script>
-<script src="js/lookups.js?v=20261106b"></script>
-<script src="js/demo-data.js?v=20261106b"></script>
-<script src="js/data.js?v=20261106b"></script>
-<script src="js/ui.js?v=20261106b"></script>
+<script src="js/config.js?v=20261110a"></script>
+<script src="js/vendor/supabase.umd.js?v=20261110a"></script>
+<script src="js/lookups.js?v=20261110a"></script>
+<script src="js/demo-data.js?v=20261110a"></script>
+<script src="js/data.js?v=20261110a"></script>
+<script src="js/ui.js?v=20261110a"></script>
 <script>
 (async function () {
   const { data, ui } = BBM, form = document.getElementById('form'), note = document.getElementById('note');
@@ -39,7 +39,7 @@
     const p1 = form.elements.p1.value, p2 = form.elements.p2.value;
     if (p1 !== p2) return ui.toast('שתי הסיסמאות אינן זהות', 'err');
     const { error } = await data.supabase.auth.updateUser({ password: p1 });
-    if (error) return ui.toast(error.message, 'err');
+    if (error) return ui.toast(ui.authError(error), 'err');
     ui.toast('הסיסמה עודכנה');
     setTimeout(() => { location.href = 'index.html'; }, 800);
   });

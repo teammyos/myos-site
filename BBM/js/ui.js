@@ -36,6 +36,11 @@
         main.innerHTML = '<div class="card"><h1>ממתין לאישור מנהל</h1><p>החשבון נוצר. מנהל המערכת צריך לאשר אותו לפני שתוכל לצפות בנתונים.</p></div>';
         return false;
       }
+      // קישור לניהול משתמשים – למנהלים בלבד
+      if (me.role === 'admin') {
+        const nav = document.querySelector('header.top nav');
+        nav.insertAdjacentHTML('beforeend', `<a href="${base}users.html"${active === 'users' ? ' aria-current="page"' : ''}>ניהול משתמשים</a>`);
+      }
     } else {
       BBM.me = { role: 'admin', approved: true };
     }
@@ -68,5 +73,19 @@
   const fmtDate = d => d ? new Date(d).toLocaleDateString('he-IL') : '';
   const fmtNum = n => n == null || n === '' ? '' : Number(n).toLocaleString('he-IL');
 
-  window.BBM.ui = { start, esc, param, toast, selectHtml, download, fmtDate, fmtNum, canEdit, canEditLimited };
+  // תרגום הודעות שגיאה נפוצות של מערכת הכניסה לעברית
+  function authError(err) {
+    const m = String((err && (err.message || err.msg)) || err || '');
+    if (/invalid login credentials/i.test(m)) return 'הדוא"ל או הסיסמה שגויים.';
+    if (/email not confirmed/i.test(m)) return 'כתובת הדוא"ל עדיין לא אומתה. יש ללחוץ על הקישור שנשלח במייל.';
+    if (/already registered|already been registered/i.test(m)) return 'כבר קיים חשבון עם כתובת הדוא"ל הזו. אפשר להיכנס, או ללחוץ "שכחתי סיסמה".';
+    if (/rate limit|too many|security purposes/i.test(m)) return 'בוצעו יותר מדי ניסיונות. נא להמתין כמה דקות ולנסות שוב.';
+    if (/sending|smtp|email.*(fail|error)|error.*email/i.test(m)) return 'לא הצלחנו לשלוח את המייל כרגע. נסו שוב מאוחר יותר, או פנו למנהל המערכת.';
+    if (/password should be at least|weak password/i.test(m)) return 'הסיסמה קצרה או חלשה מדי. יש לבחור לפחות 8 תווים.';
+    if (/same.*password|different from the old/i.test(m)) return 'הסיסמה החדשה זהה לסיסמה הקודמת. יש לבחור סיסמה אחרת.';
+    if (/failed to fetch|network/i.test(m)) return 'אין חיבור לשרת. בדקו את החיבור לאינטרנט ונסו שוב.';
+    return 'אירעה שגיאה: ' + m;
+  }
+
+  window.BBM.ui = { start, esc, param, toast, selectHtml, download, fmtDate, fmtNum, canEdit, canEditLimited, authError };
 })();

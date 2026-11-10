@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ניהול משתמשים · BBM</title>
+<link rel="stylesheet" href="css/app.css?v=20261110a">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div><h1>ניהול משתמשים</h1><p class="sub">אישור נרשמים חדשים וקביעת הרשאות. זמין למנהלים בלבד.</p></div>
+  </div>
+  <div id="pending"></div>
+  <div class="card">
+    <h2>כל המשתמשים</h2>
+    <div class="table-wrap"><table class="data" id="table"></table></div>
+    <p class="hint" style="margin-top:10px">
+      <strong>צפייה</strong> – רואה את כל הנתונים ·
+      <strong>עריכה מוגבלת</strong> – גם ביקורות וסקר ועדכון מחזיקים ·
+      <strong>עריכה מלאה</strong> – כל הנכסים והתמורות ·
+      <strong>מנהל</strong> – הכול, כולל ניהול משתמשים
+    </p>
+  </div>
+</main>
+<script src="js/config.js?v=20261110a"></script>
+<script src="js/vendor/supabase.umd.js?v=20261110a"></script>
+<script src="js/lookups.js?v=20261110a"></script>
+<script src="js/demo-data.js?v=20261110a"></script>
+<script src="js/data.js?v=20261110a"></script>
+<script src="js/ui.js?v=20261110a"></script>
+<script>
+(async function () {
+  const { ui, data } = BBM, esc = ui.esc, main = document.querySelector('main');
+  if (!(await ui.start({ base: '', active: 'users' }))) return;
+  if (data.mode !== 'live') { main.innerHTML = '<div class="card">ניהול משתמשים זמין רק כשהאתר מחובר למסד הנתונים (לא במצב הדגמה).</div>'; return; }
+  if (!BBM.me || BBM.me.role !== 'admin') { main.innerHTML = '<div class="card">הדף הזה זמין למנהלים בלבד.</div>'; return; }
+
+  const ROLES = [['viewer', 'צפייה'], ['editor_limited', 'עריכה מוגבלת'], ['editor', 'עריכה מלאה'], ['admin', 'מנהל']];
+  const roleSel = (u) => `<select data-id="${esc(u.id)}" data-k="role" aria-label="הרשאה של ${esc(u.email)}"${u.id === BBM.me.id ? ' disabled title="אי אפשר לשנות את ההרשאה של עצמך"' : ''}>` +
+    ROLES.map(([v, t]) => `<option value="${v}"${v === u.role ? ' selected' : ''}>${t}</option>`).join('') + '</select>';
+
+  async function load() {
+    const { data: users, error } = await data.supabase.from('app_users').select('*').order('created_at');
+    if (error) { main.insertAdjacentHTML('beforeend', `<div class="card error">${esc(error.message)}</div>`); return; }
+    const pending = users.filter(u => !u.approved);
+    document.getElementById('pending').innerHTML = pending.length ? `<div class="card">
+      <h2>ממתינים לאישור (${pending.length})</h2>
+      <ul class="links">${pending.map(u => `<li style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <strong>${esc(u.email)}</strong><span class="hint">נרשם/ה ${ui.fmtDate(u.created_at)}</span>
+        <span style="margin-inline-start:auto;display:flex;gap:8px;align-items:center">הרשאה: ${roleSel(u)}
+        <button class="primary" data-approve="${esc(u.id)}">אישור</button></span></li>`).join('')}</ul></div>` : '';
+
+    document.getElementById('table').innerHTML = '<thead><tr><th>דוא"ל</th><th>שם</th><th>נרשם/ה</th><th>הרשאה</th><th>מצב</th><th></th></tr></thead><tbody>' +
+      users.map(u => `<tr>
+        <td>${esc(u.email)}${u.id === BBM.me.id ? ' <span class="tag">את/ה</span>' : ''}</td>
+        <td><input data-id="${esc(u.id)}" data-k="full_name" value="${esc(u.full_name || '')}" aria-label="שם של ${esc(u.email)}" style="min-width:140px"></td>
+        <td class="num">${ui.fmtDate(u.created_at)}</td>
+        <td>${roleSel(u)}</td>
+        <td>${u.approved ? '<span class="tag existing">מאושר</span>' : '<span class="tag future">ממתין</span>'}</td>
+        <td>${u.id === BBM.me.id ? '' : (u.approved
+          ? `<button data-block="${esc(u.id)}">חסימה</button>`
+          : `<button class="primary" data-approve="${esc(u.id)}">אישור</button>`)}</td>
+      </tr>`).join('') + '</tbody>';
+  }
+
+  async function update(id, patch, msg) {
+    const { error } = await data.supabase.from('app_users').update(patch).eq('id', id);
+    if (error) return ui.toast('השמירה נכשלה: ' + error.message, 'err');
+    ui.toast(msg); await load();
+  }
+  main.addEventListener('click', e => {
+    const a = e.target.closest('[data-approve]'), b = e.target.closest('[data-block]');
+    if (a) {
+      const sel = main.querySelector(`select[data-id="${a.dataset.approve}"]`);
+      update(a.dataset.approve, { approved: true, role: sel ? sel.value : 'viewer' }, 'המשתמש אושר. מעכשיו הוא יכול להיכנס.');
+    }
+    if (b && confirm('לחסום את המשתמש? הוא לא יוכל לצפות בנתונים עד שיאושר שוב.')) update(b.dataset.block, { approved: false }, 'המשתמש נחסם.');
+  });
+  main.addEventListener('change', e => {
+    const el = e.target; if (!el.dataset.id) return;
+    // שינוי הרשאה למשתמש ממתין נשמר רק בלחיצה על "אישור"
+    if (el.dataset.k === 'role' && el.closest('#pending')) return;
+    update(el.dataset.id, { [el.dataset.k]: el.value.trim() || null }, 'נשמר');
+  });
+  load();
+})();
+</script>
+</body>
+</html>
