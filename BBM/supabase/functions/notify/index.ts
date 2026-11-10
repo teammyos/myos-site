@@ -22,7 +22,8 @@ const RESEND_KEY = Deno.env.get("RESEND_API_KEY") || "";
 const SECRET = Deno.env.get("NOTIFY_SECRET") || "";
 const MAIL_FROM = Deno.env.get("MAIL_FROM") || "BBM ניהול נכסים <bbm@myos.co.il>";
 const SB_URL = Deno.env.get("SUPABASE_URL") || "";
-const SB_SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+// מפתח שרת: הישן (service_role) או החדש (sb_secret_...), מה שקיים בסביבה
+const SB_SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_SECRET_KEY") || "";
 const SITE = "https://myos.co.il/BBM/";
 
 const ROLES: Record<string, string> = {
@@ -52,9 +53,9 @@ ${note ? `<p style="margin:0;color:#5b6876;font-size:13px;">${note}</p>` : ""}
 }
 
 async function db(path: string) {
-  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
-    headers: { apikey: SB_SERVICE, Authorization: `Bearer ${SB_SERVICE}` },
-  });
+  const headers: Record<string, string> = { apikey: SB_SERVICE };
+  if (!SB_SERVICE.startsWith("sb_")) headers.Authorization = `Bearer ${SB_SERVICE}`;
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, { headers });
   if (!r.ok) throw new Error(`db ${r.status}: ${await r.text()}`);
   return r.json();
 }
