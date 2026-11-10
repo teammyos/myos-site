@@ -8,7 +8,7 @@
 // הפונקציה מקבלת רק kind + user_id, ומאתרת בעצמה את הנמענים במסד הנתונים.
 // כך גם מי שמשיג את הסוד לא יכול לשלוח מיילים לכתובות שרירותיות.
 //
-// פריסה: Edge Functions → notify, עם Verify JWT = OFF (הקריאה מגיעה מהמסד, בלי משתמש).
+// פריסה: Edge Functions → notify, עם Verify JWT = ON (המסד שולח את המפתח הציבורי anon, ראו 004).
 // סודות (Edge Functions → Secrets):
 //   RESEND_API_KEY  – מפתח "BBM Supabase" מ-Resend
 //   NOTIFY_SECRET   – אותו ערך שנשמר ב-private.settings במסד (לא נשמר בקוד)
