@@ -58,7 +58,8 @@
 
   // ---------- עמודות הטבלה והייצוא ----------
   const columns = [
-    { title: 'מספר נכס', value: a => a.asset_number, html: a => `<a href="asset.html?id=${encodeURIComponent(a.id)}">${esc(a.asset_number)}</a>`, cls: 'num' },
+    { title: 'מספר נכס', value: a => a.asset_number, cls: 'num',
+      html: a => `<a href="asset.html?id=${encodeURIComponent(a.id)}">${esc(a.asset_number)}</a> <a class="folder-btn" href="bbmasset:${encodeURIComponent(a.asset_number)}" title="פתיחת תיקיית הנכס" aria-label="פתיחת תיקיית נכס ${esc(a.asset_number)}">📂</a>` },
     { title: 'כתובת', value: a => placeText(a) },
     { title: 'שכונה', value: a => a.neighborhood },
     { title: 'שימוש', value: a => useText(a) },
@@ -89,9 +90,11 @@
       ['מחזיק', a.holder_name],
     ].filter(([, v]) => v);
     const act = actionOf(a);
-    return `<a class="acard" href="asset.html?id=${encodeURIComponent(a.id)}">
+    const href = `asset.html?id=${encodeURIComponent(a.id)}`;
+    return `<div class="acard" data-href="${href}">
       <div class="acard-top">
-        <span class="acard-num">נכס ${esc(a.asset_number)}</span>
+        <span class="acard-id"><a class="acard-num" href="${href}">נכס ${esc(a.asset_number)}</a>
+          <a class="folder-btn" href="bbmasset:${encodeURIComponent(a.asset_number)}" title="פתיחת תיקיית הנכס במחשב (עירייה)" aria-label="פתיחת תיקיית נכס ${esc(a.asset_number)}">📂</a></span>
         <span class="pills">
           ${known(st) ? `<span class="pill ${STATUS_CLS[st] || ''}">${esc(label('operational_status', st))}</span>` : ''}
           ${a.record_status === 'future' ? '<span class="pill future">עתידי</span>' : ''}
@@ -100,7 +103,7 @@
       <div class="acard-title">${esc(placeText(a) || a.name || '')}${useText(a) ? ` <span class="sep">—</span> ${esc(useText(a))}` : ''}</div>
       ${kv.length ? `<dl class="acard-kv">${kv.map(([k, v]) => `<div><dt>${k}:</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
       ${act ? `<div class="acard-note">⚑ ${esc(act.split('\n')[0])}${act.includes('\n') ? ' …' : ''}</div>` : ''}
-    </a>`;
+    </div>`;
   }
 
   // ---------- סינון ----------
@@ -159,10 +162,12 @@
     history.replaceState(null, '', '?' + new URLSearchParams(f).toString());
   }
 
-  // לחיצה על שורה בטבלה פותחת את הנכס
+  // לחיצה בכל מקום על כרטיסייה / שורה פותחת את הנכס (חוץ מקישורים בתוכה, כמו כפתור התיקייה)
   results.addEventListener('click', e => {
-    const tr = e.target.closest('tr[data-href]');
-    if (tr && !e.target.closest('a')) location.href = tr.dataset.href;
+    if (e.target.closest('a')) return;
+    const el = e.target.closest('[data-href]');
+    if (!el) return;
+    if (e.ctrlKey || e.metaKey) window.open(el.dataset.href, '_blank'); else location.href = el.dataset.href;
   });
 
   // טעינת סינון מהכתובת

@@ -10,7 +10,6 @@
     const items = [
       ['index.html', 'דף הבית', 'home'],
       ['assets/index.html', 'נכסים', 'assets'],
-      ['assets/considerations.html', 'תמורות ציבוריות', 'considerations'],
       ['assets/dashboard.html', 'תמונת מצב', 'dashboard']
     ];
     const nav = items.map(([href, text, key]) =>

@@ -147,10 +147,10 @@ details.group .dot { width: 9px; height: 9px; border-radius: 50%; background: va
 details.group .n, .cards + .n { font-size: 12px; font-weight: 600; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; color: var(--muted); }
 
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
-a.acard { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; color: var(--ink); text-decoration: none;
+div.acard { display: block; cursor: pointer; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; color: var(--ink); text-decoration: none;
   transition: box-shadow .15s, border-color .15s, transform .15s; }
-a.acard:hover { border-color: var(--gold); box-shadow: 0 6px 18px rgba(23,52,77,.12); transform: translateY(-1px); }
-a.acard:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+div.acard:hover { border-color: var(--gold); box-shadow: 0 6px 18px rgba(23,52,77,.12); transform: translateY(-1px); }
+div.acard:focus-within { outline: 3px solid var(--gold); outline-offset: 2px; }
 .acard-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .acard-num { color: #a07a22; font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; }
 .pills { display: flex; gap: 4px; flex-wrap: wrap; }
@@ -174,3 +174,10 @@ table.data.clickable tbody tr { cursor: pointer; }
   dl.acard-kv { grid-template-columns: 1fr; }
   .band { padding-bottom: 60px; }
 }
+
+.acard-id { display: inline-flex; align-items: center; gap: 8px; }
+a.acard-num { text-decoration: none; }
+a.acard-num:hover { text-decoration: underline; }
+a.folder-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 24px; border: 1px solid var(--line); border-radius: 6px;
+  background: #fff; text-decoration: none; font-size: 14px; line-height: 1; }
+a.folder-btn:hover { border-color: var(--gold); background: var(--gold-soft); }
