@@ -125,6 +125,9 @@
         <section class="card"><h2>תמורה ציבורית</h2>${considerationHtml}</section>
 
         <section class="card"><h2>מסמכים</h2>
+          <p><a class="btn primary" href="bbmasset:${encodeURIComponent(a.asset_number)}">📂 פתיחת תיקיית הנכס</a></p>
+          <p class="hint">פותח בסייר הקבצים את התיקייה ששמה מסתיים ב"- ${esc(a.asset_number)}" בתוך "אגף נכסים - תיקי נכס" (כונן W).
+            עובד רק במחשבי העירייה, אחרי התקנה חד-פעמית של bbm-folder-setup.bat.</p>
           ${a.folder_path ? `<div class="path"><code>${esc(a.folder_path)}</code><button type="button" id="copyPath">העתק נתיב</button></div>
           <p class="hint">המסמכים שמורים בתיקייה המקומית של העירייה. מעתיקים את הנתיב ומדביקים בסייר הקבצים.</p>`
           : '<p class="empty">לא הוגדר נתיב לתיקיית מסמכים</p>'}
