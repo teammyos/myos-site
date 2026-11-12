@@ -113,10 +113,14 @@ def parcels_from(gush, helka, sub=None):
     g = str(int(gush)) if isinstance(gush, float) else str(gush)
     h = str(int(helka)) if isinstance(helka, float) else str(helka)
     extra = None
-    m = re.search(r"\((.*?)\)", h)
+    # "137,138" שהאקסל הפך למספר 137138 (תצוגה #,##0) ← שתי חלקות
+    if isinstance(helka, (int, float)) and helka >= 100000 and len(h) == 6:
+        h = h[:3] + "," + h[3:]
+    # "(מגרש 801,802" / "מגרש 813" – גם בלי סוגריים או בלי סוגר
+    m = re.search(r"\(?\s*מגרש.*$", h, re.S) or re.search(r"\((.*?)\)", h)
     if m:
-        extra = m.group(1).strip()
-        h = (h[:m.start()] + h[m.end():]).strip()
+        extra = m.group(0).strip("() \n")
+        h = h[:m.start()].strip()
     s = clean(sub)
     s = "" if s is None else (str(int(s)) if isinstance(s, float) else str(s))
     out = [(g.strip(), p.strip(), s) for p in re.split(r"[,/+ו]|\s+", h) if p.strip().isdigit()]
