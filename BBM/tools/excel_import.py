@@ -117,10 +117,10 @@ def parcels_from(gush, helka, sub=None):
     if isinstance(helka, (int, float)) and helka >= 100000 and len(h) == 6:
         h = h[:3] + "," + h[3:]
     # "(מגרש 801,802" / "מגרש 813" – גם בלי סוגריים או בלי סוגר
-    m = re.search(r"\(?\s*מגרש.*$", h, re.S) or re.search(r"\((.*?)\)", h)
+    m = re.search(r"\((.*?)\)", h, re.S) or re.search(r"\(?\s*מגרש.*$", h, re.S)
     if m:
         extra = m.group(0).strip("() \n")
-        h = h[:m.start()].strip()
+        h = (h[:m.start()] + " " + h[m.end():]).strip()
     s = clean(sub)
     s = "" if s is None else (str(int(s)) if isinstance(s, float) else str(s))
     out = [(g.strip(), p.strip(), s) for p in re.split(r"[,/+ו]|\s+", h) if p.strip().isdigit()]
