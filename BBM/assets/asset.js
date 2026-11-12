@@ -5,7 +5,7 @@
 
   function render() {
     const a = data.getAsset(ui.param('id'));
-    if (!a) { main.innerHTML = '<div class="card error">הנכס לא נמצא. <a href="index.html">חזרה לרשימה</a></div>'; return; }
+    if (!a) { main.innerHTML = `<div class="card error">הנכס לא נמצא. <a href="${ui.listUrl('../')}">חזרה לרשימה</a></div>`; return; }
     document.title = `${a.asset_number} · ${a.name || 'נכס'} · BBM`;
 
     const row = (t, v, calc) => `<dt>${t}</dt><dd${calc ? ' class="calc"' : ''}>${v === '' || v == null ? '<span class="empty">—</span>' : v}</dd>`;
@@ -56,7 +56,7 @@
       </li>`).join('')}</ul>` : '<p class="empty">אין מחזיק רשום</p>';
 
     main.innerHTML = `
-      <p><a href="index.html">→ חזרה לרשימת הנכסים</a></p>
+      <p><a href="${ui.listUrl('../')}">→ חזרה לרשימת הנכסים</a></p>
       <div class="page-head">
         <div>
           <h1>${esc(a.asset_number)} · ${esc(a.name || '')}</h1>
@@ -143,7 +143,7 @@
     const del = document.getElementById('delBtn');
     if (del) del.onclick = async () => {
       if (!confirm('לבטל את הנכס? הרשומה לא נמחקת, אלא מסומנת כמבוטלת ולא תופיע ברשימה.')) return;
-      try { await data.softDeleteAsset(a.id); location.href = 'index.html'; } catch (e) { ui.toast(e.message, 'err'); }
+      try { await data.softDeleteAsset(a.id); location.href = ui.listUrl('../'); } catch (e) { ui.toast(e.message, 'err'); }
     };
   }
   render();

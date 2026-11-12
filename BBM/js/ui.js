@@ -5,6 +5,15 @@
 (function () {
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const param = name => new URLSearchParams(location.search).get(name);
+  // גרסת האתר: מוצמדת לקישורים פנימיים, כדי שהדפדפן לא יציג דף ישן מהזיכרון אחרי עדכון
+  const VERSION = '20261112e';
+  const withV = url => url + (url.includes('?') ? '&' : '?') + 'v=' + VERSION;
+  // קישור חזרה לרשימת הנכסים – עם החיפוש והסינון האחרונים
+  function listUrl(base = '') {
+    let qs = '';
+    try { qs = sessionStorage.getItem('bbm_list_qs') || ''; } catch (e) { /* לא חובה */ }
+    return withV(base + 'assets/index.html' + (qs ? '?' + qs : ''));
+  }
 
   function header(base, active) {
     const items = [
@@ -13,10 +22,10 @@
       ['assets/dashboard.html', 'תמונת מצב', 'dashboard']
     ];
     const nav = items.map(([href, text, key]) =>
-      `<a href="${base}${href}"${key === active ? ' aria-current="page"' : ''}>${text}</a>`).join('');
+      `<a href="${withV(base + href)}"${key === active ? ' aria-current="page"' : ''}>${text}</a>`).join('');
     const demo = BBM.data.mode === 'demo'
       ? '<div class="demo-bar" role="status">מצב הדגמה: נתוני דוגמה בלבד. שינויים נשמרים רק בלשונית הזו ונמחקים כשסוגרים אותה. <button class="link" type="button" onclick="BBM.data.resetDemo()">איפוס נתוני הדוגמה</button> · <a href="?demo=0">יציאה ממצב הדגמה</a></div>' : '';
-    return `${demo}<header class="top"><a class="brand" href="${base}index.html">BBM · ניהול נכסים</a>
+    return `${demo}<header class="top"><a class="brand" href="${withV(base + 'index.html')}">BBM · ניהול נכסים</a>
       <nav>${nav}</nav><div class="user" id="userBox"></div></header>`;
   }
 
@@ -87,5 +96,5 @@
     return 'אירעה שגיאה: ' + m;
   }
 
-  window.BBM.ui = { start, esc, param, toast, selectHtml, download, fmtDate, fmtNum, canEdit, canEditLimited, authError };
+  window.BBM.ui = { start, withV, listUrl, VERSION, esc, param, toast, selectHtml, download, fmtDate, fmtNum, canEdit, canEditLimited, authError };
 })();

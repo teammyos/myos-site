@@ -159,7 +159,9 @@
       }
     }
     // שומר את הסינון בכתובת, כדי שאפשר לשתף קישור לרשימה מסוננת
-    history.replaceState(null, '', '?' + new URLSearchParams(f).toString());
+    const qs = new URLSearchParams(f).toString();
+    history.replaceState(null, '', '?' + qs + '&v=' + ui.VERSION);
+    try { sessionStorage.setItem('bbm_list_qs', qs); } catch (e) { /* לא חובה */ }
   }
 
   // לחיצה בכל מקום על כרטיסייה / שורה פותחת את הנכס (חוץ מקישורים בתוכה, כמו כפתור התיקייה)
