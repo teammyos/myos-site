@@ -4,45 +4,67 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>נכסים · BBM</title>
-<link rel="stylesheet" href="../css/app.css?v=20261112b">
+<link rel="stylesheet" href="../css/app.css?v=20261112c">
 </head>
 <body>
-<main>
-  <div class="page-head">
-    <div><h1>נכסים</h1><p class="sub">חיפוש, סינון וייצוא של מאגר הנכסים</p></div>
+<div class="band">
+  <div class="band-in">
+    <div><h1>נכסים</h1><p class="sub" id="count" aria-live="polite"></p></div>
     <div class="actions">
-      <button id="exportBtn" type="button">ייצוא לאקסל (CSV)</button>
-      <a class="btn primary" id="newBtn" href="edit.html">+ נכס חדש</a>
+      <div class="seg" role="group" aria-label="תצוגה">
+        <button type="button" data-view="cards" title="כרטיסיות" aria-label="תצוגת כרטיסיות">▦</button>
+        <button type="button" data-view="table" title="טבלה" aria-label="תצוגת טבלה">☰</button>
+      </div>
+      <button id="exportBtn" type="button" class="on-dark">ייצוא לאקסל</button>
+      <a class="btn gold" id="newBtn" href="edit.html">+ נכס חדש</a>
     </div>
   </div>
-
-  <form class="card filters" id="filters" autocomplete="off">
-    <label class="f wide">חיפוש חופשי<input name="q" placeholder="מספר נכס, שם, כתובת, מחזיק, גוש/חלקה"></label>
-    <label class="f">גוש<input name="gush" inputmode="numeric"></label>
-    <label class="f">חלקה<input name="helka" inputmode="numeric"></label>
-    <label class="f">סוג פיזי<span data-select="physical_type"></span></label>
-    <label class="f">קיים / עתידי<span data-select="record_status"></span></label>
-    <label class="f">מקור הזכות<span data-select="right_source"></span></label>
-    <label class="f">מטרת החזקה<span data-select="holding_purpose"></span></label>
-    <label class="f">תחום שימוש<span data-select="use_domain"></span></label>
-    <label class="f">מצב תפעולי<span data-select="operational_status"></span></label>
-    <label class="f">שלב תמורה<span data-select="consideration_stage"></span></label>
-    <label class="f">פנוי / בשימוש
-      <select name="occupancy"><option value="">הכול</option><option value="vacant">פנוי / לא בשימוש</option><option value="in_use">בשימוש</option></select></label>
-    <label class="f">מחזיק<select name="holder_id" id="holderSel"><option value="">הכול</option></select></label>
-    <label class="f">מתחם<select name="complex_id" id="complexSel"><option value="">הכול</option></select></label>
-    <div><button type="reset">ניקוי סינון</button></div>
+</div>
+<main class="under-band">
+  <form class="card search" id="filters" autocomplete="off">
+    <input class="big" name="q" type="search" placeholder="חיפוש לפי מספר נכס, כתובת, שכונה, יזם, סמל גן או גוש/חלקה…" aria-label="חיפוש">
+    <div class="chips-row">
+      <div class="chips" id="scopeChips" role="group" aria-label="סוג נכס"></div>
+      <label class="group-by">קיבוץ לפי
+        <select name="group" id="groupSel">
+          <option value="stage">שלב תמורה</option>
+          <option value="operational_status">מצב תפעולי</option>
+          <option value="use_domain">תחום שימוש</option>
+          <option value="neighborhood">שכונה</option>
+          <option value="none">ללא קיבוץ</option>
+        </select></label>
+    </div>
+    <details class="more" id="more">
+      <summary>סינון מתקדם</summary>
+      <div class="filters">
+        <label class="f">גוש<input name="gush" inputmode="numeric"></label>
+        <label class="f">חלקה<input name="helka" inputmode="numeric"></label>
+        <label class="f">סוג פיזי<span data-select="physical_type"></span></label>
+        <label class="f">קיים / עתידי<span data-select="record_status"></span></label>
+        <label class="f">מקור הזכות<span data-select="right_source"></span></label>
+        <label class="f">מטרת החזקה<span data-select="holding_purpose"></span></label>
+        <label class="f">תחום שימוש<span data-select="use_domain"></span></label>
+        <label class="f">מצב תפעולי<span data-select="operational_status"></span></label>
+        <label class="f">שלב תמורה<span data-select="consideration_stage"></span></label>
+        <label class="f">פנוי / בשימוש
+          <select name="occupancy"><option value="">הכול</option><option value="vacant">פנוי / לא בשימוש</option><option value="in_use">בשימוש</option></select></label>
+        <label class="f">מחזיק<select name="holder_id" id="holderSel"><option value="">הכול</option></select></label>
+        <label class="f">מתחם<select name="complex_id" id="complexSel"><option value="">הכול</option></select></label>
+        <label class="f chk"><input type="checkbox" name="action" value="1"> רק עם פעולה נדרשת</label>
+        <div><button type="reset">ניקוי סינון</button></div>
+      </div>
+    </details>
+    <input type="hidden" name="scope">
   </form>
 
-  <p class="count" id="count" aria-live="polite"></p>
-  <div class="table-wrap"><table class="data" id="table"></table></div>
+  <div id="results"></div>
 </main>
-<script src="../js/config.js?v=20261112b"></script>
-<script src="../js/vendor/supabase.umd.js?v=20261112b"></script>
-<script src="../js/lookups.js?v=20261112b"></script>
-<script src="../js/demo-data.js?v=20261112b"></script>
-<script src="../js/data.js?v=20261112b"></script>
-<script src="../js/ui.js?v=20261112b"></script>
-<script src="list.js?v=20261112b"></script>
+<script src="../js/config.js?v=20261112c"></script>
+<script src="../js/vendor/supabase.umd.js?v=20261112c"></script>
+<script src="../js/lookups.js?v=20261112c"></script>
+<script src="../js/demo-data.js?v=20261112c"></script>
+<script src="../js/data.js?v=20261112c"></script>
+<script src="../js/ui.js?v=20261112c"></script>
+<script src="list.js?v=20261112c"></script>
 </body>
 </html>
