@@ -11,6 +11,7 @@
     const row = (t, v, calc) => `<dt>${t}</dt><dd${calc ? ' class="calc"' : ''}>${v === '' || v == null ? '<span class="empty">—</span>' : v}</dd>`;
     const link = x => `<a href="asset.html?id=${encodeURIComponent(x.id)}">${esc(x.asset_number)} · ${esc(x.name || '')}</a>`;
     const edit = ui.canEdit();
+    const yn = v => v === true ? 'כן' : v === false ? 'לא' : '';
 
     // שרשרת אבות לתצוגת עץ
     const chain = []; let p = a.parent;
@@ -32,7 +33,16 @@
         ${row('היתר', c.has_permit ? 'יש' + (c.permit_date ? ' · ' + ui.fmtDate(c.permit_date) : '') : c.has_permit === false ? 'אין' : '')}
         ${row('טופס 4', c.has_form4 ? 'יש' + (c.form4_date ? ' · ' + ui.fmtDate(c.form4_date) : '') : c.has_form4 === false ? 'אין' : '')}
         ${row('מסירה וחזקה', esc(c.handover_status))}
-        ${row('פעולה נדרשת', esc(c.required_action))}
+        ${row('פרסום 77', esc(c.publication_77))}
+        ${row('היזם בונה את השטח', yn(c.developer_builds))}
+        ${row('תאימות שטחים', [['40% מקומה א\'', c.area_floor40], ['החלטת ועדה', c.area_committee], ['היתר', c.permit_area], ['התחייבות', c.area_commitment]]
+            .filter(x => x[1] != null).map(x => `${x[0]}: ${ui.fmtNum(x[1])} מ"ר`).join(' · ') + (c.area_match_note ? `<br><span class="hint" style="white-space:pre-wrap">${esc(c.area_match_note)}</span>` : ''))}
+        ${row('ייפוי כוח', yn(c.power_of_attorney))}
+        ${row('הערת אזהרה (סעיף 126)', yn(c.section_126))}
+        ${row('הפקעה', esc(c.expropriation_note))}
+        ${row('פעולה נדרשת', c.required_action ? `<span style="white-space:pre-wrap">${esc(c.required_action)}</span>` : '')}
+        ${row('שימוש לפי האקסל', c.actual_use ? `<span style="white-space:pre-wrap">${esc(c.actual_use)}</span>` : '')}
+        ${row('הערות התהליך', c.notes ? `<span style="white-space:pre-wrap">${esc(c.notes)}</span>` : '')}
       </dl>
       ${realized.length && c.role === 'commitment' ? '<h2 style="margin-top:14px">נכסים שמומשו מהתמורה</h2><ul class="links">' + realized.map(x => `<li>${link(x)} · ${ui.fmtNum(x.area_built)} מ"ר</li>`).join('') + '</ul>' : ''}`;
     }).join('<hr>') : '<p class="empty">הנכס אינו מקושר לתמורה ציבורית</p>';
@@ -66,10 +76,13 @@
       <div class="grid2">
         <section class="card"><h2>זיהוי ומיקום</h2><dl class="fields">
           ${row('מספר נכס', esc(a.asset_number))}
-          ${row('כתובת', esc(a.address))}
+          ${row('כתובת', esc(a.address) + (a.address_note && !String(a.address || '').includes(a.address_note) ? ` <span class="hint">(${esc(a.address_note)})</span>` : ''))}
+          ${row('שכונה', esc(a.neighborhood))}
+          ${row('קוד רחוב', esc(a.street_code))}
           ${row('ייעוד תכנוני', esc(a.planning_designation))}
           ${row('תכנית', esc(a.plan_number))}
-          ${row('שם / מספר מוסד', esc(a.institution_name))}
+          ${row('שם מוסד', esc(a.institution_name))}
+          ${row('סמל מוסד', esc(a.institution_code))}
         </dl></section>
 
         <section class="card"><h2>סיווג</h2><dl class="fields">

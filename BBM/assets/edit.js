@@ -49,6 +49,9 @@
     <details class="section" open><summary>2. מיקום וגוש/חלקה</summary><div class="body">
       ${field('רחוב', input('street'))}
       ${field('מספר בית', input('house_number'))}
+      ${field('הערת כתובת', input('address_note', 'text', 'placeholder="למשל: בניין מס׳ 13"'))}
+      ${field('שכונה', input('neighborhood'))}
+      ${field('קוד רחוב', input('street_code'))}
       ${field('ייעוד תכנוני', input('planning_designation', 'text', 'placeholder="למשל: שב״צ, שצ״פ, דרך"'))}
       ${field('תכנית', input('plan_number'))}
       <div class="full"><div class="hint" style="margin-bottom:6px">חלקות (נכס יכול לשבת על כמה חלקות)</div>
@@ -70,7 +73,8 @@
       ${field('מטרת החזקה', sel('holding_purpose', 'holding_purpose', a.holding_purpose))}
       ${field('תחום שימוש ראשי', sel('use_domain', 'use_domain', a.use_domain))}
       ${field('שימוש מפורט', '<span id="useDetailWrap"></span>')}
-      ${field('שם / מספר מוסד', input('institution_name'))}
+      ${field('שם מוסד', input('institution_name'))}
+      ${field('סמל מוסד', input('institution_code'))}
     </div></details>
 
     <details class="section" ${holding.holder_id ? 'open' : ''}><summary>6. מחזיק</summary><div class="body">
@@ -142,6 +146,7 @@
     e.preventDefault();
     const fd = new FormData(form);
     const fields = ['asset_number', 'name', 'record_status', 'physical_type', 'realization_status', 'street', 'house_number',
+      'address_note', 'neighborhood', 'street_code', 'institution_code',
       'planning_designation', 'plan_number', 'parent_asset_id', 'complex_id', 'right_type', 'right_source', 'holding_purpose',
       'use_domain', 'use_detail', 'institution_name', 'operational_status', 'physical_condition', 'area_built', 'area_yard',
       'folder_path', 'notes'];

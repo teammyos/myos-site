@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ייבוא נתונים · BBM</title>
+<link rel="stylesheet" href="css/app.css?v=20261112a">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div><h1>ייבוא נתונים מהאקסל</h1>
+    <p class="sub">טעינת קובץ ייבוא (ייבוא-ניסיון.json או ייבוא-מלא.json) מהתיקייה "ניהול נכסים - בני ברק". זמין למנהלים בלבד.</p></div>
+  </div>
+  <div class="card">
+    <h2>1. בחירת קובץ</h2>
+    <p><input type="file" id="file" accept=".json,application/json"></p>
+    <div id="summary" class="hint">הקובץ נקרא במחשב שלך ונשלח ישירות למסד הנתונים. הוא לא נשמר באתר.</div>
+  </div>
+  <div class="card" id="runCard" hidden>
+    <h2>2. ייבוא</h2>
+    <p class="hint">ייבוא חוזר של אותו קובץ מעדכן את הרשומות הקיימות (לפי מספר נכס ומספר תהליך) ולא יוצר כפילויות.
+      שדות שתוקנו ידנית באתר יוחלפו בערכי הקובץ.</p>
+    <p><button class="primary" id="run">ייבוא למסד הנתונים</button></p>
+    <ol id="log" class="links"></ol>
+  </div>
+</main>
+<script src="js/config.js?v=20261112a"></script>
+<script src="js/vendor/supabase.umd.js?v=20261112a"></script>
+<script src="js/lookups.js?v=20261112a"></script>
+<script src="js/demo-data.js?v=20261112a"></script>
+<script src="js/data.js?v=20261112a"></script>
+<script src="js/ui.js?v=20261112a"></script>
+<script>
+(async function () {
+  const { ui, data } = BBM, esc = ui.esc, main = document.querySelector('main');
+  if (!(await ui.start({ base: '', active: 'import' }))) return;
+  if (data.mode !== 'live') { main.innerHTML = '<div class="card">הייבוא זמין רק כשהאתר מחובר למסד הנתונים.</div>'; return; }
+  if (!BBM.me || BBM.me.role !== 'admin') { main.innerHTML = '<div class="card">הדף הזה זמין למנהלים בלבד.</div>'; return; }
+  const sb = data.supabase;
+  let payload = null;
+
+  const log = (msg, cls = '') => document.getElementById('log').insertAdjacentHTML('beforeend', `<li class="${cls}">${msg}</li>`);
+  const chunks = (arr, n = 200) => { const out = []; for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n)); return out; };
+  async function upsertAll(table, rows, onConflict, select, opts = {}) {
+    const out = [];
+    for (const part of chunks(rows)) {
+      let q = sb.from(table).upsert(part, { onConflict, defaultToNull: false, ...opts });
+      if (select) q = q.select(select);
+      const { data: d, error } = await q;
+      if (error) throw new Error(`${table}: ${error.message}`);
+      if (d) out.push(...d);
+    }
+    return out;
+  }
+
+  document.getElementById('file').addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { payload = JSON.parse(await f.text()); } catch (err) { payload = null; }
+    const sum = document.getElementById('summary');
+    if (!payload || !Array.isArray(payload.assets)) { sum.innerHTML = '<span class="error">הקובץ אינו קובץ ייבוא של BBM.</span>'; return; }
+    sum.innerHTML = `<p><strong>${payload.kind === 'trial' ? 'ייבוא ניסיון' : 'ייבוא מלא'}</strong> · מקור: ${esc(payload.source)} · נוצר ${esc(payload.created)}</p>
+      <ul class="links"><li>${payload.assets.length} נכסים</li><li>${payload.considerations.length} תהליכי תמורה</li>
+      <li>${payload.asset_parcels.length} קישורי גוש/חלקה</li><li>${payload.surveys.length} ביקורות</li></ul>
+      <p class="hint">מספרי הנכסים: ${payload.assets.map(a => esc(a.asset_number)).join(', ')}</p>`;
+    document.getElementById('runCard').hidden = false;
+  });
+
+  document.getElementById('run').addEventListener('click', async () => {
+    const btn = document.getElementById('run'); btn.disabled = true;
+    document.getElementById('log').innerHTML = '';
+    try {
+      // בדיקה שהשדות החדשים (מיגרציה 005) קיימים
+      const chk = await sb.from('assets').select('institution_code,neighborhood').limit(1);
+      if (chk.error) throw new Error('חסרים שדות במסד הנתונים. יש להריץ קודם את supabase/005_excel_fields.sql (' + chk.error.message + ')');
+
+      // 1. חלקות
+      const pkey = p => `${p.gush}|${p.helka}|${p.sub_helka || ''}`;
+      const uniq = new Map(payload.asset_parcels.map(p => [pkey(p), { gush: p.gush, helka: p.helka, sub_helka: p.sub_helka || '' }]));
+      const parcels = await upsertAll('parcels', [...uniq.values()], 'gush,helka,sub_helka', 'id,gush,helka,sub_helka');
+      const parcelId = new Map(parcels.map(p => [pkey(p), p.id]));
+      log(`חלקות: ${parcels.length}`);
+
+      // 2. נכסים
+      const assets = await upsertAll('assets', payload.assets.map(a => ({ ...a, deleted_at: null })), 'asset_number', 'id,asset_number');
+      const assetId = new Map(assets.map(a => [a.asset_number, a.id]));
+      log(`נכסים: ${assets.length}`);
+
+      // 3. קישורי נכס–חלקה
+      const ap = payload.asset_parcels.map(p => ({ asset_id: assetId.get(p.asset_number), parcel_id: parcelId.get(pkey(p)) }))
+        .filter(r => r.asset_id && r.parcel_id);
+      await upsertAll('asset_parcels', ap, 'asset_id,parcel_id', null, { ignoreDuplicates: true });
+      log(`קישורי גוש/חלקה: ${ap.length}`);
+
+      // 4. תהליכי תמורה
+      const cons = await upsertAll('considerations', payload.considerations, 'process_number', 'id,process_number,stage');
+      const consById = new Map(cons.map(c => [c.process_number, c]));
+      log(`תהליכי תמורה: ${cons.length}`);
+
+      // 5. קישור נכס–תהליך
+      const ca = payload.consideration_assets.map(l => {
+        const c = consById.get(l.process_number);
+        return c && { consideration_id: c.id, asset_id: assetId.get(l.asset_number), role: c.stage === 'delivered' ? 'realized' : 'commitment' };
+      }).filter(r => r && r.asset_id);
+      await upsertAll('consideration_assets', ca, 'consideration_id,asset_id', null);
+      log(`קישורי נכס–תהליך: ${ca.length}`);
+
+      // 6. ביקורות
+      const sv = payload.surveys.map(s => {
+        const c = consById.get(s.process_number); if (!c) return null;
+        const row = { import_key: s.import_key, consideration_id: c.id, notes: s.notes, current_use: s.current_use };
+        if (s.survey_date) row.survey_date = s.survey_date;
+        return row;
+      }).filter(Boolean);
+      await upsertAll('consideration_surveys', sv, 'import_key', null);
+      log(`ביקורות: ${sv.length}`);
+
+      log(`<strong>הייבוא הסתיים.</strong> <a href="assets/index.html">לרשימת הנכסים</a>`, 'ok');
+      ui.toast('הייבוא הסתיים');
+    } catch (err) {
+      log(`<strong>הייבוא נעצר:</strong> ${esc(err.message || err)}`, 'error');
+      ui.toast('הייבוא נעצר', 'err');
+    }
+    btn.disabled = false;
+  });
+})();
+</script>
+</body>
+</html>

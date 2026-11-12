@@ -147,7 +147,7 @@
     const text = s => (s || '').toString().toLowerCase();
     return activeAssets().map(enrichAsset).filter(a => {
       if (f.q) {
-        const hay = text([a.asset_number, a.name, a.address, a.holder_name, a.parcels_text, a.institution_name].join(' '));
+        const hay = text([a.asset_number, a.name, a.address, a.holder_name, a.parcels_text, a.institution_name, a.institution_code, a.neighborhood].join(' '));
         if (!hay.includes(text(f.q))) return false;
       }
       if (f.gush && !a.parcels.some(p => p.gush === f.gush.trim() && (!f.helka || p.helka === f.helka.trim()))) return false;

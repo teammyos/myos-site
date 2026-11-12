@@ -40,6 +40,7 @@
       if (me.role === 'admin') {
         const nav = document.querySelector('header.top nav');
         nav.insertAdjacentHTML('beforeend', `<a href="${base}users.html"${active === 'users' ? ' aria-current="page"' : ''}>ניהול משתמשים</a>`);
+        nav.insertAdjacentHTML('beforeend', `<a href="${base}import.html"${active === 'import' ? ' aria-current="page"' : ''}>ייבוא</a>`);
       }
     } else {
       BBM.me = { role: 'admin', approved: true };
