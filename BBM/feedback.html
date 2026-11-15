@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>שיפורים ותקלות · BBM</title>
+<link rel="stylesheet" href="css/app.css?v=20261115a">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div><h1>שיפורים, הערות ותקלות</h1>
+    <p class="sub">חסר משהו? משהו לא נוח או לא עובד? כתבו כאן, והפנייה תגיע למנהל המערכת.</p></div>
+  </div>
+
+  <form class="card fb-form" id="fbForm" autocomplete="off">
+    <h2>פנייה חדשה</h2>
+    <div class="fb-cats" role="radiogroup" aria-label="סוג הפנייה" id="cats"></div>
+    <label class="f">נושא<input name="subject" maxlength="200" required placeholder="במשפט אחד: על מה הפנייה"></label>
+    <label class="f">תוכן<textarea name="body" rows="6" maxlength="5000" required
+      placeholder="מה ראיתם, איפה (באיזה דף או נכס), ומה הייתם רוצים שיקרה"></textarea></label>
+    <p><button class="primary" type="submit" id="sendBtn">שליחה</button> <span class="hint" id="sendMsg" role="status"></span></p>
+  </form>
+
+  <section class="card">
+    <div class="fb-head">
+      <h2 id="listTitle">הפניות שלי</h2>
+      <label class="group-by" id="statusFilterWrap" hidden>סטטוס
+        <select id="statusFilter"><option value="">הכול</option></select></label>
+    </div>
+    <div id="list"><p class="hint">טוען…</p></div>
+  </section>
+</main>
+<script src="js/config.js?v=20261115a"></script>
+<script src="js/vendor/supabase.umd.js?v=20261115a"></script>
+<script src="js/lookups.js?v=20261115a"></script>
+<script src="js/demo-data.js?v=20261115a"></script>
+<script src="js/data.js?v=20261115a"></script>
+<script src="js/ui.js?v=20261115a"></script>
+<script>
+(async function () {
+  const { ui, data } = BBM, esc = ui.esc;
+  if (!(await ui.start({ base: '', active: 'feedback' }))) return;
+  const main = document.querySelector('main');
+  if (data.mode !== 'live') { main.insertAdjacentHTML('afterbegin', '<div class="card">במצב הדגמה אי אפשר לשלוח פניות.</div>'); }
+  const sb = data.supabase;
+  const isAdmin = BBM.me && BBM.me.role === 'admin';
+
+  const CATS = [['improvement', 'הצעה לשיפור', '💡'], ['ui', 'נראות וממשק', '🎨'], ['feature', "חסר פיצ'ר", '➕'], ['bug', 'תקלה', '🐞'], ['other', 'אחר', '💬']];
+  const STATUS = [['new', 'חדשה', 'warn'], ['in_progress', 'בטיפול', 'info'], ['done', 'טופלה', 'ok'], ['declined', 'לא תטופל', '']];
+  const catName = k => (CATS.find(c => c[0] === k) || [k, k])[1];
+  const st = k => STATUS.find(s => s[0] === k) || [k, k, ''];
+  const fmt = d => new Date(d).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' });
+
+  // ---------- טופס ----------
+  document.getElementById('cats').innerHTML = CATS.map(([v, t, ic], i) =>
+    `<label class="chip"><input type="radio" name="category" value="${v}"${i === 0 ? ' checked' : ''}> ${ic} ${t}</label>`).join('');
+  // אם הגיעו מדף אחר – שומרים מאיפה
+  const from = new URLSearchParams(location.search).get('from') || document.referrer || '';
+
+  document.getElementById('fbForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (data.mode !== 'live') return;
+    const f = e.target, btn = document.getElementById('sendBtn'), msg = document.getElementById('sendMsg');
+    const row = { category: f.category.value, subject: f.subject.value.trim(), body: f.body.value.trim(), page_url: from || null };
+    if (!row.subject || !row.body) return;
+    btn.disabled = true; msg.textContent = 'שולח…';
+    const { error } = await sb.from('feedback').insert(row);
+    btn.disabled = false;
+    if (error) { msg.textContent = ''; ui.toast('השליחה נכשלה: ' + ui.authError(error), 'err'); return; }
+    f.reset(); msg.textContent = 'הפנייה נשלחה. תודה!';
+    ui.toast('הפנייה נשלחה');
+    load();
+  });
+
+  // ---------- רשימה ----------
+  if (isAdmin) {
+    document.getElementById('listTitle').textContent = 'כל הפניות';
+    document.getElementById('statusFilterWrap').hidden = false;
+    document.getElementById('statusFilter').insertAdjacentHTML('beforeend', STATUS.map(([v, t]) => `<option value="${v}">${t}</option>`).join(''));
+    document.getElementById('statusFilter').onchange = load;
+  }
+
+  async function load() {
+    const list = document.getElementById('list');
+    if (data.mode !== 'live') { list.innerHTML = ''; return; }
+    let q = sb.from('feedback').select('*').order('created_at', { ascending: false });
+    const sf = isAdmin && document.getElementById('statusFilter').value;
+    if (sf) q = q.eq('status', sf);
+    const { data: rows, error } = await q;
+    if (error) { list.innerHTML = `<p class="error">לא ניתן לטעון את הפניות: ${esc(error.message)}</p>`; return; }
+    let users = new Map();
+    if (isAdmin && rows.length) {
+      const { data: us } = await sb.from('app_users').select('id,email,full_name');
+      users = new Map((us || []).map(u => [u.id, u]));
+    }
+    if (!rows.length) { list.innerHTML = `<p class="hint">${isAdmin ? 'אין פניות' : 'עוד לא שלחת פניות'}.</p>`; return; }
+    list.innerHTML = rows.map(r => {
+      const [, sName, sCls] = st(r.status);
+      const u = users.get(r.user_id);
+      return `<article class="fb-item" data-id="${esc(r.id)}">
+        <div class="acard-top">
+          <span class="acard-num">${esc(catName(r.category))} · ${fmt(r.created_at)}${u ? ` · ${esc(u.full_name || u.email)}` : ''}</span>
+          <span class="pill ${sCls}">${esc(sName)}</span>
+        </div>
+        <div class="acard-title">${esc(r.subject)}</div>
+        <div class="fb-body">${esc(r.body)}</div>
+        ${r.page_url ? `<p class="hint">נשלח מ: ${esc(r.page_url)}</p>` : ''}
+        ${isAdmin ? `<div class="fb-admin">
+            <label class="f">סטטוס<select data-k="status">${STATUS.map(([v, t]) => `<option value="${v}"${v === r.status ? ' selected' : ''}>${t}</option>`).join('')}</select></label>
+            <label class="f grow">הערת מנהל (גלויה לשולח)<input data-k="admin_note" value="${esc(r.admin_note || '')}"></label>
+            <button type="button" data-save>שמירה</button>
+          </div>`
+          : (r.admin_note ? `<div class="acard-note">תגובת המנהל: ${esc(r.admin_note)}</div>` : '')}
+      </article>`;
+    }).join('');
+  }
+
+  document.getElementById('list').addEventListener('click', async e => {
+    const b = e.target.closest('[data-save]'); if (!b) return;
+    const item = b.closest('.fb-item');
+    const patch = {};
+    item.querySelectorAll('[data-k]').forEach(el => patch[el.dataset.k] = el.value.trim() || null);
+    b.disabled = true;
+    const { error } = await sb.from('feedback').update(patch).eq('id', item.dataset.id);
+    b.disabled = false;
+    if (error) ui.toast('השמירה נכשלה: ' + error.message, 'err'); else { ui.toast('נשמר'); load(); }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

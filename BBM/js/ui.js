@@ -6,7 +6,7 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const param = name => new URLSearchParams(location.search).get(name);
   // גרסת האתר: מוצמדת לקישורים פנימיים, כדי שהדפדפן לא יציג דף ישן מהזיכרון אחרי עדכון
-  const VERSION = '20261112e';
+  const VERSION = '20261115a';
   const withV = url => url + (url.includes('?') ? '&' : '?') + 'v=' + VERSION;
   // קישור חזרה לרשימת הנכסים – עם החיפוש והסינון האחרונים
   function listUrl(base = '') {
@@ -49,6 +49,7 @@
         const nav = document.querySelector('header.top nav');
         nav.insertAdjacentHTML('beforeend', `<a href="${base}users.html"${active === 'users' ? ' aria-current="page"' : ''}>ניהול משתמשים</a>`);
         nav.insertAdjacentHTML('beforeend', `<a href="${base}import.html"${active === 'import' ? ' aria-current="page"' : ''}>ייבוא</a>`);
+        nav.insertAdjacentHTML('beforeend', `<a href="${withV(base + 'feedback.html')}"${active === 'feedback' ? ' aria-current="page"' : ''}>פניות</a>`);
       }
     } else {
       BBM.me = { role: 'admin', approved: true };

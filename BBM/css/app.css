@@ -181,3 +181,18 @@ a.acard-num:hover { text-decoration: underline; }
 a.folder-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 24px; border: 1px solid var(--line); border-radius: 6px;
   background: #fff; text-decoration: none; font-size: 14px; line-height: 1; }
 a.folder-btn:hover { border-color: var(--gold); background: var(--gold-soft); }
+
+/* ===== פניות משתמשים (15.11.2026) ===== */
+.fb-form .f { margin-bottom: 12px; }
+.fb-form textarea { width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; resize: vertical; }
+.fb-cats { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 14px; }
+.fb-cats .chip { position: relative; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #e3e8ee; }
+.fb-cats .chip input { position: absolute; opacity: 0; pointer-events: none; }
+.fb-cats .chip:has(input:checked) { background: var(--navy); border-color: var(--navy); color: #fff; }
+.fb-cats .chip:has(input:focus-visible) { outline: 3px solid var(--gold); outline-offset: 2px; }
+.fb-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fb-item { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; margin-top: 12px; background: var(--surface); }
+.fb-body { white-space: pre-wrap; font-size: 14px; line-height: 1.6; }
+.fb-admin { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.fb-admin .grow { flex: 1 1 260px; }
+.tile.fb-tile { border-style: dashed; border-color: var(--gold); background: var(--gold-soft); }

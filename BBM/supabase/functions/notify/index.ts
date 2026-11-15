@@ -5,6 +5,8 @@
 // סוגי הודעות (body.kind):
 //   signup   → לכל המנהלים: נרשם/ה משתמש/ת חדש/ה שממתין/ה לאישור
 //   approved → למשתמש/ת: החשבון אושר
+//   feedback → פנייה חדשה (שיפור/הערה/תקלה). user_id כאן = מזהה הפנייה.
+//              נמענים: הסוד FEEDBACK_TO (מופרד בפסיקים), ואם אין – כל המנהלים.
 // הפונקציה מקבלת רק kind + user_id, ומאתרת בעצמה את הנמענים במסד הנתונים.
 // כך גם מי שמשיג את הסוד לא יכול לשלוח מיילים לכתובות שרירותיות.
 //
@@ -25,6 +27,10 @@ const SB_URL = Deno.env.get("SUPABASE_URL") || "";
 // מפתח שרת: הישן (service_role) או החדש (sb_secret_...), מה שקיים בסביבה
 const SB_SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_SECRET_KEY") || "";
 const SITE = "https://myos.co.il/BBM/";
+const FEEDBACK_TO = (Deno.env.get("FEEDBACK_TO") || "").split(",").map((s) => s.trim()).filter(Boolean);
+const CATS: Record<string, string> = {
+  improvement: "הצעה לשיפור", ui: "נראות וממשק", feature: "חסר פיצ'ר", bug: "תקלה", other: "אחר",
+};
 
 const ROLES: Record<string, string> = {
   viewer: "צפייה", editor_limited: "עריכה מוגבלת", editor: "עריכה מלאה", admin: "מנהל",
@@ -83,6 +89,23 @@ Deno.serve(async (req) => {
   if (!/^[0-9a-f-]{36}$/i.test(uid)) return json({ error: "bad user_id" }, 400);
 
   try {
+    if (body.kind === "feedback") {
+      const [f] = await db(`feedback?id=eq.${uid}&select=id,category,subject,body,page_url,created_at,user_id`);
+      if (!f) return json({ error: "feedback not found" }, 404);
+      const [u] = await db(`app_users?id=eq.${f.user_id}&select=email,full_name`);
+      const from = u ? (u.full_name ? `${esc(u.full_name)} (${esc(u.email)})` : esc(u.email)) : "משתמש לא ידוע";
+      let to = FEEDBACK_TO;
+      if (!to.length) to = (await db(`app_users?role=eq.admin&approved=eq.true&select=email`)).map((a: { email: string }) => a.email);
+      const cat = CATS[f.category] || f.category;
+      const res = await send(to, `פנייה חדשה (${cat}): ${f.subject}`, wrap(
+        `${cat}: ${f.subject}`,
+        [`<strong>מאת:</strong> ${from}`,
+         `<span style="white-space:pre-wrap">${esc(f.body)}</span>`,
+         f.page_url ? `<span style="color:#5b6876;font-size:13px;">נשלח מהדף: ${esc(f.page_url)}</span>` : ""].filter(Boolean),
+        "לכל הפניות", `${SITE}feedback.html`));
+      return json({ ok: true, kind: "feedback", to: to.length, res });
+    }
+
     const [user] = await db(`app_users?id=eq.${uid}&select=email,full_name,role,approved,created_at`);
     if (!user) return json({ error: "user not found" }, 404);
     const who = user.full_name ? `${esc(user.full_name)} (${esc(user.email)})` : esc(user.email);
