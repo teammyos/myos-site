@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מחיקת חשבון | MyOS Daily</title>
+<meta name="description" content="איך מוחקים חשבון ב-MyOS Daily — לימוד יומי: מתוך האפליקציה, או בפנייה אלינו למי שכבר הסיר אותה.">
+<meta name="theme-color" content="#0E1A33">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://myos.co.il/daily/delete-account.html">
+<link rel="icon" href="app/favicon.ico">
+<link rel="stylesheet" href="brand-fonts.css">
+<style>
+  :root{
+    --bg:#0E1A33; --bg2:#0b1428; --line:#26375c; --text:#ffffff; --muted:#c3cee2;
+    --accent:#2ff0e6; --accent-ink:#04121a;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Heebo',system-ui,'Segoe UI',Arial,sans-serif;
+    font-size:1.0625rem; line-height:1.75;
+  }
+  a{color:var(--accent)}
+  a:focus-visible,button:focus-visible{outline:3px solid var(--accent); outline-offset:3px; border-radius:4px}
+  .skip{
+    position:absolute; inset-inline-start:1rem; top:0; z-index:50;
+    transform:translateY(-150%);
+    background:var(--accent); color:var(--accent-ink); font-weight:700;
+    padding:.7rem 1.2rem; border-radius:0 0 .6rem .6rem; text-decoration:none;
+  }
+  .skip:focus{transform:translateY(0)}
+  header{padding:18px clamp(16px,4vw,32px); border-bottom:1px solid var(--line)}
+  .brand{--s:1.5rem; display:flex; align-items:flex-end; direction:ltr; line-height:1; text-decoration:none}
+  .brand .lock{display:flex; align-items:flex-end; gap:calc(var(--s)*.055)}
+  .brand .my,.brand .s,.brand .daily{font-family:'Poppins',system-ui,Arial,sans-serif; font-weight:600}
+  .brand .my{font-size:var(--s); letter-spacing:-.004em; color:#13a8bd}
+  .brand .my b{font-weight:inherit; color:#1fc6d6}
+  .brand .s{font-family:'Chakra Petch',system-ui,Arial,sans-serif; font-weight:700; font-size:var(--s); letter-spacing:-.02em; color:#5ff5ec}
+  .brand .mark{width:calc(var(--s)*.72); height:calc(var(--s)*.826); margin-bottom:calc(var(--s)*.23); overflow:visible; display:block}
+  .brand .daily{font-size:calc(var(--s)*.62); color:#fff; margin-inline-start:calc(var(--s)*.28)}
+  main{max-width:46rem; margin:0 auto; padding:clamp(20px,5vw,40px) clamp(16px,4vw,32px) 64px}
+  h1{font-size:clamp(1.5rem,4vw,2rem); line-height:1.3; margin:0 0 .2rem}
+  h2{font-size:clamp(1.15rem,3vw,1.4rem); margin:2.4rem 0 .6rem; color:var(--accent)}
+  .updated{color:var(--muted); font-size:.95rem; margin:0 0 1.5rem}
+  ul,ol{padding-inline-start:1.3rem} li{margin:.45rem 0}
+  .note{border:1px solid var(--line); border-radius:.8rem; padding:1rem 1.2rem; background:var(--bg2)}
+  table{border-collapse:collapse; width:100%; margin:.6rem 0}
+  th,td{border:1px solid var(--line); padding:.6rem .8rem; text-align:start; vertical-align:top}
+  th{background:var(--bg2)}
+  footer{border-top:1px solid var(--line); padding:20px clamp(16px,4vw,32px); color:var(--muted); font-size:.92rem}
+  footer a{margin-inline-end:1rem}
+  [dir="ltr"]{unicode-bidi:isolate}
+</style>
+</head>
+<body>
+  <a class="skip" href="#main">דילוג לתוכן</a>
+
+  <header>
+    <a class="brand" href="./" aria-label="MyOS Daily — חזרה לאפליקציה">
+      <span class="lock">
+        <span class="my">M<b>y</b></span>
+        <svg class="mark" viewBox="6 -7 88 101" aria-hidden="true" focusable="false">
+          <defs><linearGradient id="stemGrad" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0" stop-color="#0a5766"/><stop offset=".5" stop-color="#12879b"/><stop offset="1" stop-color="#2ff0e6"/>
+          </linearGradient></defs>
+          <path d="M38 6 L20 6 L6 20 L6 80 L20 94 L80 94 L94 80 L94 20 L80 6 L62 6 L62 20 L80 34 L80 66 L62 80 L38 80 L20 66 L20 34 L38 20 Z" fill="#eff3fa"/>
+          <path d="M47 -7 L53 -7 L57 -3 L57 31 L50 38 L43 31 L43 -3 Z" fill="url(#stemGrad)"/>
+        </svg>
+        <span class="s">S</span>
+      </span>
+      <span class="daily">Daily</span>
+    </a>
+  </header>
+
+  <main id="main">
+    <h1>מחיקת חשבון</h1>
+    <p class="updated">MyOS Daily — לימוד יומי · עודכן: אוקטובר 2026</p>
+
+    <div class="note">
+      <p style="margin:0"><strong>רוב המשתמשים אינם צריכים את העמוד הזה.</strong> האפליקציה עובדת
+        במלואה בלי חשבון, ולמי שלא פתח חשבון אין אצלנו שום מידע למחוק.</p>
+    </div>
+
+    <h2>מתוך האפליקציה — הדרך המהירה</h2>
+    <ol>
+      <li>פותחים את <strong>הגדרות</strong>.</li>
+      <li>פותחים את הכרטיס <strong>חשבון וסנכרון</strong>.</li>
+      <li>לוחצים <strong>מחיקת החשבון</strong>, ומאשרים.</li>
+    </ol>
+    <p>המחיקה מיידית ואינה ניתנת לביטול.</p>
+
+    <h2>אם כבר הסרתם את האפליקציה</h2>
+    <p>שלחו בקשה מכתובת המייל שאיתה נפתח החשבון אל
+      <a href="mailto:team@myos.co.il?subject=%D7%9E%D7%97%D7%99%D7%A7%D7%AA%20%D7%97%D7%A9%D7%91%D7%95%D7%9F%20MyOS%20Daily">team@myos.co.il</a>
+      עם הנושא "מחיקת חשבון". נמחק תוך <strong>7 ימי עסקים</strong> ונשיב לכם לאישור.
+      אנו מבקשים שהפנייה תגיע מאותה כתובת, כדי לוודא שאיננו מוחקים חשבון של מישהו אחר.</p>
+
+    <h2>מה נמחק ומה לא</h2>
+    <table>
+      <tr><th>מה</th><th>מה קורה</th></tr>
+      <tr>
+        <td>כתובת המייל שלכם</td>
+        <td>נמחקת מהשרת לחלוטין</td>
+      </tr>
+      <tr>
+        <td>הלוחות האישיים והסימונים שסונכרנו</td>
+        <td>נמחקים מהשרת לחלוטין</td>
+      </tr>
+      <tr>
+        <td>ההגדרות שסונכרנו</td>
+        <td>נמחקות מהשרת לחלוטין</td>
+      </tr>
+      <tr>
+        <td>מה שנמצא במכשיר שלכם</td>
+        <td>נשאר. האפליקציה ממשיכה לעבוד בלי חשבון, בדיוק כמו קודם.
+          כדי למחוק גם אותו — <strong>הגדרות ← איפוס ← מחיקת הכול מהמכשיר</strong>, או הסרת האפליקציה.</td>
+      </tr>
+    </table>
+    <p>איננו שומרים גיבויים נפרדים של נתוני משתמשים אחרי המחיקה, ואין לנו אנליטיקס או פרסום
+      שמחזיקים עותק.</p>
+
+    <h2>שימו לב לפני המחיקה</h2>
+    <ul>
+      <li>הסרת האפליקציה <strong>אינה</strong> מוחקת חשבון. כדי למחוק — עשו זאת מתוך האפליקציה
+        לפני ההסרה, או פנו אלינו.</li>
+      <li>אם אתם רוצים לשמור את הלימוד שלכם לפני המחיקה:
+        <strong>הגדרות ← גיבוי ומעבר לטלפון חדש</strong> שומר קובץ אצלכם.</li>
+    </ul>
+
+    <p>פירוט מלא על מה נשמר ולמה: <a href="accessibility.html#privacy">הצהרת הפרטיות</a>.</p>
+  </main>
+
+  <footer>
+    <a href="./">חזרה ל-MyOS Daily</a>
+    <a href="accessibility.html">נגישות ופרטיות</a>
+    <a href="https://myos.co.il/">אתר MyOS</a>
+    <a href="mailto:team@myos.co.il">team@myos.co.il</a>
+  </footer>
+</body>
+</html>
