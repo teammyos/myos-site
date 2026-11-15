@@ -7,6 +7,7 @@
 //   approved → למשתמש/ת: החשבון אושר
 //   feedback → פנייה חדשה (שיפור/הערה/תקלה). user_id כאן = מזהה הפנייה.
 //              נמענים: הסוד FEEDBACK_TO (מופרד בפסיקים), ואם אין – כל המנהלים.
+//   feedback_status → לשולח הפנייה: הפנייה סומנה "טופלה" / "לא תטופל" (עם הערת המנהל).
 // הפונקציה מקבלת רק kind + user_id, ומאתרת בעצמה את הנמענים במסד הנתונים.
 // כך גם מי שמשיג את הסוד לא יכול לשלוח מיילים לכתובות שרירותיות.
 //
@@ -102,8 +103,26 @@ Deno.serve(async (req) => {
         [`<strong>מאת:</strong> ${from}`,
          `<span style="white-space:pre-wrap">${esc(f.body)}</span>`,
          f.page_url ? `<span style="color:#5b6876;font-size:13px;">נשלח מהדף: ${esc(f.page_url)}</span>` : ""].filter(Boolean),
-        "לכל הפניות", `${SITE}feedback.html`));
+        "לכל הפניות", `${SITE}feedback.html?r=${Date.now()}`));
       return json({ ok: true, kind: "feedback", to: to.length, res });
+    }
+
+    if (body.kind === "feedback_status") {
+      const [f] = await db(`feedback?id=eq.${uid}&select=id,category,subject,status,admin_note,user_id`);
+      if (!f) return json({ error: "feedback not found" }, 404);
+      if (!["done", "declined"].includes(f.status)) return json({ skipped: "status " + f.status });
+      const [u] = await db(`app_users?id=eq.${f.user_id}&select=email`);
+      if (!u) return json({ skipped: "no user" });
+      const done = f.status === "done";
+      // הקישור כולל פרמטר ייחודי, כדי שהדפדפן יטען את הגרסה החדשה של האתר ולא דף ישן מהזיכרון
+      const res = await send([u.email], `${done ? "הפנייה שלך טופלה" : "עדכון על הפנייה שלך"}: ${f.subject}`, wrap(
+        done ? "הפנייה שלך טופלה" : "הפנייה שלך לא תטופל כרגע",
+        [`<strong>הפנייה:</strong> ${esc(f.subject)}`,
+         f.admin_note ? `<strong>מהמנהל:</strong> <span style="white-space:pre-wrap">${esc(f.admin_note)}</span>` : "",
+         done ? "השינוי כבר באתר. הכפתור למטה פותח את האתר בגרסה המעודכנת." : "תודה על הפנייה."].filter(Boolean),
+        done ? "כניסה לאתר המעודכן" : "לפניות שלי", `${SITE}${done ? "" : "feedback.html"}?r=${Date.now()}`,
+        "אם השינוי לא מופיע, לחצו Ctrl+F5 בדף."));
+      return json({ ok: true, kind: "feedback_status", res });
     }
 
     const [user] = await db(`app_users?id=eq.${uid}&select=email,full_name,role,approved,created_at`);

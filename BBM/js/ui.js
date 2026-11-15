@@ -6,7 +6,7 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const param = name => new URLSearchParams(location.search).get(name);
   // גרסת האתר: מוצמדת לקישורים פנימיים, כדי שהדפדפן לא יציג דף ישן מהזיכרון אחרי עדכון
-  const VERSION = '20261115b';
+  const VERSION = '20261115c';
   const withV = url => url + (url.includes('?') ? '&' : '?') + 'v=' + VERSION;
   // קישור חזרה לרשימת הנכסים – עם החיפוש והסינון האחרונים
   function listUrl(base = '') {
@@ -29,7 +29,23 @@
       <nav>${nav}</nav><div class="user" id="userBox"></div></header>`;
   }
 
+  // בדיקת גרסה: אם עלתה לאתר גרסה חדשה והדפדפן מציג דף ישן מהזיכרון – טוען מחדש פעם אחת.
+  // כך משתמשים לא צריכים Ctrl+F5 אחרי עדכון. המספר ב-version.json מתעדכן יחד עם VERSION.
+  async function checkVersion(base) {
+    try {
+      const r = await fetch(base + 'version.json?r=' + Date.now(), { cache: 'no-store' });
+      const { v } = await r.json();
+      if (!v || v === VERSION) return;
+      const key = 'bbm_reloaded_' + v;
+      if (sessionStorage.getItem(key)) return;  // כבר ניסינו – לא נכנסים ללולאה
+      sessionStorage.setItem(key, '1');
+      const u = new URL(location.href); u.searchParams.set('v', v);
+      location.replace(u.toString());
+    } catch (e) { /* בלי רשת או בלי אחסון – ממשיכים כרגיל */ }
+  }
+
   async function start({ base = '', active = '' } = {}) {
+    checkVersion(base);
     document.body.insertAdjacentHTML('afterbegin', header(base, active));
     const main = document.querySelector('main');
     if (BBM.data.mode === 'live') {
