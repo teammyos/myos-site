@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>שיפורים ותקלות · BBM</title>
-<link rel="stylesheet" href="css/app.css?v=20261115c">
+<link rel="stylesheet" href="css/app.css?v=20261115d">
 </head>
 <body>
 <main>
@@ -25,18 +25,16 @@
   <section class="card">
     <div class="fb-head">
       <h2 id="listTitle">הפניות שלי</h2>
-      <label class="group-by" id="statusFilterWrap" hidden>סטטוס
-        <select id="statusFilter"><option value="">הכול</option></select></label>
     </div>
     <div id="list"><p class="hint">טוען…</p></div>
   </section>
 </main>
-<script src="js/config.js?v=20261115c"></script>
-<script src="js/vendor/supabase.umd.js?v=20261115c"></script>
-<script src="js/lookups.js?v=20261115c"></script>
-<script src="js/demo-data.js?v=20261115c"></script>
-<script src="js/data.js?v=20261115c"></script>
-<script src="js/ui.js?v=20261115c"></script>
+<script src="js/config.js?v=20261115d"></script>
+<script src="js/vendor/supabase.umd.js?v=20261115d"></script>
+<script src="js/lookups.js?v=20261115d"></script>
+<script src="js/demo-data.js?v=20261115d"></script>
+<script src="js/data.js?v=20261115d"></script>
+<script src="js/ui.js?v=20261115d"></script>
 <script>
 (async function () {
   const { ui, data } = BBM, esc = ui.esc;
@@ -76,17 +74,12 @@
   // ---------- רשימה ----------
   if (isAdmin) {
     document.getElementById('listTitle').textContent = 'כל הפניות';
-    document.getElementById('statusFilterWrap').hidden = false;
-    document.getElementById('statusFilter').insertAdjacentHTML('beforeend', STATUS.map(([v, t]) => `<option value="${v}">${t}</option>`).join(''));
-    document.getElementById('statusFilter').onchange = load;
   }
 
   async function load() {
     const list = document.getElementById('list');
     if (data.mode !== 'live') { list.innerHTML = ''; return; }
     let q = sb.from('feedback').select('*').order('created_at', { ascending: false });
-    const sf = isAdmin && document.getElementById('statusFilter').value;
-    if (sf) q = q.eq('status', sf);
     const { data: rows, error } = await q;
     if (error) { list.innerHTML = `<p class="error">לא ניתן לטעון את הפניות: ${esc(error.message)}</p>`; return; }
     let users = new Map();
@@ -95,7 +88,7 @@
       users = new Map((us || []).map(u => [u.id, u]));
     }
     if (!rows.length) { list.innerHTML = `<p class="hint">${isAdmin ? 'אין פניות' : 'עוד לא שלחת פניות'}.</p>`; return; }
-    list.innerHTML = rows.map(r => {
+    const item = r => {
       const [, sName, sCls] = st(r.status);
       const u = users.get(r.user_id);
       return `<article class="fb-item" data-id="${esc(r.id)}">
@@ -113,7 +106,14 @@
           </div>`
           : (r.admin_note ? `<div class="acard-note">תגובת המנהל: ${esc(r.admin_note)}</div>` : '')}
       </article>`;
-    }).join('');
+    };
+    // פתוחות (חדשה / בטיפול) למעלה ופתוחות לתצוגה; סגורות (טופלה / לא תטופל) למטה ומקופלות – היסטוריה
+    const closed = r => ['done', 'declined'].includes(r.status);
+    const open = rows.filter(r => !closed(r)), done = rows.filter(closed);
+    const group = (title, arr, isOpen, empty) => `<details class="group"${isOpen ? ' open' : ''}>
+      <summary><span class="dot"></span>${title} <span class="n">${arr.length}</span></summary>
+      ${arr.length ? arr.map(item).join('') : `<p class="hint">${empty}</p>`}</details>`;
+    list.innerHTML = group('לטיפול', open, true, 'אין פניות פתוחות') + group('טופלו / סגורות', done, false, 'אין עדיין פניות סגורות');
   }
 
   document.getElementById('list').addEventListener('click', async e => {
