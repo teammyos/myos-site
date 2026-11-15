@@ -7,3 +7,12 @@ window.BBM_CONFIG = {
   SUPABASE_URL: 'https://sddlwpcyzzpblosxbmdw.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_pO0wB10OQqttjVwqHlwIIw_chzYRnXh'
 };
+
+// התקנה כאפליקציה (PWA): רישום ה-Service Worker מתיקיית האתר (BBM/)
+(function () {
+  try {
+    if (!('serviceWorker' in navigator)) return;
+    const root = new URL('..', document.currentScript.src).href;  // js/config.js → שורש האתר
+    navigator.serviceWorker.register(root + 'sw.js', { scope: root }).catch(() => {});
+  } catch (e) { /* לא חובה */ }
+})();

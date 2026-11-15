@@ -81,7 +81,6 @@
     const c = firstCons(a);
     const st = a.operational_status;
     const kv = [
-      ['שכונה', a.neighborhood],
       ['גוש/חלקה', a.parcels_text],
       ['שטח', area(a)],
       ['יזם', c && c.developer ? c.developer.split('\n')[0] : ''],
