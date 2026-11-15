@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>אימות כתובת הדוא"ל · BBM</title>
+<link rel="stylesheet" href="css/app.css?v=20261115b">
+</head>
+<body>
+<!--
+  אימות הרשמה. מייל האימות מקשר לכאן (myos.co.il מאושר בסינון המייל של העירייה),
+  ולא ישירות ל-Supabase. האימות קורה רק בלחיצה על הכפתור, כדי שסורקי קישורים
+  שפותחים את המייל אוטומטית לא "ישרפו" את הקוד החד-פעמי.
+-->
+<main>
+  <div class="card login" id="box">
+    <h1>אימות כתובת הדוא"ל</h1>
+    <p>לחצו על הכפתור כדי להשלים את ההרשמה למערכת ניהול הנכסים.</p>
+    <p><button class="primary" id="go" type="button">אימות הכתובת</button></p>
+    <p class="hint" id="msg" role="status"></p>
+  </div>
+</main>
+<script src="js/config.js?v=20261115b"></script>
+<script src="js/vendor/supabase.umd.js?v=20261115b"></script>
+<script>
+(function () {
+  const p = new URLSearchParams(location.search);
+  const token_hash = p.get('token_hash'), type = p.get('type') || 'email';
+  const box = document.getElementById('box'), msg = document.getElementById('msg'), btn = document.getElementById('go');
+  if (!token_hash) {
+    box.innerHTML = '<h1>קישור לא תקין</h1><p>הקישור חסר. פתחו שוב את הקישור מהמייל, או <a href="login.html">היכנסו למערכת</a>.</p>';
+    return;
+  }
+  const sb = supabase.createClient(BBM_CONFIG.SUPABASE_URL, BBM_CONFIG.SUPABASE_ANON_KEY);
+  btn.onclick = async () => {
+    btn.disabled = true; msg.textContent = 'מאמת…';
+    const { error } = await sb.auth.verifyOtp({ token_hash, type });
+    if (error) {
+      btn.disabled = false;
+      msg.textContent = '';
+      box.insertAdjacentHTML('beforeend', `<p class="error">האימות לא הצליח: הקישור כבר שומש או שפג תוקפו.
+        נסו <a href="login.html">להיכנס למערכת</a>. אם הכניסה לא עובדת, פנו למנהל המערכת.</p>`);
+      return;
+    }
+    box.innerHTML = `<h1>הכתובת אומתה ✓</h1>
+      <p>החשבון ממתין עכשיו לאישור מנהל. כשהוא יאושר, תוכלו להיכנס ולראות את הנתונים.</p>
+      <p><a class="btn primary" href="index.html">כניסה למערכת</a></p>`;
+  };
+})();
+</script>
+</body>
+</html>

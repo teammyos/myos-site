@@ -77,6 +77,7 @@
         <section class="card"><h2>זיהוי ומיקום</h2><dl class="fields">
           ${row('מספר נכס', esc(a.asset_number))}
           ${row('כתובת', esc(a.address) + (a.address_note && !String(a.address || '').includes(a.address_note) ? ` <span class="hint">(${esc(a.address_note)})</span>` : ''))}
+          ${row('גוש וחלקה', a.parcels.map(pc => `גוש ${esc(pc.gush)} · חלקה ${esc(pc.helka)}${pc.sub_helka ? ' · תת־חלקה ' + esc(pc.sub_helka) : ''}`).join('<br>'))}
           ${row('שכונה', esc(a.neighborhood))}
           ${row('קוד רחוב', esc(a.street_code))}
           ${row('ייעוד תכנוני', esc(a.planning_designation))}

@@ -154,6 +154,9 @@
       for (const k of ['physical_type', 'record_status', 'right_source', 'holding_purpose', 'use_domain', 'operational_status', 'complex_id'])
         if (f[k] && a[k] !== f[k]) return false;
       if (f.consideration_stage && a.consideration_stage !== f.consideration_stage) return false;
+      // שטח בנוי מ־ / עד (נכס בלי שטח רשום לא עובר סינון שטח)
+      if (f.area_min !== undefined && f.area_min !== '' && !(a.area_built != null && +a.area_built >= +f.area_min)) return false;
+      if (f.area_max !== undefined && f.area_max !== '' && !(a.area_built != null && +a.area_built <= +f.area_max)) return false;
       if (f.holder_id && !(a.current_holding && a.current_holding.holder_id === f.holder_id)) return false;
       if (f.occupancy === 'vacant' && !['vacant', 'unused'].includes(a.operational_status)) return false;
       if (f.occupancy === 'in_use' && ['vacant', 'unused', 'unknown', undefined, null, ''].includes(a.operational_status)) return false;
