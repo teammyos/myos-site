@@ -55,6 +55,19 @@
         ${h.holder && (h.holder.contact_name || h.holder.phone) ? `<br><span class="hint">איש קשר: ${esc([h.holder.contact_name, h.holder.phone].filter(Boolean).join(' · '))}</span>` : ''}
       </li>`).join('')}</ul>` : '<p class="empty">אין מחזיק רשום</p>';
 
+    // ביקורות של תהליכי התמורה של הנכס (ביקורת שיובאה עם "נכס אחר" בהערה לא מוצגת כאן)
+    const allCons = data.listConsiderations();
+    const surveys = k.flatMap(c => ((allCons.find(x => x.id === c.id) || {}).surveys || []))
+      .filter(sv => { const m = /^נכס (\S+)/.exec(sv.notes || ''); return !m || m[1] === String(a.asset_number); });
+    const surveysHtml = surveys.length ? `<ul class="links">${surveys.map(sv => `<li>
+        <strong>${sv.survey_date ? ui.fmtDate(sv.survey_date) : 'ללא תאריך'}</strong>${sv.current_use ? ' · ' + esc(sv.current_use) : ''}
+        ${sv.notes ? `<br><span style="white-space:pre-wrap">${esc(sv.notes)}</span>` : ''}</li>`).join('')}</ul>`
+      : '<p class="empty">לא נרשמו ביקורות לנכס</p>';
+
+    // לשוניות הכרטיס
+    const TABS = [['main', 'ראשי'], ['rights', 'זכויות וחלקות'], ['holders', 'מחזיקים', a.holdings.length],
+      ['cons', 'תמורה ציבורית', k.length], ['surveys', 'ביקורות', surveys.length], ['docs', 'מסמכים']];
+
     main.innerHTML = `
       <p><a href="${ui.listUrl('../')}">→ חזרה לרשימת הנכסים</a></p>
       <div class="page-head">
@@ -67,13 +80,18 @@
           </p>
         </div>
         <div class="actions">
+          <a class="btn" href="bbmasset:${encodeURIComponent(a.asset_number)}" title="פתיחת תיקיית הנכס במחשב (עירייה)">📂 תיקייה</a>
           ${edit ? `<a class="btn primary" href="edit.html?id=${encodeURIComponent(a.id)}">עריכה</a>
           <a class="btn" href="edit.html?parent=${encodeURIComponent(a.id)}">+ נכס משנה</a>
           <button class="danger" id="delBtn" type="button">ביטול נכס</button>` : ''}
         </div>
       </div>
 
-      <div class="grid2">
+      <div class="tabs" role="tablist" aria-label="חלקי כרטיס הנכס">
+        ${TABS.map(([id, t, n]) => `<button type="button" role="tab" id="tab-${id}" data-tab="${id}" aria-controls="panel-${id}">${t}${n ? ` <span class="n">${n}</span>` : ''}</button>`).join('')}
+      </div>
+
+      <div class="tabpanel grid2" role="tabpanel" id="panel-main" aria-labelledby="tab-main">
         <section class="card"><h2>זיהוי ומיקום</h2><dl class="fields">
           ${row('מספר נכס', esc(a.asset_number))}
           ${row('כתובת', esc(a.address) + (a.address_note && !String(a.address || '').includes(a.address_note) ? ` <span class="hint">(${esc(a.address_note)})</span>` : ''))}
@@ -93,6 +111,21 @@
           ${row('שטח חצר', ui.fmtNum(a.area_yard) && ui.fmtNum(a.area_yard) + ' מ"ר')}
         </dl></section>
 
+        <section class="card"><h2>שימוש ומטרת החזקה</h2><dl class="fields">
+          ${row('מטרת החזקה', esc(L('holding_purpose', a.holding_purpose)))}
+          ${row('תחום שימוש', esc(L('use_domain', a.use_domain)))}
+          ${row('שימוש מפורט', esc(L('use_detail', a.use_detail)))}
+        </dl></section>
+
+        <section class="card"><h2>הערות</h2>${a.notes ? `<p style="white-space:pre-wrap;margin:0">${esc(a.notes)}</p>` : '<p class="empty">אין הערות</p>'}</section>
+      </div>
+
+      <div class="tabpanel grid2" role="tabpanel" id="panel-rights" aria-labelledby="tab-rights" hidden>
+        <section class="card"><h2>זכויות</h2><dl class="fields">
+          ${row('סוג הזכות', esc(L('right_type', a.right_type)))}
+          ${row('מקור הזכות', esc(L('right_source', a.right_source)))}
+        </dl></section>
+
         <section class="card"><h2>גוש וחלקה</h2>
           ${a.parcels.length ? '<ul class="links">' + a.parcels.map(pc => {
             const others = data.listAssets({ gush: pc.gush, helka: pc.helka }).filter(x => x.id !== a.id);
@@ -109,22 +142,21 @@
           </ul>` : '<p class="empty">נכס עצמאי – ללא נכס אב וללא נכסי משנה</p>'}
           ${a.complex ? `<p style="margin-top:12px"><strong>מתחם:</strong> ${esc(a.complex.complex_number || '')} · ${esc(a.complex.name)}</p>` : ''}
         </section>
+      </div>
 
-        <section class="card"><h2>זכויות</h2><dl class="fields">
-          ${row('סוג הזכות', esc(L('right_type', a.right_type)))}
-          ${row('מקור הזכות', esc(L('right_source', a.right_source)))}
-        </dl></section>
-
-        <section class="card"><h2>שימוש ומטרת החזקה</h2><dl class="fields">
-          ${row('מטרת החזקה', esc(L('holding_purpose', a.holding_purpose)))}
-          ${row('תחום שימוש', esc(L('use_domain', a.use_domain)))}
-          ${row('שימוש מפורט', esc(L('use_detail', a.use_detail)))}
-        </dl></section>
-
+      <div class="tabpanel" role="tabpanel" id="panel-holders" aria-labelledby="tab-holders" hidden>
         <section class="card"><h2>מחזיקים${a.is_commercial ? ' · נכס מניב' : ''}</h2>${holdingsHtml}</section>
+      </div>
 
+      <div class="tabpanel" role="tabpanel" id="panel-cons" aria-labelledby="tab-cons" hidden>
         <section class="card"><h2>תמורה ציבורית</h2>${considerationHtml}</section>
+      </div>
 
+      <div class="tabpanel" role="tabpanel" id="panel-surveys" aria-labelledby="tab-surveys" hidden>
+        <section class="card"><h2>ביקורות</h2>${surveysHtml}</section>
+      </div>
+
+      <div class="tabpanel" role="tabpanel" id="panel-docs" aria-labelledby="tab-docs" hidden>
         <section class="card"><h2>מסמכים</h2>
           <p><a class="btn primary" href="bbmasset:${encodeURIComponent(a.asset_number)}">📂 פתיחת תיקיית הנכס</a></p>
           <p class="hint">פותח בסייר הקבצים את התיקייה ששמה מסתיים ב"- ${esc(a.asset_number)}" בתוך "אגף נכסים - תיקי נכס" (כונן W).
@@ -133,11 +165,26 @@
           <p class="hint">המסמכים שמורים בתיקייה המקומית של העירייה. מעתיקים את הנתיב ומדביקים בסייר הקבצים.</p>`
           : '<p class="empty">לא הוגדר נתיב לתיקיית מסמכים</p>'}
         </section>
-
-        <section class="card"><h2>הערות</h2>${a.notes ? `<p style="white-space:pre-wrap;margin:0">${esc(a.notes)}</p>` : '<p class="empty">אין הערות</p>'}</section>
       </div>
-      <p class="hint">מקום שמור בשלבים הבאים: ביקורות, היסטוריית שינויים.</p>
+
       ${a.import_source_row ? `<p class="hint">מקור ייבוא: ${esc(a.import_source_file || '')} · גיליון ${esc(a.import_source_sheet || '')} · שורה ${esc(a.import_source_row)}</p>` : ''}`;
+
+    // מעבר בין לשוניות; הלשונית נשמרת בכתובת (#cons וכד'), כך שרענון או קישור חוזרים לאותה לשונית
+    const tabs = [...main.querySelectorAll('[role=tab]')];
+    function show(id, focus) {
+      if (!TABS.some(t => t[0] === id)) id = 'main';
+      tabs.forEach(b => { const on = b.dataset.tab === id; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
+      main.querySelectorAll('.tabpanel').forEach(pn => pn.hidden = pn.id !== 'panel-' + id);
+      history.replaceState(null, '', location.pathname + location.search + (id === 'main' ? '' : '#' + id));
+    }
+    tabs.forEach((b, i) => {
+      b.onclick = () => show(b.dataset.tab);
+      b.onkeydown = e => {  // חצים: בעברית ימין = הקודם, שמאל = הבא
+        const d = e.key === 'ArrowLeft' ? 1 : e.key === 'ArrowRight' ? -1 : 0;
+        if (d) { e.preventDefault(); show(tabs[(i + d + tabs.length) % tabs.length].dataset.tab, true); }
+      };
+    });
+    show(location.hash.slice(1) || 'main');
 
     const cp = document.getElementById('copyPath');
     if (cp) cp.onclick = () => navigator.clipboard.writeText(a.folder_path).then(() => ui.toast('הנתיב הועתק'));
