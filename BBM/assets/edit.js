@@ -103,7 +103,7 @@
     <details class="section" open><summary>8. מסמכים והערות</summary><div class="body">
       ${field('נתיב לתיקיית המסמכים', input('folder_path', 'text', 'dir="ltr" placeholder="S:\\נכסים\\..."'), 'full')}
       ${field('הערות', `<textarea name="notes">${v('notes')}</textarea>`, 'full')}
-      <p class="hint full consideration-only">הנכס מסומן כתמורה ציבורית. נתוני התמורה (יזם, היתר, טופס 4, שטחים) מנוהלים במסך התמורות ומוצגים בכרטיס הנכס.</p>
+      <p class="hint full consideration-only">הנכס מסומן כתמורה ציבורית. נתוני התמורה (יזם, היתר, טופס 4, שטחים) נערכים מכרטיס הנכס: לשונית "תמורה ציבורית" ← "עריכת התמורה".</p>
     </div></details>
 
     <div class="sticky-actions">

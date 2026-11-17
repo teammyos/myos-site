@@ -180,6 +180,18 @@
     return write('parcels', { id: uid(), gush, helka, sub_helka }, ['id']);
   }
 
+  // עדכון תהליך תמורה (רק השדות שנשלחו; התהליך יכול להיות משותף לכמה נכסים)
+  async function saveConsideration(row) {
+    if (!row.id) throw new Error('חסר מזהה תהליך');
+    if (mode === 'demo') return write('considerations', row, ['id']);
+    const { id, ...patch } = row;
+    const { data: saved, error } = await sb.from('considerations').update(patch).eq('id', id).select().single();
+    if (error) throw error;
+    const i = db.considerations.findIndex(r => r.id === id);
+    if (i >= 0) db.considerations[i] = saved;
+    return saved;
+  }
+
   // מספר הנכס הבא: אחד יותר מהמספר הגבוה ביותר במערכת (כולל נכסים שבוטלו, כדי שמספר לא יחזור)
   function nextAssetNumber(list = db.assets) {
     const nums = list.map(a => String(a.asset_number || '').trim()).filter(n => /^\d+$/.test(n)).map(Number);
@@ -258,7 +270,7 @@
     listAssets, getAsset, saveAsset, softDeleteAsset, descendants,
     holders: () => db.holders.slice().sort((a, b) => a.name.localeCompare(b.name, 'he')),
     complexes: () => db.complexes.slice(),
-    nextAssetNumber,
+    nextAssetNumber, saveConsideration,
     allAssetsBrief: () => activeAssets().map(a => ({ id: a.id, asset_number: a.asset_number, name: a.name })),
     saveHolder, saveHolding, deleteHolding, toCsv, listConsiderations,
     _db: db

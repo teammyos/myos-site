@@ -21,7 +21,10 @@
     const considerationHtml = k.length ? k.map(c => {
       const realized = c.id ? data.listAssets().filter(x => x.considerations.some(y => y.id === c.id && y.role === 'realized')) : [];
       const delivered = realized.reduce((s, x) => s + (Number(x.area_built) || 0), 0);
-      return `<dl class="fields">
+      const shared = c.id ? data.listAssets().filter(x => x.id !== a.id && x.considerations.some(y => y.id === c.id)) : [];
+      return `${edit && c.id ? `<p><a class="btn primary" href="consideration.html?id=${encodeURIComponent(c.id)}&asset=${encodeURIComponent(a.id)}">עריכת התמורה</a></p>` : ''}
+      ${shared.length ? `<p class="hint">התהליך משותף גם לנכסים: ${shared.map(link).join(' · ')}</p>` : ''}
+      <dl class="fields">
         ${row('מספר תהליך', esc(c.process_number))}
         ${row('תפקיד הנכס בתמורה', c.role === 'commitment' ? 'רשומת ההתחייבות' : 'נכס שמומש')}
         ${row('פרויקט / יזם', esc([c.project_name, c.developer].filter(Boolean).join(' · ')))}
@@ -66,7 +69,7 @@
 
     // לשוניות הכרטיס
     const TABS = [['main', 'ראשי'], ['rights', 'זכויות וחלקות'], ['holders', 'מחזיקים', a.holdings.length],
-      ['cons', 'תמורה ציבורית', k.length], ['surveys', 'ביקורות', surveys.length], ['docs', 'מסמכים']];
+      ['cons', 'תמורה ציבורית', k.length], ['surveys', 'ביקורות', surveys.length]];
 
     main.innerHTML = `
       <p><a href="${ui.listUrl('../')}">→ חזרה לרשימת הנכסים</a></p>
@@ -156,17 +159,6 @@
         <section class="card"><h2>ביקורות</h2>${surveysHtml}</section>
       </div>
 
-      <div class="tabpanel" role="tabpanel" id="panel-docs" aria-labelledby="tab-docs" hidden>
-        <section class="card"><h2>מסמכים</h2>
-          <p><a class="btn primary" href="bbmasset:${encodeURIComponent(a.asset_number)}">📂 פתיחת תיקיית הנכס</a></p>
-          <p class="hint">פותח בסייר הקבצים את התיקייה ששמה מסתיים ב"- ${esc(a.asset_number)}" בתוך "אגף נכסים - תיקי נכס" (כונן W).
-            עובד רק במחשבי העירייה, אחרי התקנה חד-פעמית של bbm-folder-setup.bat.</p>
-          ${a.folder_path ? `<div class="path"><code>${esc(a.folder_path)}</code><button type="button" id="copyPath">העתק נתיב</button></div>
-          <p class="hint">המסמכים שמורים בתיקייה המקומית של העירייה. מעתיקים את הנתיב ומדביקים בסייר הקבצים.</p>`
-          : '<p class="empty">לא הוגדר נתיב לתיקיית מסמכים</p>'}
-        </section>
-      </div>
-
       ${a.import_source_row ? `<p class="hint">מקור ייבוא: ${esc(a.import_source_file || '')} · גיליון ${esc(a.import_source_sheet || '')} · שורה ${esc(a.import_source_row)}</p>` : ''}`;
 
     // מעבר בין לשוניות; הלשונית נשמרת בכתובת (#cons וכד'), כך שרענון או קישור חוזרים לאותה לשונית
@@ -186,8 +178,6 @@
     });
     show(location.hash.slice(1) || 'main');
 
-    const cp = document.getElementById('copyPath');
-    if (cp) cp.onclick = () => navigator.clipboard.writeText(a.folder_path).then(() => ui.toast('הנתיב הועתק'));
     const del = document.getElementById('delBtn');
     if (del) del.onclick = async () => {
       if (!confirm('לבטל את הנכס? הרשומה לא נמחקת, אלא מסומנת כמבוטלת ולא תופיע ברשימה.')) return;
