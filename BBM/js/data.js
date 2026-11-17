@@ -180,10 +180,25 @@
     return write('parcels', { id: uid(), gush, helka, sub_helka }, ['id']);
   }
 
-  async function saveAsset(asset, parcelList) {
+  // מספר הנכס הבא: אחד יותר מהמספר הגבוה ביותר במערכת (כולל נכסים שבוטלו, כדי שמספר לא יחזור)
+  function nextAssetNumber(list = db.assets) {
+    const nums = list.map(a => String(a.asset_number || '').trim()).filter(n => /^\d+$/.test(n)).map(Number);
+    return String((nums.length ? Math.max(...nums) : 10000) + 1);
+  }
+
+  async function saveAsset(asset, parcelList, opts = {}) {
     const isNew = !asset.id;
     const row = { ...asset };
     if (isNew) row.id = uid();
+    // מספר אוטומטי: בודקים מול השרת ברגע השמירה, למקרה שמשתמש אחר פתח נכס בינתיים
+    if (isNew && opts.autoNumber && mode === 'live') {
+      const { data: fresh, error } = await sb.from('assets').select('id,asset_number');
+      if (!error && fresh) {
+        const known = new Set(db.assets.map(a => a.id));
+        fresh.filter(a => !known.has(a.id)).forEach(a => db.assets.push(a));
+        row.asset_number = nextAssetNumber();
+      }
+    }
     if (!row.asset_number) throw new Error('חובה למלא מספר נכס');
     const dup = db.assets.find(a => a.asset_number === row.asset_number && a.id !== row.id);
     if (dup) throw new Error('מספר הנכס כבר קיים במערכת (' + dup.asset_number + ')');
@@ -243,6 +258,7 @@
     listAssets, getAsset, saveAsset, softDeleteAsset, descendants,
     holders: () => db.holders.slice().sort((a, b) => a.name.localeCompare(b.name, 'he')),
     complexes: () => db.complexes.slice(),
+    nextAssetNumber,
     allAssetsBrief: () => activeAssets().map(a => ({ id: a.id, asset_number: a.asset_number, name: a.name })),
     saveHolder, saveHolding, deleteHolding, toCsv, listConsiderations,
     _db: db

@@ -18,6 +18,9 @@
     right_type: parentAsset ? parentAsset.right_type : '', right_source: parentAsset ? parentAsset.right_source : '',
     complex_id: parentAsset ? parentAsset.complex_id : ''
   };
+  // נכס חדש: מספר הנכס נקבע אוטומטית – אחד יותר מהמספר האחרון במערכת
+  const autoNumber = existing ? null : data.nextAssetNumber();
+  if (autoNumber) a.asset_number = autoNumber;
   const parcels = existing ? existing.parcels.map(p => ({ ...p })) : (parentAsset ? parentAsset.parcels.map(p => ({ ...p })) : []);
   document.getElementById('title').textContent = existing ? `עריכת נכס ${existing.asset_number}` : (parentAsset ? `נכס משנה חדש תחת ${parentAsset.asset_number}` : 'נכס חדש');
   document.getElementById('backLink').href = existing ? `asset.html?id=${encodeURIComponent(existing.id)}` : (parentAsset ? `asset.html?id=${encodeURIComponent(parentAsset.id)}` : 'index.html');
@@ -43,7 +46,7 @@
       ${field('קיים / עתידי', sel('record_status', 'record_status', a.record_status, { empty: '— בחר —' }))}
       ${field('סוג פיזי', sel('physical_type', 'physical_type', a.physical_type))}
       ${field('מצב מימוש', sel('realization_status', 'realization_status', a.realization_status || 'not_relevant'))}
-      <p class="hint full">נכס עתידי (למשל התחייבות יזם) מקבל מספר זמני, כמו T-2026-001, עד לקביעת מספר סופי.</p>
+      ${existing ? '' : '<p class="hint full">מספר הנכס נקבע אוטומטית: אחד יותר מהמספר האחרון במערכת. אפשר לשנות אותו במקרה חריג.</p>'}
     </div></details>
 
     <details class="section" open><summary>2. מיקום וגוש/חלקה</summary><div class="body">
@@ -157,7 +160,8 @@
     const parcelList = [...box.querySelectorAll('.parcel-row')].map(r => Object.fromEntries([...r.querySelectorAll('input')].map(i => [i.dataset.k, i.value])));
     const btn = form.querySelector('button[type=submit]'); btn.disabled = true;
     try {
-      const saved = await data.saveAsset(row, parcelList);
+      // אם המספר האוטומטי לא שונה ידנית – הוא נבדק שוב מול השרת בשמירה
+      const saved = await data.saveAsset(row, parcelList, { autoNumber: !!autoNumber && row.asset_number === autoNumber });
       // מחזיק
       let holderId = fd.get('h_holder_id');
       const newName = String(fd.get('h_new_name') || '').trim();
