@@ -82,6 +82,9 @@ function cpDoPendPdf(){
   try{ sessionStorage.removeItem('cp_pendPdf'); }catch(e){}
   var p=null; try{ p=JSON.parse(raw); }catch(e){ return; }
   if(!p || !p.n || (Date.now()-(+p.t)) > 90000) return;
+  var tip=null;
+  try{ tip=document.createElement('div'); tip.id='cp-pdf-tip'; tip.style.cssText='position:fixed;left:16px;bottom:16px;z-index:2147483647;background:#0d1a30;color:#2ff0e6;border:2px solid #2ff0e6;border-radius:10px;padding:12px 16px;font:700 14px Arial,sans-serif;direction:rtl;box-shadow:0 4px 18px rgba(0,0,0,.45)'; tip.textContent='⏳ מוריד תעודה… נא לא לעבור פנייה עד שחלון השמירה נפתח'; document.body.appendChild(tip); }catch(e){}
+  function tipOff(){ try{ if(tip) tip.remove(); }catch(e){} }
   var tries=0;
   var iv=setInterval(function(){
     tries++;
@@ -89,11 +92,11 @@ function cpDoPendPdf(){
     if(b){
       clearInterval(iv);
       fetch(b.href).then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.blob(); }).then(function(blob){
-        var url=window.URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download=p.n; document.body.appendChild(a); a.click(); a.remove();
+        var url=window.URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download=p.n; document.body.appendChild(a); a.click(); a.remove(); tipOff();
         var s=JSON.stringify(p.c), k=0;
         (function w(){ navigator.clipboard.writeText(s).catch(function(){ if(++k<20) setTimeout(w,500); }); })();
-      }).catch(function(e){ alert('הורדת התעודה נכשלה ('+(e&&e.message?e.message:e)+'). אפשר להוריד ידנית מכפתור ה-PDF בדף.'); });
-    } else if(tries>50){ clearInterval(iv); alert('לא נמצא כפתור ה-PDF בדף אחרי הסנכרון. אפשר להוריד ידנית.'); }
+      }).catch(function(e){ tipOff(); alert('הורדת התעודה נכשלה ('+(e&&e.message?e.message:e)+'). אפשר להוריד ידנית מכפתור ה-PDF בדף.'); });
+    } else if(tries>50){ clearInterval(iv); tipOff(); alert('לא נמצא כפתור ה-PDF בדף אחרי הסנכרון. אפשר להוריד ידנית.'); }
   },300);
 }
 var __cpT=window.__cpTrigger;window.__cpTrigger=undefined;if(!(__cpT==='manual')&&/module=moked-page/.test(location.search)){cpDoPendPdf();}if(__cpT==='manual'){cpGate(function(){if(/module=moked-page/.test(location.search)){runPanel();}else if(/module=moked-list/.test(location.search)||document.querySelector('tr[id^="itemTr"]')){runClassify();}else{runPanel();}},cpShowBlocked);}else{if(/module=moked-page/.test(location.search)){var __sk=sessionStorage.getItem('cp_skipOpen');if(__sk){sessionStorage.removeItem('cp_skipOpen');if(Date.now()-(+__sk)>=30000){cpGate(runPanel,cpShowBlocked);}}else{cpGate(runPanel,cpShowBlocked);}}}})();
