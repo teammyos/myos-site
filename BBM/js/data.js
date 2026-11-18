@@ -120,15 +120,19 @@
 
   function parcelText(p) { return p ? `${p.gush}/${p.helka}${p.sub_helka ? '/' + p.sub_helka : ''}` : ''; }
 
-  // שם לתצוגה: לנכס ששמו נוצר אוטומטית בייבוא ("שטח ציבורי – כתובת") מציגים את השימוש במקום "שטח ציבורי",
-  // בדומה לשם התיקייה במחשב ("דב הוז 5 - גן ילדים"). שם שהוקלד ידנית מוצג כמו שהוא. הנתון השמור לא משתנה.
+  // שם לתצוגה (הוחלט 18.11): הכותרת = "שם / תיאור" של הנכס + הכתובת מהמיקום, כמו שם התיקייה במחשב.
+  // שם שנוצר אוטומטית בייבוא ("שטח ציבורי – כתובת") נחשב ריק. כשאין שם: לפי השימוש המפורט, ואם גם הוא לא ידוע – "שטח ציבורי".
+  // תצוגה בלבד; הנתון השמור לא משתנה.
+  const isAutoName = name => /^שטח ציבורי\s*[–-]/.test(name || '');
   function displayName(a) {
     const name = (a.name || '').trim();
-    if (name && !/^שטח ציבורי\s*[–-]/.test(name)) return name;
-    const known = v => v && v !== 'unknown' && v !== 'no_use';
-    const use = (known(a.use_detail) && label('use_detail', a.use_detail)) || (known(a.use_domain) && label('use_domain', a.use_domain)) || 'שטח ציבורי';
     const where = [[a.street, a.house_number].filter(Boolean).join(' '), a.address_note ? `(${a.address_note})` : ''].filter(Boolean).join(' ');
-    return where ? `${use} – ${where}` : (name || use);
+    const known = v => v && v !== 'unknown' && v !== 'no_use';
+    const base = name && !isAutoName(name) ? name
+      : (known(a.use_detail) && label('use_detail', a.use_detail)) || (known(a.use_domain) && label('use_domain', a.use_domain)) || 'שטח ציבורי';
+    // לא מוסיפים כתובת שכבר כתובה בשם
+    if (!where || (a.street && base.includes(a.street))) return base;
+    return `${base} – ${where}`;
   }
 
   function enrichAsset(a) {
