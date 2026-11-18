@@ -9,7 +9,7 @@
     document.title = `${a.asset_number} · ${a.title || 'נכס'} · BBM`;
 
     const row = (t, v, calc) => `<dt>${t}</dt><dd${calc ? ' class="calc"' : ''}>${v === '' || v == null ? '<span class="empty">—</span>' : v}</dd>`;
-    const link = x => `<a href="asset.html?id=${encodeURIComponent(x.id)}">${esc(x.asset_number)} · ${esc(x.name || '')}</a>`;
+    const link = x => `<a href="asset.html?id=${encodeURIComponent(x.id)}">${esc(x.asset_number)} · ${esc(x.title || data.displayName(x))}</a>`;
     const edit = ui.canEdit();
     const yn = v => v === true ? 'כן' : v === false ? 'לא' : '';
 
@@ -149,7 +149,7 @@
         <section class="card"><h2>נכס אב ונכסי משנה</h2>
           ${chain.length || a.children.length ? `<ul class="links">
             ${chain.map((x, i) => `<li style="padding-inline-start:${i * 18}px">${link(x)}</li>`).join('')}
-            <li style="padding-inline-start:${chain.length * 18}px"><strong>${esc(a.asset_number)} · ${esc(a.name || '')}</strong> (נכס זה)</li>
+            <li style="padding-inline-start:${chain.length * 18}px"><strong>${esc(a.asset_number)} · ${esc(a.title || '')}</strong> (נכס זה)</li>
             ${a.children.map(x => `<li style="padding-inline-start:${(chain.length + 1) * 18}px">${link(x)}</li>`).join('')}
           </ul>` : '<p class="empty">נכס עצמאי – ללא נכס אב וללא נכסי משנה</p>'}
           ${a.complex ? `<p style="margin-top:12px"><strong>מתחם:</strong> ${esc(a.complex.complex_number || '')} · ${esc(a.complex.name)}</p>` : ''}

@@ -42,7 +42,8 @@
   form.innerHTML = `
     <details class="section" open><summary>1. זיהוי וסיווג</summary><div class="body">
       ${field('מספר נכס *', input('asset_number', 'text', 'required'))}
-      ${field('שם / תיאור', input('name'), 'full')}
+      ${field('שם / תיאור', input('name', 'text', 'placeholder="למשל: גן ילדים של חני. בלי הכתובת – היא מתווספת לבד"'), 'full')}
+      <p class="hint full">זו הכותרת של הנכס, ולפיה גם מחפשים. הכתובת מתווספת אליה אוטומטית. אם השדה ריק, הכותרת תהיה השימוש המפורט, ואם גם הוא לא ידוע – הכתובת בלבד.</p>
       ${field('קיים / עתידי', sel('record_status', 'record_status', a.record_status, { empty: '— בחר —' }))}
       ${field('סוג פיזי', sel('physical_type', 'physical_type', a.physical_type))}
       ${field('מצב מימוש', sel('realization_status', 'realization_status', a.realization_status || 'not_relevant'))}

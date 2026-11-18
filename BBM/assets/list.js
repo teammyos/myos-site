@@ -117,7 +117,7 @@
       if (f.action && !actionOf(a)) return false;
       if (!q) return true;
       const c = firstCons(a) || {};
-      const hay = norm([a.asset_number, a.name, a.address, a.address_note, a.neighborhood, a.institution_code, a.institution_name,
+      const hay = norm([a.asset_number, a.name, a.title, a.address, a.address_note, a.neighborhood, a.institution_code, a.institution_name,
         a.parcels_text, a.holder_name, c.developer, c.request_number, a.street_code].join(' '));
       return q.split(/\s+/).every(w => hay.includes(w));
     });

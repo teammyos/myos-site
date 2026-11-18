@@ -121,17 +121,17 @@
   function parcelText(p) { return p ? `${p.gush}/${p.helka}${p.sub_helka ? '/' + p.sub_helka : ''}` : ''; }
 
   // שם לתצוגה (הוחלט 18.11): הכותרת = "שם / תיאור" של הנכס + הכתובת מהמיקום, כמו שם התיקייה במחשב.
-  // שם שנוצר אוטומטית בייבוא ("שטח ציבורי – כתובת") נחשב ריק. כשאין שם: לפי השימוש המפורט, ואם גם הוא לא ידוע – "שטח ציבורי".
-  // תצוגה בלבד; הנתון השמור לא משתנה.
+  // היררכיה: (1) שם / תיאור שהוזן (2) שימוש מפורט (3) רק הכתובת. מחושב בכל טעינה, כך ששם שנוסף מחליף מיד את השימוש.
+  // שם אוטומטי ישן מהייבוא ("שטח ציבורי – כתובת") נחשב ריק (השמות האלה נוקו מהמסד ב-18.11).
   const isAutoName = name => /^שטח ציבורי\s*[–-]/.test(name || '');
   function displayName(a) {
     const name = (a.name || '').trim();
     const where = [[a.street, a.house_number].filter(Boolean).join(' '), a.address_note ? `(${a.address_note})` : ''].filter(Boolean).join(' ');
     const known = v => v && v !== 'unknown' && v !== 'no_use';
     const base = name && !isAutoName(name) ? name
-      : (known(a.use_detail) && label('use_detail', a.use_detail)) || (known(a.use_domain) && label('use_domain', a.use_domain)) || 'שטח ציבורי';
-    // לא מוסיפים כתובת שכבר כתובה בשם
-    if (!where || (a.street && base.includes(a.street))) return base;
+      : (known(a.use_detail) && label('use_detail', a.use_detail)) || '';
+    if (!base) return where;                                    // אין שם ואין שימוש מפורט: רק הכתובת
+    if (!where || (a.street && base.includes(a.street))) return base;  // לא מוסיפים כתובת שכבר כתובה בשם
     return `${base} – ${where}`;
   }
 
@@ -286,8 +286,8 @@
     listAssets, getAsset, saveAsset, softDeleteAsset, descendants,
     holders: () => db.holders.slice().sort((a, b) => a.name.localeCompare(b.name, 'he')),
     complexes: () => db.complexes.slice(),
-    nextAssetNumber, saveConsideration,
-    allAssetsBrief: () => activeAssets().map(a => ({ id: a.id, asset_number: a.asset_number, name: a.name })),
+    nextAssetNumber, saveConsideration, displayName,
+    allAssetsBrief: () => activeAssets().map(a => ({ id: a.id, asset_number: a.asset_number, name: displayName(a) })),
     saveHolder, saveHolding, deleteHolding, toCsv, listConsiderations,
     _db: db
   };
