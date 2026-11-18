@@ -209,3 +209,10 @@ a.folder-btn:hover { border-color: var(--gold); background: var(--gold-soft); }
 .tabs .n { font-size: 12px; font-weight: 600; background: #eef2f6; border-radius: 999px; padding: 0 7px; color: var(--muted); }
 .tabpanel[hidden] { display: none; }
 @media (max-width: 640px) { .tabs { flex-wrap: nowrap; overflow-x: auto; } .tabs [role=tab] { white-space: nowrap; padding: 10px 12px; } }
+
+/* נתוני תמורה ציבורית – קבוצה מתקפלת מתחת ללשונית "ראשי" (18.11.2026) */
+details.cons-group { margin-top: 16px; }
+details.cons-group[hidden] { display: none; }
+details.cons-group > summary { flex-wrap: wrap; }
+.cons-sum { display: inline-flex; gap: 4px; flex-wrap: wrap; font-weight: 400; }
+.cons-sum .pill::before { content: none; }

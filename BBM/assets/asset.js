@@ -6,7 +6,7 @@
   function render() {
     const a = data.getAsset(ui.param('id'));
     if (!a) { main.innerHTML = `<div class="card error">הנכס לא נמצא. <a href="${ui.listUrl('../')}">חזרה לרשימה</a></div>`; return; }
-    document.title = `${a.asset_number} · ${a.name || 'נכס'} · BBM`;
+    document.title = `${a.asset_number} · ${a.title || 'נכס'} · BBM`;
 
     const row = (t, v, calc) => `<dt>${t}</dt><dd${calc ? ' class="calc"' : ''}>${v === '' || v == null ? '<span class="empty">—</span>' : v}</dd>`;
     const link = x => `<a href="asset.html?id=${encodeURIComponent(x.id)}">${esc(x.asset_number)} · ${esc(x.name || '')}</a>`;
@@ -23,12 +23,11 @@
       const delivered = realized.reduce((s, x) => s + (Number(x.area_built) || 0), 0);
       const shared = c.id ? data.listAssets().filter(x => x.id !== a.id && x.considerations.some(y => y.id === c.id)) : [];
       return `${edit && c.id ? `<p><a class="btn primary" href="consideration.html?id=${encodeURIComponent(c.id)}&asset=${encodeURIComponent(a.id)}">עריכת התמורה</a></p>` : ''}
-      ${shared.length ? `<p class="hint">התהליך משותף גם לנכסים: ${shared.map(link).join(' · ')}</p>` : ''}
+      ${shared.length ? `<p class="hint">הבקשה משותפת גם לנכסים: ${shared.map(link).join(' · ')}</p>` : ''}
       <dl class="fields">
-        ${row('מספר תהליך', esc(c.process_number))}
         ${row('תפקיד הנכס בתמורה', c.role === 'commitment' ? 'רשומת ההתחייבות' : 'נכס שמומש')}
-        ${row('פרויקט / יזם', esc([c.project_name, c.developer].filter(Boolean).join(' · ')))}
-        ${row('מספר בקשה', esc(c.request_number))}
+        ${row('מספר בקשה להיתר', esc(c.request_number))}
+        ${row('כתובת הבקשה', esc(c.project_name))}
         ${row('שלב', esc(L('consideration_stage', c.stage)))}
         ${row('שטח שהובטח', ui.fmtNum(c.promised_area) && ui.fmtNum(c.promised_area) + ' מ"ר')}
         ${row('שטח שנמסר', realized.length ? `${ui.fmtNum(delivered)} מ"ר <span class="calc-note">(מחושב מ-${realized.length} נכסים)</span>` : '', true)}
@@ -45,7 +44,7 @@
         ${row('הפקעה', esc(c.expropriation_note))}
         ${row('פעולה נדרשת', c.required_action ? `<span style="white-space:pre-wrap">${esc(c.required_action)}</span>` : '')}
         ${row('שימוש לפי האקסל', c.actual_use ? `<span style="white-space:pre-wrap">${esc(c.actual_use)}</span>` : '')}
-        ${row('הערות התהליך', c.notes ? `<span style="white-space:pre-wrap">${esc(c.notes)}</span>` : '')}
+        ${row('הערות', c.notes ? `<span style="white-space:pre-wrap">${esc(c.notes)}</span>` : '')}
       </dl>
       ${realized.length && c.role === 'commitment' ? '<h2 style="margin-top:14px">נכסים שמומשו מהתמורה</h2><ul class="links">' + realized.map(x => `<li>${link(x)} · ${ui.fmtNum(x.area_built)} מ"ר</li>`).join('') + '</ul>' : ''}`;
     }).join('<hr>') : '<p class="empty">הנכס אינו מקושר לתמורה ציבורית</p>';
@@ -67,15 +66,19 @@
         ${sv.notes ? `<br><span style="white-space:pre-wrap">${esc(sv.notes)}</span>` : ''}</li>`).join('')}</ul>`
       : '<p class="empty">לא נרשמו ביקורות לנכס</p>';
 
+    // שורת סיכום לכותרת המקופלת של התמורה: שלב · היתר · טופס 4
+    const mark = v => v === true ? '✓' : v === false ? '✗' : '?';
+    const consSummary = k.map(c => [L('consideration_stage', c.stage), `היתר ${mark(c.has_permit)}`, `טופס 4 ${mark(c.has_form4)}`,
+      c.request_number ? `בקשה ${esc(c.request_number)}` : ''].filter(Boolean).map(t => `<span class="pill">${t}</span>`).join('')).join(' ');
+
     // לשוניות הכרטיס
-    const TABS = [['main', 'ראשי'], ['rights', 'זכויות וחלקות'], ['holders', 'מחזיקים', a.holdings.length],
-      ['cons', 'תמורה ציבורית', k.length], ['surveys', 'ביקורות', surveys.length]];
+    const TABS = [['main', 'ראשי'], ['rights', 'זכויות וחלקות'], ['holders', 'מחזיקים', a.holdings.length], ['surveys', 'ביקורות', surveys.length]];
 
     main.innerHTML = `
       <p><a href="${ui.listUrl('../')}">→ חזרה לרשימת הנכסים</a></p>
       <div class="page-head">
         <div>
-          <h1>${esc(a.asset_number)} · ${esc(a.name || '')}</h1>
+          <h1>${esc(a.asset_number)} · ${esc(a.title || '')}</h1>
           <p class="sub">${esc(a.address)} &nbsp;
             <span class="tag ${a.record_status}">${esc(L('record_status', a.record_status))}</span>
             ${a.operational_status ? `<span class="tag ${['trespass', 'vacant', 'unused'].includes(a.operational_status) ? 'warn' : ''}">${esc(L('operational_status', a.operational_status))}</span>` : ''}
@@ -105,6 +108,7 @@
           ${row('תכנית', esc(a.plan_number))}
           ${row('שם מוסד', esc(a.institution_name))}
           ${row('סמל מוסד', esc(a.institution_code))}
+          ${k.some(c => c.developer) ? row('יזם', k.map(c => esc(c.developer || '')).filter(Boolean).join('<br>')) : ''}
         </dl></section>
 
         <section class="card"><h2>סיווג</h2><dl class="fields">
@@ -122,6 +126,11 @@
 
         <section class="card"><h2>הערות</h2>${a.notes ? `<p style="white-space:pre-wrap;margin:0">${esc(a.notes)}</p>` : '<p class="empty">אין הערות</p>'}</section>
       </div>
+
+      ${k.length ? `<details class="group cons-group" id="consBox">
+        <summary><span class="dot"></span>נתוני תמורה ציבורית <span class="cons-sum">${consSummary}</span></summary>
+        <section class="card">${considerationHtml}</section>
+      </details>` : ''}
 
       <div class="tabpanel grid2" role="tabpanel" id="panel-rights" aria-labelledby="tab-rights" hidden>
         <section class="card"><h2>זכויות</h2><dl class="fields">
@@ -151,10 +160,6 @@
         <section class="card"><h2>מחזיקים${a.is_commercial ? ' · נכס מניב' : ''}</h2>${holdingsHtml}</section>
       </div>
 
-      <div class="tabpanel" role="tabpanel" id="panel-cons" aria-labelledby="tab-cons" hidden>
-        <section class="card"><h2>תמורה ציבורית</h2>${considerationHtml}</section>
-      </div>
-
       <div class="tabpanel" role="tabpanel" id="panel-surveys" aria-labelledby="tab-surveys" hidden>
         <section class="card"><h2>ביקורות</h2>${surveysHtml}</section>
       </div>
@@ -167,6 +172,7 @@
       if (!TABS.some(t => t[0] === id)) id = 'main';
       tabs.forEach(b => { const on = b.dataset.tab === id; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
       main.querySelectorAll('.tabpanel').forEach(pn => pn.hidden = pn.id !== 'panel-' + id);
+      const cb = document.getElementById('consBox'); if (cb) cb.hidden = id !== 'main';
       history.replaceState(null, '', location.pathname + location.search + (id === 'main' ? '' : '#' + id));
     }
     tabs.forEach((b, i) => {
@@ -176,7 +182,10 @@
         if (d) { e.preventDefault(); show(tabs[(i + d + tabs.length) % tabs.length].dataset.tab, true); }
       };
     });
-    show(location.hash.slice(1) || 'main');
+    // #cons (חזרה מעריכת התמורה): לשונית ראשי עם נתוני התמורה פתוחים
+    const h0 = location.hash.slice(1);
+    show(h0 === 'cons' ? 'main' : h0 || 'main');
+    if (h0 === 'cons') { const cb = document.getElementById('consBox'); if (cb) { cb.open = true; cb.scrollIntoView({ block: 'start' }); } }
 
     const del = document.getElementById('delBtn');
     if (del) del.onclick = async () => {

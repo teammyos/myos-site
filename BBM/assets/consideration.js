@@ -11,10 +11,10 @@
   const backAsset = ui.param('asset');
   const back = backAsset ? `asset.html?id=${encodeURIComponent(backAsset)}#cons` : ui.listUrl('../');
   document.getElementById('backLink').href = back;
-  document.getElementById('title').textContent = `עריכת תמורה ציבורית · תהליך ${c.process_number || ''}`;
+  document.getElementById('title').textContent = 'עריכת נתוני תמורה ציבורית' + (c.request_number ? ` · בקשה ${c.request_number}` : '');
   const linked = c.assets || [];
   document.getElementById('sub').innerHTML = linked.length > 1
-    ? `<strong>שימו לב:</strong> התהליך משותף ל-${linked.length} נכסים (${linked.map(x => esc(x.asset_number)).join(', ')}). שינוי כאן יופיע בכולם.`
+    ? `<strong>שימו לב:</strong> הבקשה משותפת ל-${linked.length} נכסים (${linked.map(x => esc(x.asset_number)).join(', ')}). שינוי כאן יופיע בכולם.`
     : 'פרטי התהליך מול היזם: התחייבות, היתר, טופס 4, שטחים ורישום.';
 
   const v = k => esc(c[k] == null ? '' : c[k]);
@@ -26,11 +26,10 @@
     <option value="true"${c[name] === true ? ' selected' : ''}>כן</option><option value="false"${c[name] === false ? ' selected' : ''}>לא</option></select>`;
 
   form.innerHTML = `
-    <details class="section" open><summary>1. הפרויקט והיזם</summary><div class="body">
-      ${field('מספר תהליך', `<input value="${v('process_number')}" disabled>`)}
+    <details class="section" open><summary>1. הבקשה והיזם</summary><div class="body">
       ${field('מספר בקשה להיתר', input('request_number'))}
       ${field('שלב', sel('stage', 'consideration_stage', c.stage, { empty: '— בחר —' }))}
-      ${field('פרויקט / כתובת', input('project_name'), 'full')}
+      ${field('כתובת הבקשה', input('project_name'), 'full')}
       ${field('יזם', input('developer'), 'full')}
     </div></details>
 

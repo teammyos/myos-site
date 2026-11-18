@@ -120,6 +120,17 @@
 
   function parcelText(p) { return p ? `${p.gush}/${p.helka}${p.sub_helka ? '/' + p.sub_helka : ''}` : ''; }
 
+  // שם לתצוגה: לנכס ששמו נוצר אוטומטית בייבוא ("שטח ציבורי – כתובת") מציגים את השימוש במקום "שטח ציבורי",
+  // בדומה לשם התיקייה במחשב ("דב הוז 5 - גן ילדים"). שם שהוקלד ידנית מוצג כמו שהוא. הנתון השמור לא משתנה.
+  function displayName(a) {
+    const name = (a.name || '').trim();
+    if (name && !/^שטח ציבורי\s*[–-]/.test(name)) return name;
+    const known = v => v && v !== 'unknown' && v !== 'no_use';
+    const use = (known(a.use_detail) && label('use_detail', a.use_detail)) || (known(a.use_domain) && label('use_domain', a.use_domain)) || 'שטח ציבורי';
+    const where = [[a.street, a.house_number].filter(Boolean).join(' '), a.address_note ? `(${a.address_note})` : ''].filter(Boolean).join(' ');
+    return where ? `${use} – ${where}` : (name || use);
+  }
+
   function enrichAsset(a) {
     const parcels = db.asset_parcels.filter(x => x.asset_id === a.id).map(x => byId('parcels', x.parcel_id)).filter(Boolean);
     const holdings = db.asset_holdings.filter(h => h.asset_id === a.id)
@@ -130,6 +141,7 @@
     return {
       ...a,
       address: [a.street, a.house_number].filter(Boolean).join(' '),
+      title: displayName(a),
       parcels,
       parcels_text: parcels.map(parcelText).join(', '),
       parent: a.parent_asset_id ? byId('assets', a.parent_asset_id) : null,
