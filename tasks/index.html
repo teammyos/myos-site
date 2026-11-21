@@ -152,10 +152,11 @@ const ERR = { owner_only: 'רק אחראי המשימה או מנהל המרחב
   stale_version: 'מישהו עדכן את המשימה בינתיים. רענן ונסה שוב', user_not_found: 'אין משתמש רשום עם המייל הזה. הוא צריך להירשם קודם',
   not_approved: 'החשבון ממתין לאישור מנהל', managers_only: 'רק מנהל המרחב יכול לעשות את זה', step_not_active: 'הפעולה כבר לא פעילה. רענן',
   later_step_done: 'אי אפשר לבטל: כבר בוצעה פעולה מאוחרת יותר', not_found: 'המשימה לא נמצאה או שאין לך גישה אליה', admins_only: 'רק מנהל מערכת',
-  task_closed: 'המשימה סגורה. פתח אותה מחדש כדי להוסיף פעולה', not_a_member: 'אינך חבר במרחב הזה', empty_note: 'ההערה ריקה' };
+  task_closed: 'המשימה סגורה. פתח אותה מחדש כדי להוסיף פעולה', not_a_member: 'אינך חבר במרחב הזה', empty_note: 'ההערה ריקה',
+  bad_email: 'כתובת המייל לא תקינה', email_not_confirmed: 'המשתמש נרשם אבל עוד לא אימת את המייל שלו' };
 const errMsg = e => { const m = String(e && e.message || e); for (const k in ERR) if (m.includes(k)) return ERR[k]; return 'משהו השתבש: ' + m; };
 
-const S = { me: null, profile: null, spaces: [], members: [], people: [], projects: [], board: [], profiles: [],
+const S = { me: null, profile: null, spaces: [], members: [], people: [], projects: [], board: [], profiles: [], invites: [],
   view: 'mine', space: null, sel: null, det: null, f: { who: '', overdue: false, when: '', project: '' }, showDone: false, showTl: false, adding: false, demo: false };
 let api;
 
@@ -171,11 +172,12 @@ function realApi() {
     signOut: () => sb.auth.signOut(),
     rpc: (fn, args) => q(sb.rpc(fn, args || {})),
     async load() {
-      const [spaces, members, people, projects, board, profiles] = await Promise.all([
+      const [invites, spaces, members, people, projects, board, profiles] = await Promise.all([
+        q(sb.from('invites').select('*')).catch(() => []),
         q(sb.from('spaces').select('*').is('archived_at', null).order('created_at')), q(sb.from('space_members').select('*')),
         q(sb.from('people').select('*').order('name')), q(sb.from('projects').select('*').order('created_at')),
         q(sb.from('board').select('*')), q(sb.from('profiles').select('*'))]);
-      return { spaces, members, people, projects, board, profiles };
+      return { spaces, members, people, projects, board, profiles, invites };
     },
     async task(id) {
       const [steps, followups, events] = await Promise.all([
@@ -539,14 +541,16 @@ function spaceDialog(id) {
       return `<div class="ppl"><span>${esc(p.name)}</span><small style="color:var(--mut)">${!p.user_id ? 'בלי חשבון' : m && m.role === 'manager' ? 'מנהל' : 'חבר'}${m && m.sees_all && m.role !== 'manager' && !mgr ? ' · רואה הכול' : ''}</small><span class="sp"></span>
         ${mgr && m && m.role !== 'manager' && spaceOf(id).visibility === 'restricted' ? `<label style="font-size:12.5px;display:flex;gap:4px;align-items:center;cursor:pointer" title="רואה את כל המשימות במרחב הזה, בלי סמכויות ניהול"><input type="checkbox" data-sa="${p.user_id}" ${m.sees_all ? 'checked' : ''}>רואה הכול</label>` : ''}
         ${mgr && p.user_id && p.user_id !== S.me ? `<button class="sm" data-rm="${p.user_id}">הסר</button>` : ''}</div>`; }).join('')}
-    ${mgr ? `<div class="f"><label>הוספת חבר לפי מייל (חשבון רשום ומאושר)</label><div style="display:flex;gap:6px"><input type="email" id="sm_e" placeholder="name@example.com"><button class="out sm" id="sm_ok">הוסף</button></div></div>` : ''}
+    ${mgr ? S.invites.filter(i => i.space_id === id).map(i => `<div class="ppl"><span>${esc(i.email)}</span><small style="color:var(--mut)">הוזמן, עוד לא נכנס</small><span class="sp"></span><button class="sm" data-ci="${esc(i.email)}">בטל הזמנה</button></div>`).join('') : ''}
+    ${mgr ? `<div class="f"><label>הוספת חבר לפי מייל (אפשר גם מי שעוד לא נרשם)</label><div style="display:flex;gap:6px"><input type="email" id="sm_e" placeholder="name@example.com"><button class="out sm" id="sm_ok">הוסף</button></div></div>` : ''}
     <div class="f"><label>הוספת גורם בלי חשבון (ספק, רשות, יועץ)</label><div style="display:flex;gap:6px"><input type="text" id="sp_n"><button class="out sm" id="sp_ok">הוסף</button></div></div>
     <div class="f"><label>פרויקט חדש</label><div style="display:flex;gap:6px"><input type="text" id="pj_n"><button class="out sm" id="pj_ok">הוסף</button></div></div>
     <div class="btns"><button id="no">סגור</button>${mgr ? `<button class="out" id="sv">${spaceOf(id).visibility === 'open' ? 'הפוך למוגבל' : 'הפוך לפתוח'}</button>` : ''}</div>`, dlg => {
     const go = async (fn, a) => { try { await call(fn, a); } catch (e) {} draw(); };
     $('#no', dlg).onclick = closeDialog;
     const on = (i, f) => { const x = $(i, dlg); if (x) x.onclick = f; };
-    on('#sm_ok', () => { const e = $('#sm_e', dlg).value.trim(); if (e) go('add_member', { p_space: id, p_email: e }); });
+    on('#sm_ok', async () => { const e = $('#sm_e', dlg).value.trim(); if (!e) return; try { const r = await call('add_member', { p_space: id, p_email: e }); toast(r ? 'נוסף למרחב' : 'הוזמן. כשייכנס לאתר עם המייל הזה, הוא יצורף למרחב לבד'); } catch (x) {} draw(); });
+    dlg.querySelectorAll('[data-ci]').forEach(b => b.onclick = () => go('cancel_invite', { p_space: id, p_email: b.dataset.ci }));
     on('#sp_ok', () => { const n = $('#sp_n', dlg).value.trim(); if (n) go('add_person', { p_space: id, p_name: n }); });
     on('#pj_ok', () => { const n = $('#pj_n', dlg).value.trim(); if (n) go('create_project', { p_space: id, p_name: n }); });
     on('#sv', () => go('update_space', { p_space: id, p_visibility: spaceOf(id).visibility === 'open' ? 'restricted' : 'open' }));
