@@ -48,7 +48,9 @@
 
   // ---------- קיבוץ ----------
   const STAGE_ORDER = ['construction', 'commitment', 'permit', 'form4', 'delivered', 'unknown', ''];
+  const CONTRACT = { expired: 'חוזה פג', none: 'אין חוזה', soon: 'חוזה עומד לפוג', valid: 'חוזה בתוקף', '': 'בלי חוזה שכירות' };
   const GROUPS = {
+    contract: { key: a => a.contract_status || '', name: k => CONTRACT[k], order: ['expired', 'none', 'soon', 'valid', ''] },
     stage: { key: a => a.consideration_stage || '', name: k => k ? label('consideration_stage', k) : 'ללא תהליך תמורה', order: STAGE_ORDER },
     operational_status: { key: a => a.operational_status || 'unknown', name: k => label('operational_status', k) || 'לא ידוע',
       order: ['trespass', 'unused', 'vacant', 'under_construction', 'third_party', 'active', 'renovation', 'unknown'] },
@@ -73,6 +75,8 @@
     { title: 'קיים/עתידי', value: a => label('record_status', a.record_status) },
     { title: 'מקור הזכות', value: a => label('right_source', a.right_source) },
     { title: 'מחזיק', value: a => a.holder_name },
+    { title: 'דמי שימוש לחודש', value: a => a.monthly_fee, cls: 'num' },
+    { title: 'חוזה עד', value: a => a.current_holding ? a.current_holding.contract_end : '', cls: 'num' },
     { title: 'פעולה נדרשת', value: a => actionOf(a) },
   ];
 
@@ -87,6 +91,7 @@
       ['רישוי', c ? `היתר ${yn(c.has_permit)} · טופס 4 ${yn(c.has_form4)}` : ''],
       ['סמל מוסד', a.institution_code],
       ['מחזיק', a.holder_name],
+      ['דמי שימוש', a.monthly_fee != null ? `${ui.fmtNum(a.monthly_fee)} ₪ לחודש` : ''],
     ].filter(([, v]) => v);
     const act = actionOf(a);
     const href = `asset.html?id=${encodeURIComponent(a.id)}`;
@@ -97,6 +102,7 @@
         <span class="pills">
           ${known(st) ? `<span class="pill ${STATUS_CLS[st] || ''}">${esc(label('operational_status', st))}</span>` : ''}
           ${a.record_status === 'future' ? '<span class="pill future">עתידי</span>' : ''}
+          ${a.contract_status === 'expired' ? '<span class="pill bad">חוזה פג</span>' : a.contract_status === 'soon' ? '<span class="pill warn">חוזה עומד לפוג</span>' : a.contract_status === 'none' ? '<span class="pill bad">אין חוזה</span>' : ''}
         </span>
       </div>
       <div class="acard-title">${esc(placeText(a) || a.name || '')}${useText(a) ? ` <span class="sep">—</span> ${esc(useText(a))}` : ''}</div>

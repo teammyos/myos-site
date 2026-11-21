@@ -139,7 +139,17 @@
     const parcels = db.asset_parcels.filter(x => x.asset_id === a.id).map(x => byId('parcels', x.parcel_id)).filter(Boolean);
     const holdings = db.asset_holdings.filter(h => h.asset_id === a.id)
       .map(h => ({ ...h, holder: byId('holders', h.holder_id) }));
-    const current = holdings.find(h => !h.end_date || h.end_date >= now().slice(0, 10)) || null;
+    const today = now().slice(0, 10);
+    holdings.sort((x, y) => (y.start_date || y.created_at || '').localeCompare(x.start_date || x.created_at || ''));
+    // מחזיק נוכחי: החזקה בלי תאריך סיום, או שתאריך הסיום עוד לא הגיע
+    const current = holdings.find(h => !h.end_date || h.end_date > today) || null;
+    // מצב החוזה של המחזיק הנוכחי: בתוקף / עומד לפוג (45 יום) / פג / אין חוזה
+    const contractStatus = h => {
+      if (!h) return '';
+      if (!h.contract_end) return h.agreement_status === 'none' ? 'none' : '';
+      const days = Math.round((new Date(h.contract_end) - new Date(today)) / 86400000);
+      return days < 0 ? 'expired' : days <= 45 ? 'soon' : 'valid';
+    };
     const links = db.consideration_assets.filter(x => x.asset_id === a.id);
     const considerations = links.map(l => ({ role: l.role, ...byId('considerations', l.consideration_id) })).filter(c => c.id);
     return {
@@ -152,6 +162,9 @@
       children: activeAssets().filter(c => c.parent_asset_id === a.id),
       complex: a.complex_id ? byId('complexes', a.complex_id) : null,
       holdings, current_holding: current,
+      past_holdings: holdings.filter(h => h !== current),
+      contract_status: contractStatus(current),
+      monthly_fee: current ? current.monthly_fee : null,
       holder_name: current && current.holder ? current.holder.name : '',
       considerations,
       consideration_stage: considerations[0] ? considerations[0].stage : '',

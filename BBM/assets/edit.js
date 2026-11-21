@@ -88,10 +88,14 @@
       ${field('איש קשר (למחזיק חדש)', '<input name="h_new_contact">')}
       ${field('טלפון (למחזיק חדש)', '<input name="h_new_phone" inputmode="tel">')}
       ${field('אופן ההחזקה', sel('h_holding_method', 'holding_method', holding.holding_method))}
-      <div class="full commercial-only"><div class="hint">נתוני נכס מסחרי / מניב</div></div>
+      <p class="hint full">החלפת המחזיק או ניקוי השדה לא מוחקים את המחזיק הקודם: ההחזקה שלו נסגרת בתאריך של היום ונשמרת בהיסטוריה.</p>
+      <div class="full commercial-only"><div class="hint">חוזה ודמי שימוש (נכס מסחרי / מניב)</div></div>
       ${field('מצב הסכם', sel('h_agreement_status', 'agreement_status', holding.agreement_status), 'commercial-only')}
-      ${field('תאריך התחלה', `<input type="date" name="h_start_date" value="${hv('start_date')}">`, 'commercial-only')}
-      ${field('תאריך סיום', `<input type="date" name="h_end_date" value="${hv('end_date')}">`, 'commercial-only')}
+      ${field('דמי שימוש לחודש, לפני מע"מ (₪)', `<input type="number" min="0" step="any" inputmode="decimal" name="h_monthly_fee" value="${hv('monthly_fee')}">`, 'commercial-only')}
+      ${field('חל מע"מ (עוסק)', `<select name="h_vat_applies"><option value="">לא ידוע</option><option value="true"${holding.vat_applies === true ? ' selected' : ''}>כן – עוסק</option><option value="false"${holding.vat_applies === false ? ' selected' : ''}>לא – מגורים</option></select>`, 'commercial-only')}
+      ${field('החוזה בתוקף עד', `<input type="date" name="h_contract_end" value="${hv('contract_end')}">`, 'commercial-only')}
+      ${field('תחילת ההחזקה', `<input type="date" name="h_start_date" value="${hv('start_date')}">`, 'commercial-only')}
+      ${field('סיום ההחזקה (עזיבה)', `<input type="date" name="h_end_date" value="${hv('end_date')}">`, 'commercial-only')}
     </div></details>
 
     <details class="section" open><summary>7. מצב</summary><div class="body">
@@ -168,10 +172,21 @@
       const newName = String(fd.get('h_new_name') || '').trim();
       if (!holderId && newName) holderId = (await data.saveHolder({ name: newName, holder_type: fd.get('h_new_type') || null,
         contact_name: fd.get('h_new_contact') || null, phone: fd.get('h_new_phone') || null })).id;
-      if (holderId) await data.saveHolding({ id: holding.id, asset_id: saved.id, holder_id: holderId,
-        holding_method: fd.get('h_holding_method'), agreement_status: fd.get('h_agreement_status'),
-        start_date: fd.get('h_start_date'), end_date: fd.get('h_end_date'), use_detail: row.use_detail });
-      else if (holding.id) await data.deleteHolding(holding.id);
+      // מחזיק שהוחלף או הוסר: ההחזקה הקודמת נסגרת (תאריך סיום = היום) ונשארת בהיסטוריה. לא מוחקים ולא דורסים.
+      const today = new Date().toISOString().slice(0, 10);
+      const sameHolder = holding.id && holderId === holding.holder_id;
+      if (holding.id && !sameHolder) await data.saveHolding({ id: holding.id, asset_id: holding.asset_id, holder_id: holding.holder_id, end_date: holding.end_date && holding.end_date <= today ? holding.end_date : today });
+      if (holderId) {
+        const vat = fd.get('h_vat_applies');
+        const h = { asset_id: saved.id, holder_id: holderId,
+          holding_method: fd.get('h_holding_method'), agreement_status: fd.get('h_agreement_status'),
+          monthly_fee: fd.get('h_monthly_fee'), vat_applies: vat === 'true' ? true : vat === 'false' ? false : null,
+          contract_end: fd.get('h_contract_end'), start_date: fd.get('h_start_date') };
+        if (sameHolder) { h.id = holding.id; h.end_date = fd.get('h_end_date'); }
+        // מחזיק חדש: תאריך ההתחלה שבטופס שייך למחזיק הקודם, אלא אם שונה ידנית
+        else if (!h.start_date || h.start_date === holding.start_date) h.start_date = today;
+        await data.saveHolding(h);
+      }
       ui.toast('הנכס נשמר');
       location.href = `asset.html?id=${encodeURIComponent(saved.id)}`;
     } catch (err) { ui.toast(err.message, 'err'); btn.disabled = false; }

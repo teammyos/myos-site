@@ -49,13 +49,26 @@
       ${realized.length && c.role === 'commitment' ? '<h2 style="margin-top:14px">נכסים שמומשו מהתמורה</h2><ul class="links">' + realized.map(x => `<li>${link(x)} · ${ui.fmtNum(x.area_built)} מ"ר</li>`).join('') + '</ul>' : ''}`;
     }).join('<hr>') : '<p class="empty">הנכס אינו מקושר לתמורה ציבורית</p>';
 
-    const holdingsHtml = a.holdings.length ? `<ul class="links">${a.holdings.map(h => `<li>
-        <strong>${esc(h.holder ? h.holder.name : '')}</strong> <span class="tag">${esc(L('holder_type', h.holder && h.holder.holder_type))}</span><br>
-        ${esc(L('holding_method', h.holding_method))}${h.use_detail ? ' · ' + esc(L('use_detail', h.use_detail)) : ''}
-        ${h.start_date || h.end_date ? ' · ' + ui.fmtDate(h.start_date) + ' – ' + ui.fmtDate(h.end_date) : ''}
-        ${h.agreement_status ? ' · הסכם: ' + esc(L('agreement_status', h.agreement_status)) : ''}
-        ${h.holder && (h.holder.contact_name || h.holder.phone) ? `<br><span class="hint">איש קשר: ${esc([h.holder.contact_name, h.holder.phone].filter(Boolean).join(' · '))}</span>` : ''}
-      </li>`).join('')}</ul>` : '<p class="empty">אין מחזיק רשום</p>';
+    const CS = { valid: ['בתוקף', 'ok'], soon: ['עומד לפוג', 'warn'], expired: ['פג תוקף', 'bad'], none: ['אין חוזה', 'bad'] };
+    const money = v => v == null ? '' : `${ui.fmtNum(v)} ₪`;
+    const holdingItem = (h, isCurrent) => {
+      const cs = isCurrent ? CS[a.contract_status] : null;
+      return `<li>
+        <strong>${esc(h.holder ? h.holder.name : '')}</strong> ${h.holder && h.holder.holder_type ? `<span class="tag">${esc(L('holder_type', h.holder.holder_type))}</span>` : ''}
+        ${cs ? `<span class="pill ${cs[1]}">חוזה: ${cs[0]}</span>` : ''}<br>
+        ${[esc(L('holding_method', h.holding_method)),
+           h.monthly_fee != null ? `דמי שימוש: <strong>${money(h.monthly_fee)}</strong> לחודש${h.vat_applies === true ? ' + מע"מ' : h.vat_applies === false ? ' (מגורים, בלי מע"מ)' : ''}` : '',
+           h.contract_end ? `חוזה עד ${ui.fmtDate(h.contract_end)}` : (h.agreement_status ? 'הסכם: ' + esc(L('agreement_status', h.agreement_status)) : ''),
+           h.start_date || h.end_date ? `תקופה: ${h.start_date ? ui.fmtDate(h.start_date) : '?'} – ${h.end_date ? ui.fmtDate(h.end_date) : 'היום'}` : ''].filter(Boolean).join(' · ')}
+        ${h.balance_snapshot != null ? `<br>${h.balance_snapshot > 0 ? `<span class="pill bad">יתרת חוב ${money(h.balance_snapshot)}</span>` : h.balance_snapshot < 0 ? `<span class="pill ok">יתרת זכות ${money(-h.balance_snapshot)}</span>` : '<span class="pill ok">אין חוב</span>'}
+          <span class="hint">נכון ל-${ui.fmtDate(h.balance_snapshot_date)}, לפי קובץ חברת הניהול</span>` : ''}
+        ${h.holder && (h.holder.contact_name || h.holder.phone || h.holder.email) ? `<br><span class="hint">איש קשר: ${esc([h.holder.contact_name, h.holder.phone, h.holder.email].filter(Boolean).join(' · '))}</span>` : ''}
+        ${h.notes ? `<br><span class="hint">${esc(h.notes)}</span>` : ''}
+      </li>`;
+    };
+    const holdingsHtml = (a.current_holding ? `<ul class="links">${holdingItem(a.current_holding, true)}</ul>` : '<p class="empty">אין מחזיק נוכחי</p>')
+      + (a.managed_by ? `<p class="hint">הנכס מנוהל בידי: ${esc(a.managed_by)}</p>` : '')
+      + (a.past_holdings.length ? `<details class="more"><summary>מחזיקים קודמים (${a.past_holdings.length})</summary><ul class="links">${a.past_holdings.map(h => holdingItem(h, false)).join('')}</ul></details>` : '');
 
     // ביקורות של תהליכי התמורה של הנכס (ביקורת שיובאה עם "נכס אחר" בהערה לא מוצגת כאן)
     const allCons = data.listConsiderations();
