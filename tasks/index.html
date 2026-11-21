@@ -156,8 +156,8 @@ const ERR = { owner_only: 'רק אחראי המשימה או מנהל המרחב
   bad_email: 'כתובת המייל לא תקינה', email_not_confirmed: 'המשתמש נרשם אבל עוד לא אימת את המייל שלו' };
 const errMsg = e => { const m = String(e && e.message || e); for (const k in ERR) if (m.includes(k)) return ERR[k]; return 'משהו השתבש: ' + m; };
 
-const S = { me: null, profile: null, spaces: [], members: [], people: [], projects: [], board: [], profiles: [], invites: [],
-  view: 'mine', space: null, sel: null, det: null, f: { who: '', overdue: false, when: '', project: '' }, showDone: false, showTl: false, adding: false, demo: false };
+const S = { me: null, profile: null, spaces: [], members: [], people: [], projects: [], board: [], profiles: [], invites: [], recs: [], q: '', adv: false,
+  view: 'mine', space: null, sel: null, det: null, f: { who: '', overdue: false, when: '', project: '', status: '', owner: '', from: '', to: '' }, showDone: false, showTl: false, adding: false, demo: false };
 let api;
 
 /* ------------------------------------------------------------ שרת אמיתי */
@@ -172,12 +172,13 @@ function realApi() {
     signOut: () => sb.auth.signOut(),
     rpc: (fn, args) => q(sb.rpc(fn, args || {})),
     async load() {
-      const [invites, spaces, members, people, projects, board, profiles] = await Promise.all([
+      const [recs, invites, spaces, members, people, projects, board, profiles] = await Promise.all([
+        q(sb.from('recurrences').select('*').order('created_at')).catch(() => []),
         q(sb.from('invites').select('*')).catch(() => []),
         q(sb.from('spaces').select('*').is('archived_at', null).order('created_at')), q(sb.from('space_members').select('*')),
         q(sb.from('people').select('*').order('name')), q(sb.from('projects').select('*').order('created_at')),
         q(sb.from('board').select('*')), q(sb.from('profiles').select('*'))]);
-      return { spaces, members, people, projects, board, profiles, invites };
+      return { spaces, members, people, projects, board, profiles, invites, recs };
     },
     async task(id) {
       const [steps, followups, events] = await Promise.all([
@@ -202,7 +203,7 @@ const personal = () => (S.spaces.find(s => s.kind === 'personal') || S.spaces[0]
 const peopleOpts = (sp, sel) => S.people.filter(p => p.space_id === sp && (p.active || p.id === sel)).sort((a, b) => (b.user_id === S.me) - (a.user_id === S.me))
   .map(p => `<option value="${p.id}" ${p.id === sel ? 'selected' : ''}>${esc(p.user_id === S.me ? p.name + ' (אני)' : p.name)}${p.user_id ? '' : ' · חיצוני'}</option>`).join('');
 
-const VIEWS = [['mine', 'אצלי', '◉'], ['day', 'להיום', '★'], ['waiting', 'ממתינות', '⏳'], ['undecided', 'לבירור', '?'], ['all', 'כל המשימות', '📋'], ['done', 'הסתיימו', '✓'], ['trash', 'סל מחזור', '🗑']];
+const VIEWS = [['mine', 'אצלי', '◉'], ['day', 'להיום', '★'], ['waiting', 'ממתינות', '⏳'], ['undecided', 'לבירור', '?'], ['all', 'כל המשימות', '📋'], ['rec', 'חוזרות', '🔁'], ['done', 'הסתיימו', '✓'], ['trash', 'סל מחזור', '🗑']];
 function inView(t, v) {
   if (v === 'trash') return !!t.deleted_at;
   if (t.deleted_at) return false;
@@ -223,7 +224,17 @@ function passF(t) {
   if (f.when === 'today' && t.due_date !== today()) return false;
   if (f.when === 'week' && !(t.due_date && t.due_date <= plus(7))) return false;
   if (f.when === 'none' && t.due_date) return false;
+  if (f.status && t.status !== f.status) return false;
+  if (f.owner && P(t.owner_id).user_id !== P(f.owner).user_id && t.owner_id !== f.owner) return false;
+  if (f.from && !(t.due_date && t.due_date >= f.from)) return false;
+  if (f.to && !(t.due_date && t.due_date <= f.to)) return false;
   return true;
+}
+// חיפוש חופשי: בשם המשימה, בפעולה, בגורם שמחכים לו, בשמות האנשים ובפרויקט
+function matchQ(t) {
+  const q = S.q.trim().toLowerCase(); if (!q) return true;
+  const hay = [t.title, t.step_title, t.waiting_on, t.entity, P(t.owner_id).name, t.doer_id ? P(t.doer_id).name : '', (S.projects.find(p => p.id === t.project_id) || {}).name, spaceOf(t.space_id).name].filter(Boolean).join(' \n ').toLowerCase();
+  return q.split(/\s+/).every(w => hay.includes(w));
 }
 const sortT = (a, b) => (!a.due_date - !b.due_date) * -1 || (a.due_date ? a.due_date.localeCompare(b.due_date) || a.created_at.localeCompare(b.created_at) : b.created_at.localeCompare(a.created_at));
 
@@ -303,7 +314,7 @@ function renderSide() {
   $('#app').classList.toggle('rail', S.rail);
   $('#shade').classList.toggle('hid', S.rail);
   $('#side').innerHTML = `<div class="brand"><button class="menu" id="menu" title="${S.rail ? 'פתיחת התפריט' : 'צמצום התפריט'}">☰</button><span class="lb"><span style="color:var(--acc)">✓</span> <b>MyOS</b> משימות</span></div>
-    ${VIEWS.map(v => { const n = ['done', 'trash', 'all'].includes(v[0]) ? '' : cnt(v[0]); const bad = v[0] === 'mine' && open.some(t => inView(t, 'mine') && t.overdue);
+    ${VIEWS.map(v => { const n = ['done', 'trash', 'all', 'rec'].includes(v[0]) ? '' : cnt(v[0]); const bad = v[0] === 'mine' && open.some(t => inView(t, 'mine') && t.overdue);
       return `<div class="nav ${S.view === v[0] ? 'on' : ''}" data-v="${v[0]}" title="${v[1]}"><span class="ic">${v[2]}</span><span class="lb">${v[1]}</span><span class="n ${bad ? 'bad' : ''}">${n || ''}</span></div>`; }).join('')}
     <div class="sec">מרחבים <button id="newSpace" title="מרחב חדש">+</button></div>
     <div class="nav ${!S.space ? 'on' : ''}" data-s="" title="כל המרחבים"><span class="ic"><span class="av">∗</span></span><span class="lb">כל המרחבים</span></div>
@@ -317,7 +328,7 @@ function renderSide() {
     if (e.target.closest('#menu')) return toggleSide();
     const m = e.target.closest('[data-m]'); if (m) return spaceDialog(m.dataset.m);
     const v = e.target.closest('[data-v]'); if (v) { S.view = v.dataset.v; if (narrow()) S.rail = true; return render(); }
-    const s = e.target.closest('[data-s]'); if (s) { S.space = s.dataset.s || null; S.f.who = ''; S.f.project = ''; if (narrow()) S.rail = true; return render(); }
+    const s = e.target.closest('[data-s]'); if (s) { S.space = s.dataset.s || null; S.f.who = ''; S.f.project = ''; S.f.owner = ''; if (narrow()) S.rail = true; return render(); }
     if (e.target.closest('#newSpace')) return newSpaceDialog();
     if (e.target.closest('#users')) return usersDialog();
     if (e.target.closest('#out')) dialog('<h2>להתנתק מהחשבון?</h2><p>תצטרך להתחבר שוב כדי לראות את המשימות.</p><div class="btns"><button class="pri" id="ok">התנתקות</button><button id="no">ביטול</button></div>',
@@ -342,23 +353,32 @@ function rowHtml(t) {
     ${fin || t.deleted_at ? '' : `<button class="star ${t.my_day ? 'on' : ''}" data-star title="לעבוד עליו היום">${t.my_day ? '★' : '☆'}</button>`}</div>`;
 }
 function renderList() {
-  const v = VIEWS.find(x => x[0] === S.view), sp = S.space ? spaceOf(S.space) : null;
-  const rows = S.board.filter(t => inView(t, S.view) && inSpace(t) && passF(t)).sort(S.view === 'done' || S.view === 'trash' ? (a, b) => b.updated_at.localeCompare(a.updated_at) : sortT);
+  if (S.view === 'rec') return renderRecs();
+  const v = VIEWS.find(x => x[0] === S.view), sp = S.space ? spaceOf(S.space) : null, searching = !!S.q.trim();
+  const rows = S.board.filter(t => (searching ? (S.view === 'trash' ? !!t.deleted_at : !t.deleted_at) : inView(t, S.view)) && inSpace(t) && passF(t) && matchQ(t)).sort(S.view === 'done' || S.view === 'trash' ? (a, b) => b.updated_at.localeCompare(a.updated_at) : sortT);
   const canAdd = !['done', 'trash'].includes(S.view), addSp = S.space || personal();
   const whoList = S.space ? S.people.filter(p => p.space_id === S.space && p.active) : S.people.filter((p, i, a) => p.user_id && p.active && a.findIndex(x => x.user_id === p.user_id) === i);
   const projs = S.projects.filter(p => !S.space || p.space_id === S.space);
   const f = S.f;
-  $('#list').innerHTML = `<h1>${esc(v[1])} <small>${sp ? esc(sp.name) : 'כל המרחבים'}</small><span class="sp"></span><small>${rows.length || ''}</small></h1>
-    ${['done', 'trash', 'mine', 'day'].includes(S.view) && !S.space ? '' : `<div class="filters">
+  const advOn = f.status || f.owner || f.from || f.to, ownerList = whoList.filter(p => p.user_id);
+  $('#list').innerHTML = `<h1>${searching ? 'תוצאות חיפוש' : esc(v[1])} <small>${sp ? esc(sp.name) : 'כל המרחבים'}</small><span class="sp"></span><input type="text" id="s_q" placeholder="🔍 חיפוש" value="${esc(S.q)}" style="width:150px;font-size:13px;padding:5px 10px;border-radius:16px" autocomplete="off"><small>${rows.length || ''}</small></h1>
+    ${['done', 'trash'].includes(S.view) && !searching ? '' : `<div class="filters">
       ${S.space && isPersonal(S.space) ? '' : `<select class="chip ${f.who ? 'on' : ''}" id="f_who"><option value="">כל העובדים</option>${whoList.map(p => `<option value="${p.id}" ${f.who === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>`}
       <span class="chip ${f.overdue ? 'on' : ''}" id="f_over">באיחור</span>
       <select class="chip ${f.when ? 'on' : ''}" id="f_when"><option value="">כל התאריכים</option><option value="today" ${f.when === 'today' ? 'selected' : ''}>היום</option><option value="week" ${f.when === 'week' ? 'selected' : ''}>עד שבוע</option><option value="none" ${f.when === 'none' ? 'selected' : ''}>בלי תאריך</option></select>
       ${projs.length ? `<select class="chip ${f.project ? 'on' : ''}" id="f_proj"><option value="">כל הפרויקטים</option>${projs.map(p => `<option value="${p.id}" ${f.project === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>` : ''}
-    </div>`}
-    ${canAdd ? `<label class="add"><span class="plus">＋</span><input type="text" id="q" placeholder="הוספת משימה${sp ? '' : ' (למרחב האישי)'}" autocomplete="off"></label>
+      <span class="chip ${S.adv || advOn ? 'on' : ''}" id="f_adv" title="מצב, אחראי משימה וטווח תאריכים">סינון מתקדם ${S.adv ? '▾' : '◂'}</span>
+    </div>${S.adv ? `<div class="filters" style="padding-top:0">
+      <select class="chip ${f.status ? 'on' : ''}" id="f_status"><option value="">כל המצבים</option>${[['active', 'פעילה'], ['waiting', 'ממתינה'], ['undecided', 'לבירור'], ['done', 'הסתיימה'], ['cancelled', 'בוטלה']].map(o => `<option value="${o[0]}" ${f.status === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
+      ${S.space && isPersonal(S.space) ? '' : `<select class="chip ${f.owner ? 'on' : ''}" id="f_owner"><option value="">כל האחראים</option>${ownerList.map(p => `<option value="${p.id}" ${f.owner === p.id ? 'selected' : ''}>אחראי: ${esc(p.name)}</option>`).join('')}</select>`}
+      <label style="font-size:12.5px;color:var(--mut)">מתאריך <input type="date" id="f_from" value="${f.from}" style="width:auto;padding:2px 6px;font-size:12.5px"></label>
+      <label style="font-size:12.5px;color:var(--mut)">עד <input type="date" id="f_to" value="${f.to}" style="width:auto;padding:2px 6px;font-size:12.5px"></label>
+      ${advOn ? '<span class="chip" id="f_clear">נקה</span>' : ''}
+    </div>` : ''}`}
+    ${canAdd && !searching ? `<label class="add"><span class="plus">＋</span><input type="text" id="q" placeholder="הוספת משימה${sp ? '' : ' (למרחב האישי)'}" autocomplete="off"></label>
       <div class="addx ${S.adding ? '' : 'hid'}" id="qx">${quick('q_due', '')}${isPersonal(addSp) ? '' : `<select class="chip" id="q_doer" title="מבצע">${peopleOpts(addSp, myPerson(addSp))}</select>`}<button class="pri sm" id="q_ok">הוספה</button><button class="sm" id="q_more" style="color:var(--acc)" title="פירוט המשימה כבר בפתיחה: מבצע, המתנה, פרויקט, הערה">עוד פרטים…</button></div>` : ''}
-    ${rows.length ? rows.map(rowHtml).join('') : `<div class="empty">${S.view === 'mine' ? 'אין אצלך כלום כרגע 🎉' : S.view === 'day' ? 'סמן ☆ ליד משימות שתרצה לעבוד עליהן היום' : 'אין כאן משימות'}</div>`}
-    ${canAdd && S.view !== 'day' ? (() => { const d = S.board.filter(t => !t.deleted_at && t.state !== 'open' && inSpace(t) && (S.view !== 'mine' || iOwn(t))).sort((a, b) => b.updated_at.localeCompare(a.updated_at)).slice(0, 30);
+    ${rows.length ? rows.map(rowHtml).join('') : `<div class="empty">${searching ? 'לא נמצאו משימות שמתאימות לחיפוש' : S.view === 'mine' ? 'אין אצלך כלום כרגע 🎉' : S.view === 'day' ? 'סמן ☆ ליד משימות שתרצה לעבוד עליהן היום' : 'אין כאן משימות'}</div>`}
+    ${canAdd && S.view !== 'day' && !searching ? (() => { const d = S.board.filter(t => !t.deleted_at && t.state !== 'open' && inSpace(t) && (S.view !== 'mine' || iOwn(t))).sort((a, b) => b.updated_at.localeCompare(a.updated_at)).slice(0, 30);
       return d.length ? `<div class="grp" id="tgDone">${S.showDone ? '▾' : '◂'} הושלמו (${d.length})</div>${S.showDone ? d.map(rowHtml).join('') : ''}` : ''; })() : ''}`;
   const L = $('#list');
   const q = $('#q', L);
@@ -377,6 +397,14 @@ function renderList() {
   on('#f_proj', 'onchange', e => { f.project = e.target.value; renderList(); });
   on('#f_over', 'onclick', () => { f.overdue = !f.overdue; renderList(); });
   on('#tgDone', 'onclick', () => { S.showDone = !S.showDone; renderList(); });
+  on('#f_adv', 'onclick', () => { S.adv = !S.adv; renderList(); });
+  on('#f_status', 'onchange', e => { f.status = e.target.value; renderList(); });
+  on('#f_owner', 'onchange', e => { f.owner = e.target.value; renderList(); });
+  on('#f_from', 'onchange', e => { f.from = e.target.value; renderList(); });
+  on('#f_to', 'onchange', e => { f.to = e.target.value; renderList(); });
+  on('#f_clear', 'onclick', () => { f.status = f.owner = f.from = f.to = ''; renderList(); });
+  on('#s_q', 'oninput', e => { S.q = e.target.value; renderList(); const n = $('#s_q'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); });
+  on('#s_q', 'onkeydown', e => { if (e.key === 'Escape') { e.stopPropagation(); S.q = ''; renderList(); } });
   L.onclick = async e => {
     const r = e.target.closest('.row'); if (!r) return; const t = S.board.find(x => x.id === r.dataset.id);
     if (e.target.closest('[data-ck]')) {
@@ -389,6 +417,42 @@ function renderList() {
     if (S.sel === t.id) { S.sel = null; S.det = null; return render(); }
     openTask(t.id);
   };
+}
+// משימות חוזרות: כל מופע הוא משימה רגילה ונפרדת. "לוח קבוע" – לפי התאריך; "מהביצוע האחרון" – המופע הבא נספר מסגירת הקודם.
+const UNIT = { day: ['יום', 'ימים'], week: ['שבוע', 'שבועות'], month: ['חודש', 'חודשים'], year: ['שנה', 'שנים'] };
+const everyTxt = r => r.every_n === 1 ? 'כל ' + UNIT[r.unit][0] : 'כל ' + r.every_n + ' ' + UNIT[r.unit][1];
+function renderRecs() {
+  const sp = S.space ? spaceOf(S.space) : null, rows = S.recs.filter(r => !S.space || r.space_id === S.space);
+  $('#list').innerHTML = `<h1>משימות חוזרות <small>${sp ? esc(sp.name) : 'כל המרחבים'}</small><span class="sp"></span><button class="pri sm" id="r_new">＋ משימה חוזרת</button></h1>
+    <div style="padding:0 20px 8px;color:var(--mut);font-size:12.5px">משימה שנפתחת מעצמה בכל פעם מחדש: ארנונה, דוח חודשי, בדיקה תקופתית. כל פעם נוצרת משימה רגילה ברשימה.</div>
+    ${rows.length ? rows.map(r => `<div class="row" style="cursor:default${r.active ? '' : ';opacity:.55'}"><span style="font-size:17px">🔁</span>
+      <div class="tx"><div class="t">${esc(r.title)}</div><div class="m"><span class="chip plain">${everyTxt(r)}</span><span class="chip plain" title="${r.mode === 'fixed' ? 'נפתחת בתאריך הקבוע, גם אם הקודמת עוד לא בוצעה' : 'המופע הבא נספר מהיום שבו הקודם נסגר'}">${r.mode === 'fixed' ? 'לוח קבוע' : 'מהביצוע האחרון'}</span>
+        ${r.active ? `<span class="chip plain">הבאה: ${fmtD(r.next_on)}</span>` : '<span class="chip plain amb">מושבתת</span>'}${isPersonal(r.space_id) ? '' : `<span class="chip plain">אצל ${esc(pname(r.doer_id))}</span>`}${S.space ? '' : `<span class="chip plain">${esc(spaceOf(r.space_id).name)}</span>`}</div></div>
+      <button class="out sm" data-ra="${r.id}" data-on="${r.active ? 0 : 1}">${r.active ? 'השבת' : 'הפעל'}</button></div>`).join('') : '<div class="empty">אין עדיין משימות חוזרות</div>'}`;
+  const L = $('#list'); L.onclick = null;
+  $('#r_new', L).onclick = recDialog;
+  L.querySelectorAll('[data-ra]').forEach(b => b.onclick = () => call('set_recurrence_active', { p_rec: b.dataset.ra, p_active: b.dataset.on === '1' }, b.dataset.on === '1' ? 'הופעלה' : 'הושבתה. משימות שכבר נפתחו נשארות'));
+}
+function recDialog() {
+  const st = { space: S.space || personal(), mode: 'fixed' };
+  dialog(`<h2>משימה חוזרת</h2>
+    <div class="f"><label>שם המשימה</label><input type="text" id="rc_t" placeholder="למשל: דוח חודשי לראש העיר"></div>
+    <div class="f"><label>מרחב</label><select id="rc_s">${S.spaces.map(x => `<option value="${x.id}" ${x.id === st.space ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></div>
+    <div id="rc_d"></div>
+    <div class="f"><label>כל כמה זמן</label><div style="display:flex;gap:6px"><input type="text" id="rc_n" value="1" inputmode="numeric" style="width:70px"><select id="rc_u"><option value="day">ימים</option><option value="week">שבועות</option><option value="month" selected>חודשים</option><option value="year">שנים</option></select></div></div>
+    <div class="opt on" data-m="fixed"><input type="radio" name="rm" checked><div><b>לוח קבוע</b><small>נפתחת בתאריך הקבוע, גם אם הקודמת עוד לא בוצעה (ארנונה, דוח חודשי)</small></div></div>
+    <div class="opt" data-m="after_done"><input type="radio" name="rm"><div><b>מהביצוע האחרון</b><small>המופע הבא נספר מהיום שבו הקודם נסגר (בדיקה תקופתית)</small></div></div>
+    <div class="f"><label>הפעם הראשונה</label>${quick('rc_f', today())}</div>
+    <div class="btns"><button class="pri" id="ok">שמירה</button><button id="no">ביטול</button></div>`, dlg => {
+    const drawD = () => { $('#rc_d', dlg).innerHTML = isPersonal(st.space) ? '' : `<div class="f"><label>מבצע</label><select id="rc_p">${peopleOpts(st.space, myPerson(st.space))}</select></div>`; };
+    drawD(); bindQuick(dlg); $('#rc_t', dlg).focus(); $('#no', dlg).onclick = closeDialog;
+    $('#rc_s', dlg).onchange = e => { st.space = e.target.value; drawD(); };
+    dlg.querySelectorAll('.opt').forEach(o => o.onclick = () => { st.mode = o.dataset.m; dlg.querySelectorAll('.opt').forEach(x => { x.classList.toggle('on', x === o); x.querySelector('input').checked = x === o; }); });
+    $('#ok', dlg).onclick = async () => { const title = $('#rc_t', dlg).value.trim(), n = parseInt($('#rc_n', dlg).value, 10), first = $('#rc_f', dlg).value, p = $('#rc_p', dlg), unit = $('#rc_u', dlg).value, doer = p ? p.value : null;
+      if (!title) return toast('חסר שם למשימה'); if (!(n > 0)) return toast('כל כמה זמן? צריך מספר גדול מאפס'); if (!first) return toast('חסר תאריך לפעם הראשונה');
+      closeDialog(); await call('create_recurrence', { p_space: st.space, p_title: title, p_mode: st.mode, p_every: n, p_unit: unit, p_first_on: first, p_doer: doer },
+        first <= today() ? 'נשמר. המשימה הראשונה כבר נפתחה' : 'נשמר. המשימה הראשונה תיפתח: ' + fmtD(first)); };
+  });
 }
 async function openTask(id) { S.sel = id; S.showTl = false; try { S.det = await api.task(id); } catch (e) { toast(errMsg(e)); S.sel = null; } render(); }
 
