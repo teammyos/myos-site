@@ -241,3 +241,6 @@ details.cons-group > summary { flex-wrap: wrap; }
 button.link.danger { color: var(--bad); }
 .sig-note { display: inline-block; max-width: 340px; white-space: pre-wrap; font-size: 13px; }
 @media (max-width: 640px) { .sig-form .grow { grid-column: 1 / -1; } }
+.sig-fields { display: contents; }
+table.sig-table { font-size: 13px; }
+table.sig-table th { white-space: nowrap; }
