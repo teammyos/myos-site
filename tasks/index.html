@@ -107,6 +107,13 @@ select.chip{width:auto;padding:3px 8px}
 .demo select{width:auto;padding:2px 6px}
 .ppl{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:13px}
 .ppl .sp{margin-inline-start:auto}
+.fb{border-top:1px solid var(--line);padding:9px 0;font-size:13px}
+.fb .fh{display:flex;gap:8px;align-items:center}.fb .sp{margin-inline-start:auto}
+.fb small{color:var(--mut)}
+.fbody{white-space:pre-wrap;margin-top:4px;overflow-wrap:anywhere}
+.fnote{margin-top:6px;background:var(--acc-bg);border-radius:8px;padding:6px 9px;white-space:pre-wrap}
+.fa{display:flex;gap:6px;margin-top:7px}.fa select{width:auto}
+.fbt{margin-top:20px;font-size:12.5px;color:var(--mut);padding-bottom:4px}
 .cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:6px}
 .cal>div{background:#fff;min-width:0}
 .cw{font-size:12px;color:var(--mut);text-align:center;padding:5px 0}
@@ -164,7 +171,7 @@ const fmtD = s => { if (!s) return ''; if (s === today()) return 'היום'; if 
   return new Date(s + 'T12:00').toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'short' }); };
 const fmtT = s => new Date(s).toLocaleString('he-IL', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-const ERR = { owner_only: 'רק אחראי המשימה או מנהל המרחב יכולים לעשות את זה', waiting_needs_followup_date: 'להמתנה חייבים לקבוע תאריך מעקב',
+const ERR = { feedback_empty: 'חסר נושא או פירוט', feedback_too_many: 'נשלחו הרבה פניות היום. אפשר לנסות שוב מחר', admins_only: 'רק מנהל מערכת יכול לעשות את זה', owner_only: 'רק אחראי המשימה או מנהל המרחב יכולים לעשות את זה', waiting_needs_followup_date: 'להמתנה חייבים לקבוע תאריך מעקב',
   stale_version: 'מישהו עדכן את המשימה בינתיים. רענן ונסה שוב', user_not_found: 'אין משתמש רשום עם המייל הזה. הוא צריך להירשם קודם',
   not_approved: 'החשבון ממתין לאישור מנהל', managers_only: 'רק מנהל המרחב יכול לעשות את זה', step_not_active: 'הפעולה כבר לא פעילה. רענן',
   later_step_done: 'אי אפשר לבטל: כבר בוצעה פעולה מאוחרת יותר', not_found: 'המשימה לא נמצאה או שאין לך גישה אליה', admins_only: 'רק מנהל מערכת',
@@ -172,7 +179,7 @@ const ERR = { owner_only: 'רק אחראי המשימה או מנהל המרחב
   bad_email: 'כתובת המייל לא תקינה', email_not_confirmed: 'המשתמש נרשם אבל עוד לא אימת את המייל שלו' };
 const errMsg = e => { const m = String(e && e.message || e); for (const k in ERR) if (m.includes(k)) return ERR[k]; return 'משהו השתבש: ' + m; };
 
-const S = { me: null, profile: null, spaces: [], members: [], people: [], projects: [], board: [], profiles: [], invites: [], recs: [], q: '', adv: false, cal: { y: new Date().getFullYear(), m: new Date().getMonth(), day: null, mine: false },
+const S = { me: null, profile: null, spaces: [], members: [], people: [], projects: [], board: [], profiles: [], invites: [], recs: [], feedback: [], q: '', adv: false, cal: { y: new Date().getFullYear(), m: new Date().getMonth(), day: null, mine: false },
   view: 'mine', space: null, sel: null, det: null, f: { who: '', overdue: false, when: '', project: '', status: '', owner: '', from: '', to: '' }, showDone: false, showTl: false, adding: false, demo: false };
 let api;
 
@@ -188,13 +195,14 @@ function realApi() {
     signOut: () => sb.auth.signOut(),
     rpc: (fn, args) => q(sb.rpc(fn, args || {})),
     async load() {
-      const [recs, invites, spaces, members, people, projects, board, profiles] = await Promise.all([
+      const [feedback, recs, invites, spaces, members, people, projects, board, profiles] = await Promise.all([
+        q(sb.from('feedback').select('*').order('created_at', { ascending: false })).catch(() => []),
         q(sb.from('recurrences').select('*').order('created_at')).catch(() => []),
         q(sb.from('invites').select('*')).catch(() => []),
         q(sb.from('spaces').select('*').is('archived_at', null).order('created_at')), q(sb.from('space_members').select('*')),
         q(sb.from('people').select('*').order('name')), q(sb.from('projects').select('*').order('created_at')),
         q(sb.from('board').select('*')), q(sb.from('profiles').select('*'))]);
-      return { spaces, members, people, projects, board, profiles, invites, recs };
+      return { spaces, members, people, projects, board, profiles, invites, recs, feedback };
     },
     async task(id) {
       const [steps, followups, events] = await Promise.all([
@@ -339,6 +347,7 @@ function renderSide() {
       ${s.kind !== 'personal' ? `<span class="n gear" data-m="${s.id}" title="ניהול המרחב">⚙</span>` : ''}</div>`).join('')}
     <div class="sec">${esc(S.profile.full_name || S.profile.email || '')}</div>
     ${S.profile.is_admin ? '<div class="nav" id="users" title="משתמשים"><span class="ic">👤</span><span class="lb">משתמשים</span></div>' : ''}
+    <div class="nav" id="fb" title="פנייה למנהל המערכת: תקלה, שיפור או בקשה"><span class="ic">✉</span><span class="lb">${S.profile.is_admin ? 'פניות למנהל המערכת' : 'פנייה למנהל המערכת'}</span><span class="n">${(S.profile.is_admin && S.feedback.filter(f => f.status === 'new').length) || ''}</span></div>
     <div class="nav" id="out" title="התנתקות מהחשבון במחשב הזה"><span class="ic">⏻</span><span class="lb">התנתקות מהחשבון</span></div>`;
   $('#side').onclick = e => {
     if (e.target.closest('#menu')) return toggleSide();
@@ -347,6 +356,7 @@ function renderSide() {
     const s = e.target.closest('[data-s]'); if (s) { S.space = s.dataset.s || null; S.f.who = ''; S.f.project = ''; S.f.owner = ''; if (narrow()) S.rail = true; return render(); }
     if (e.target.closest('#newSpace')) return newSpaceDialog();
     if (e.target.closest('#users')) return usersDialog();
+    if (e.target.closest('#fb')) return feedbackDialog();
     if (e.target.closest('#out')) dialog('<h2>להתנתק מהחשבון?</h2><p>תצטרך להתחבר שוב כדי לראות את המשימות.</p><div class="btns"><button class="pri" id="ok">התנתקות</button><button id="no">ביטול</button></div>',
       dlg => { $('#no', dlg).onclick = closeDialog; $('#ok', dlg).onclick = () => api.signOut().then(() => location.reload()); });
   };
@@ -681,6 +691,31 @@ function usersDialog() {
       ${u.is_admin ? '<small>מנהל מערכת</small>' : `<button class="sm ${u.approved ? '' : 'pri'}" data-u="${u.user_id}" data-a="${u.approved ? 0 : 1}">${u.approved ? 'השבת' : 'אשר'}</button>`}</div>`).join('')}
     <div class="btns"><button id="no">סגור</button></div>`, dlg => { $('#no', dlg).onclick = closeDialog;
     dlg.querySelectorAll('[data-u]').forEach(b => b.onclick = async () => { try { await call('admin_set_user', { p_user: b.dataset.u, p_approved: b.dataset.a === '1' }); } catch (e) {} draw(); }); });
+  draw();
+}
+
+// פניות למנהל המערכת: כל משתמש שולח ורואה את הפניות של עצמו ואת התשובה. מנהל מערכת רואה את כולן, מעדכן מצב ועונה.
+const FB_CAT = { improvement: 'הצעה לשיפור', feature: 'בקשה לתוספת', bug: 'תקלה', ui: 'תצוגה ונוחות', other: 'אחר' };
+const FB_ST = { new: 'חדשה', in_progress: 'בטיפול', done: 'טופלה', declined: 'לא יבוצע' };
+function feedbackDialog() {
+  const adm = S.profile.is_admin, who = id => { const u = S.profiles.find(p => p.user_id === id) || {}; return u.full_name || u.email || ''; };
+  const dt = s => new Date(s).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: '2-digit' });
+  const item = f => `<div class="fb"><div class="fh"><b>${esc(f.subject)}</b><span class="sp"></span><span class="chip plain ${f.status === 'new' ? 'on' : f.status === 'in_progress' ? 'amb' : ''}">${FB_ST[f.status] || ''}</span></div>
+    <small>${esc(FB_CAT[f.category] || '')} · ${dt(f.created_at)}${adm ? ' · ' + esc(who(f.user_id)) : ''}</small><div class="fbody">${esc(f.body)}</div>
+    ${adm ? `<div class="fa"><select data-fs="${f.id}">${Object.keys(FB_ST).map(k => `<option value="${k}" ${f.status === k ? 'selected' : ''}>${FB_ST[k]}</option>`).join('')}</select><input type="text" data-fn="${f.id}" placeholder="תשובה למשתמש (רשות)" value="${esc(f.admin_note || '')}"><button class="sm" data-fv="${f.id}">שמור</button></div>`
+      : f.admin_note ? `<div class="fnote">תשובת מנהל המערכת: ${esc(f.admin_note)}</div>` : ''}</div>`;
+  const draw = () => dialog(`<h2>פנייה למנהל המערכת</h2><p>תקלה, הצעה לשיפור או בקשה לתוספת. הפנייה מגיעה למנהלי המערכת, והתשובה תופיע כאן.</p>
+    <div class="f"><label>סוג הפנייה</label><select id="fb_c">${Object.keys(FB_CAT).map(k => `<option value="${k}">${FB_CAT[k]}</option>`).join('')}</select></div>
+    <div class="f"><label>נושא</label><input type="text" id="fb_s" maxlength="200"></div>
+    <div class="f"><label>פירוט</label><textarea id="fb_b" rows="4" maxlength="5000" placeholder="מה ניסית לעשות, ומה קרה או מה חסר"></textarea></div>
+    <div class="btns"><button class="pri" id="ok">שליחה</button><button id="no">סגור</button></div>
+    ${S.feedback.length ? `<div class="fbt">${adm ? 'כל הפניות' : 'הפניות שלי'} (${S.feedback.length})</div>` + S.feedback.map(item).join('') : ''}`, dlg => {
+    $('#no', dlg).onclick = closeDialog;
+    $('#ok', dlg).onclick = async () => { const s = $('#fb_s', dlg).value.trim(), b = $('#fb_b', dlg).value.trim(); if (!s || !b) return toast(ERR.feedback_empty);
+      $('#ok', dlg).disabled = true;
+      try { await call('send_feedback', { p_category: $('#fb_c', dlg).value, p_subject: s, p_body: b, p_page: S.view, p_request: uid() }, 'הפנייה נשלחה. תודה'); draw(); } catch (e) { $('#ok', dlg).disabled = false; } };
+    dlg.querySelectorAll('[data-fv]').forEach(x => x.onclick = async () => { const id = x.dataset.fv;
+      try { await call('admin_set_feedback', { p_id: id, p_status: dlg.querySelector(`[data-fs="${id}"]`).value, p_note: dlg.querySelector(`[data-fn="${id}"]`).value }, 'נשמר'); draw(); } catch (e) {} }); });
   draw();
 }
 
