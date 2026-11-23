@@ -15,7 +15,7 @@ button{cursor:pointer;border:0;background:none;border-radius:20px;padding:7px 14
 button:hover{background:var(--hover)}
 button.pri{background:var(--acc);color:#fff}button.pri:hover{background:#0842a0}
 button.out{border:1px solid var(--line);background:#fff}
-button.sm{padding:4px 10px;font-size:13px}
+button.sm{padding:4px 10px;font-size:13px;white-space:nowrap}
 button.danger{color:var(--red)}
 input[type=text],input[type=email],input[type=password],input[type=date],select,textarea{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:#fff;width:100%}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--acc-bg);border-color:var(--acc)}
@@ -38,6 +38,11 @@ aside{padding:10px 8px;overflow:auto;overflow-x:hidden}
 .nav:hover{background:#e9eef6}.nav.on{background:#d3e3fd;font-weight:600}
 .nav .n{margin-inline-start:auto;font-size:12px;color:var(--mut);font-weight:400}
 .nav .n.bad{color:var(--red);font-weight:600}
+.nav .n.gear{font-size:16px;line-height:1;padding:3px 6px;border-radius:8px;cursor:pointer;color:var(--ink);opacity:.7}
+.nav .n.gear:hover{background:var(--line);opacity:1}
+button.danger.out{border-color:var(--red)}
+.warn{background:var(--amb-bg);color:var(--amb);border-radius:10px;padding:8px 11px;font-size:13px;margin:8px 0;display:flex;gap:8px;align-items:center}
+.warn .sp{margin-inline-start:auto}
 .sec{font-size:12px;color:var(--mut);padding:16px 14px 4px;display:flex;align-items:center}
 .sec button{margin-inline-start:auto;padding:2px 8px;font-size:18px;line-height:1}
 main{padding:14px 16px 14px 6px;overflow:auto;display:flex;gap:14px;align-items:flex-start}
@@ -171,7 +176,7 @@ const fmtD = s => { if (!s) return ''; if (s === today()) return 'היום'; if 
   return new Date(s + 'T12:00').toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'short' }); };
 const fmtT = s => new Date(s).toLocaleString('he-IL', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-const ERR = { too_many_invites: 'נשלחו הרבה הזמנות היום. אפשר להמשיך מחר', feedback_empty: 'חסר נושא או פירוט', feedback_too_many: 'נשלחו הרבה פניות היום. אפשר לנסות שוב מחר', admins_only: 'רק מנהל מערכת יכול לעשות את זה', owner_only: 'רק אחראי המשימה או מנהל המרחב יכולים לעשות את זה', waiting_needs_followup_date: 'להמתנה חייבים לקבוע תאריך מעקב',
+const ERR = { personal_space: 'אי אפשר למחוק את המרחב האישי', too_many_invites: 'נשלחו הרבה הזמנות היום. אפשר להמשיך מחר', feedback_empty: 'חסר נושא או פירוט', feedback_too_many: 'נשלחו הרבה פניות היום. אפשר לנסות שוב מחר', admins_only: 'רק מנהל מערכת יכול לעשות את זה', owner_only: 'רק אחראי המשימה או מנהל המרחב יכולים לעשות את זה', waiting_needs_followup_date: 'להמתנה חייבים לקבוע תאריך מעקב',
   stale_version: 'מישהו עדכן את המשימה בינתיים. רענן ונסה שוב', user_not_found: 'אין משתמש רשום עם המייל הזה. הוא צריך להירשם קודם',
   not_approved: 'החשבון ממתין לאישור מנהל', managers_only: 'רק מנהל המרחב יכול לעשות את זה', step_not_active: 'הפעולה כבר לא פעילה. רענן',
   later_step_done: 'אי אפשר לבטל: כבר בוצעה פעולה מאוחרת יותר', not_found: 'המשימה לא נמצאה או שאין לך גישה אליה', admins_only: 'רק מנהל מערכת',
@@ -179,7 +184,7 @@ const ERR = { too_many_invites: 'נשלחו הרבה הזמנות היום. אפ
   bad_email: 'כתובת המייל לא תקינה', email_not_confirmed: 'המשתמש נרשם אבל עוד לא אימת את המייל שלו' };
 const errMsg = e => { const m = String(e && e.message || e); for (const k in ERR) if (m.includes(k)) return ERR[k]; return 'משהו השתבש: ' + m; };
 
-const S = { me: null, profile: null, spaces: [], members: [], people: [], projects: [], board: [], profiles: [], invites: [], recs: [], feedback: [], q: '', adv: false, cal: { y: new Date().getFullYear(), m: new Date().getMonth(), day: null, mine: false },
+const S = { me: null, profile: null, spaces: [], members: [], people: [], projects: [], board: [], profiles: [], invites: [], recs: [], feedback: [], delreqs: [], q: '', adv: false, cal: { y: new Date().getFullYear(), m: new Date().getMonth(), day: null, mine: false },
   view: 'mine', space: null, sel: null, det: null, f: { who: '', overdue: false, when: '', project: '', status: '', owner: '', from: '', to: '' }, showDone: false, showTl: false, adding: false, demo: false };
 let api;
 
@@ -195,14 +200,15 @@ function realApi() {
     signOut: () => sb.auth.signOut(),
     rpc: (fn, args) => q(sb.rpc(fn, args || {})),
     async load() {
-      const [feedback, recs, invites, spaces, members, people, projects, board, profiles] = await Promise.all([
+      const [delreqs, feedback, recs, invites, spaces, members, people, projects, board, profiles] = await Promise.all([
+        q(sb.from('space_delete_requests').select('*').eq('status', 'pending').order('requested_at')).catch(() => []),
         q(sb.from('feedback').select('*').order('created_at', { ascending: false })).catch(() => []),
         q(sb.from('recurrences').select('*').order('created_at')).catch(() => []),
         q(sb.from('invites').select('*')).catch(() => []),
         q(sb.from('spaces').select('*').is('archived_at', null).order('created_at')), q(sb.from('space_members').select('*')),
         q(sb.from('people').select('*').order('name')), q(sb.from('projects').select('*').order('created_at')),
         q(sb.from('board').select('*')), q(sb.from('profiles').select('*'))]);
-      return { spaces, members, people, projects, board, profiles, invites, recs, feedback };
+      return { spaces, members, people, projects, board, profiles, invites, recs, feedback, delreqs };
     },
     async task(id) {
       const [steps, followups, events] = await Promise.all([
@@ -269,6 +275,7 @@ async function call(fn, args, okMsg) {
 }
 async function refresh() {
   Object.assign(S, await api.load());
+  if (S.space && !S.spaces.some(s => s.id === S.space)) S.space = null;
   if (S.sel) { const t = S.board.find(x => x.id === S.sel); if (!t) { S.sel = null; S.det = null; } else { try { S.det = await api.task(S.sel); } catch (e) { S.sel = null; S.det = null; } } }
   render();
 }
@@ -344,9 +351,9 @@ function renderSide() {
     <div class="nav ${!S.space ? 'on' : ''}" data-s="" title="כל המרחבים"><span class="ic"><span class="av">∗</span></span><span class="lb">כל המרחבים</span></div>
     ${S.spaces.map(s => `<div class="nav ${S.space === s.id ? 'on' : ''}" data-s="${s.id}" title="${esc(s.name)}${s.visibility === 'restricted' ? ' (מרחב מוגבל)' : ''}"><span class="ic"><span class="av">${esc(s.name.trim().charAt(0))}</span></span>
       <span class="lb">${esc(s.name)}${s.visibility === 'restricted' ? ' <span title="מרחב מוגבל">🔒</span>' : ''}</span>
-      ${s.kind !== 'personal' ? `<span class="n gear" data-m="${s.id}" title="ניהול המרחב">⚙</span>` : ''}</div>`).join('')}
+      ${s.kind !== 'personal' ? `<span class="n gear" data-m="${s.id}" title="ניהול המרחב: הוספת עובדים, פרויקטים והגדרות">⚙</span>` : ''}</div>`).join('')}
     <div class="sec">${esc(S.profile.full_name || S.profile.email || '')}</div>
-    ${S.profile.is_admin ? '<div class="nav" id="users" title="משתמשים"><span class="ic">👤</span><span class="lb">משתמשים</span></div>' : ''}
+    ${S.profile.is_admin ? `<div class="nav" id="users" title="משתמשים ובקשות שמחכות לאישור"><span class="ic">👤</span><span class="lb">משתמשים ואישורים</span><span class="n bad">${(S.profiles.filter(u => !u.approved).length + S.delreqs.length) || ''}</span></div>` : ''}
     <div class="nav" id="fb" title="פנייה למנהל המערכת: תקלה, שיפור או בקשה"><span class="ic">✉</span><span class="lb">${S.profile.is_admin ? 'פניות למנהל המערכת' : 'פנייה למנהל המערכת'}</span><span class="n">${(S.profile.is_admin && S.feedback.filter(f => f.status === 'new').length) || ''}</span></div>
     <div class="nav" id="out" title="התנתקות מהחשבון במחשב הזה"><span class="ic">⏻</span><span class="lb">התנתקות מהחשבון</span></div>`;
   $('#side').onclick = e => {
@@ -388,7 +395,7 @@ function renderList() {
   const projs = S.projects.filter(p => !S.space || p.space_id === S.space);
   const f = S.f;
   const advOn = f.status || f.owner || f.from || f.to, ownerList = whoList.filter(p => p.user_id);
-  $('#list').innerHTML = `<h1>${searching ? 'תוצאות חיפוש' : esc(v[1])} <small>${sp ? esc(sp.name) : 'כל המרחבים'}</small><span class="sp"></span><input type="text" id="s_q" placeholder="🔍 חיפוש" value="${esc(S.q)}" style="width:150px;font-size:13px;padding:5px 10px;border-radius:16px" autocomplete="off"><small>${rows.length || ''}</small></h1>
+  $('#list').innerHTML = `<h1>${searching ? 'תוצאות חיפוש' : esc(v[1])} <small>${sp ? esc(sp.name) : 'כל המרחבים'}</small><span class="sp"></span>${sp && sp.kind === 'team' && !searching ? `<button class="out sm" id="sp_mng" title="חברים, הזמנות, פרויקטים והגדרות המרחב">⚙ ${iManage(sp.id) ? 'ניהול המרחב והוספת עובדים' : 'פרטי המרחב'}</button>` : ''}<input type="text" id="s_q" placeholder="🔍 חיפוש" value="${esc(S.q)}" style="width:150px;font-size:13px;padding:5px 10px;border-radius:16px" autocomplete="off"><small>${rows.length || ''}</small></h1>
     ${['done', 'trash'].includes(S.view) && !searching ? '' : `<div class="filters">
       ${S.space && isPersonal(S.space) ? '' : `<select class="chip ${f.who ? 'on' : ''}" id="f_who"><option value="">כל העובדים</option>${whoList.map(p => `<option value="${p.id}" ${f.who === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>`}
       <span class="chip ${f.overdue ? 'on' : ''}" id="f_over">באיחור</span>
@@ -432,6 +439,7 @@ function renderList() {
   on('#f_clear', 'onclick', () => { f.status = f.owner = f.from = f.to = ''; renderList(); });
   on('#s_q', 'oninput', e => { S.q = e.target.value; renderList(); const n = $('#s_q'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); });
   on('#s_q', 'onkeydown', e => { if (e.key === 'Escape') { e.stopPropagation(); S.q = ''; renderList(); } });
+  on('#sp_mng', 'onclick', () => spaceDialog(S.space));
   L.onclick = async e => {
     const r = e.target.closest('.row'); if (!r) return; const t = S.board.find(x => x.id === r.dataset.id);
     if (e.target.closest('[data-ck]')) {
@@ -671,7 +679,9 @@ function spaceDialog(id) {
     ${mgr ? `<div class="f"><label>הוספת חבר לפי כתובת המייל שלו (יישלח אליו מייל הזמנה)</label><div style="display:flex;gap:6px"><input type="email" id="sm_e" placeholder="name@example.com"><button class="out sm" id="sm_ok">הוסף</button></div></div>` : ''}
     <div class="f"><label>הוספת גורם בלי חשבון (ספק, רשות, יועץ)</label><div style="display:flex;gap:6px"><input type="text" id="sp_n"><button class="out sm" id="sp_ok">הוסף</button></div></div>
     <div class="f"><label>פרויקט חדש</label><div style="display:flex;gap:6px"><input type="text" id="pj_n"><button class="out sm" id="pj_ok">הוסף</button></div></div>
-    <div class="btns"><button id="no">סגור</button>${mgr ? `<button class="out" id="sv">${spaceOf(id).visibility === 'open' ? 'הפוך למוגבל' : 'הפוך לפתוח'}</button>` : ''}</div>`, dlg => {
+    ${mgr ? `<div class="f"><label>שם המרחב</label><div style="display:flex;gap:6px"><input type="text" id="sn_n" value="${esc(spaceOf(id).name)}" maxlength="80"><button class="out sm" id="sn_ok">שמור שם</button></div></div>` : ''}
+    ${mgr && S.delreqs.some(r => r.space_id === id) ? `<div class="warn"><span>נשלחה בקשה למחוק את המרחב. היא מחכה לאישור של מנהל המערכת.</span><span class="sp"></span><button class="sm" id="sd_c">בטל בקשה</button></div>` : ''}
+    <div class="btns"><button id="no">סגור</button>${mgr ? `<button class="out" id="sv">${spaceOf(id).visibility === 'open' ? 'הפוך למוגבל' : 'הפוך לפתוח'}</button>` : ''}${mgr && SPACE_DELETE_READY && !S.delreqs.some(r => r.space_id === id) ? `<button class="out danger" id="sd" style="margin-inline-end:auto">מחיקת המרחב</button>` : ''}</div>`, dlg => {
     const go = async (fn, a) => { try { await call(fn, a); } catch (e) {} draw(); };
     $('#no', dlg).onclick = closeDialog;
     const on = (i, f) => { const x = $(i, dlg); if (x) x.onclick = f; };
@@ -680,16 +690,36 @@ function spaceDialog(id) {
     on('#sp_ok', () => { const n = $('#sp_n', dlg).value.trim(); if (n) go('add_person', { p_space: id, p_name: n }); });
     on('#pj_ok', () => { const n = $('#pj_n', dlg).value.trim(); if (n) go('create_project', { p_space: id, p_name: n }); });
     on('#sv', () => go('update_space', { p_space: id, p_visibility: spaceOf(id).visibility === 'open' ? 'restricted' : 'open' }));
+    on('#sn_ok', () => { const n = $('#sn_n', dlg).value.trim(); if (n && n !== spaceOf(id).name) go('update_space', { p_space: id, p_name: n }); });
+    on('#sd_c', () => go('cancel_space_delete', { p_space: id }));
+    on('#sd', () => deleteSpaceDialog(id));
     dlg.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => go('remove_member', { p_space: id, p_user: b.dataset.rm }));
     dlg.querySelectorAll('[data-sa]').forEach(b => b.onchange = () => go('set_member_sees_all', { p_space: id, p_user: b.dataset.sa, p_on: b.checked }));
   });
   draw();
 }
+// כבוי עד שסקריפט 108 (מחיקת מרחב) ירוץ בשרת. במצב הדגמה פעיל.
+const SPACE_DELETE_READY = new URLSearchParams(location.search).has('demo');
+// מחיקת מרחב: בלי משימות – מיד. עם משימות – אזהרה, ואישור של מנהל מערכת (מנהל מערכת שמנהל את המרחב מוחק מיד).
+function deleteSpaceDialog(id) {
+  const s = spaceOf(id), n = S.board.filter(t => t.space_id === id && !t.deleted_at).length, direct = !n || S.profile.is_admin;
+  dialog(`<h2>מחיקת המרחב "${esc(s.name)}"</h2>
+    ${n ? `<div class="warn"><span>במרחב יש ${n} משימות. מחיקה תסיר את המרחב ואת כל המשימות שבו אצל כל החברים.</span></div>` : '<p>במרחב אין משימות. הוא יוסר מהתפריט אצל כל החברים.</p>'}
+    <p>${direct ? 'אי אפשר לבטל את המחיקה מתוך המערכת.' : 'בגלל שיש במרחב משימות, המחיקה דורשת אישור של מנהל המערכת. עד שיאשר, המרחב ממשיך לעבוד כרגיל.'}</p>
+    <div class="btns"><button class="pri" id="ok" style="background:var(--red)">${direct ? 'מחיקת המרחב' : 'שליחת בקשת מחיקה'}</button><button id="no">ביטול</button></div>`, dlg => {
+    $('#no', dlg).onclick = () => spaceDialog(id);
+    $('#ok', dlg).onclick = async () => { $('#ok', dlg).disabled = true;
+      try { const r = await call('delete_space', { p_space: id }); if (r === 'deleted') { closeDialog(); toast('המרחב נמחק'); render(); } else { toast('בקשת המחיקה נשלחה למנהל המערכת'); spaceDialog(id); } } catch (e) { spaceDialog(id); } };
+  });
+}
 function usersDialog() {
-  const draw = () => dialog(`<h2>משתמשים</h2><p>משתמש חדש נכנס למערכת רק אחרי אישור.</p>
+  const draw = () => dialog(`<h2>משתמשים ואישורים</h2>
+    ${S.delreqs.length ? '<p><b>בקשות למחיקת מרחב</b></p>' + S.delreqs.map(r => `<div class="warn"><span>המרחב "${esc(r.space_name)}" · ${r.task_count} משימות<br><small>ביקש: ${esc(r.requester_name || '')}</small></span><span class="sp"></span><button class="sm danger out" data-dr="${r.id}" data-ok="1">אשר מחיקה</button><button class="sm" data-dr="${r.id}" data-ok="0">דחה</button></div>`).join('') : ''}
+    <p>משתמש חדש נכנס למערכת רק אחרי אישור.</p>
     ${S.profiles.map(u => `<div class="ppl"><span>${esc(u.full_name || u.email)}<br><small style="color:var(--mut)">${esc(u.email || '')}</small></span><span class="sp"></span>
       ${u.is_admin ? '<small>מנהל מערכת</small>' : `<button class="sm ${u.approved ? '' : 'pri'}" data-u="${u.user_id}" data-a="${u.approved ? 0 : 1}">${u.approved ? 'השבת' : 'אשר'}</button>`}</div>`).join('')}
     <div class="btns"><button id="no">סגור</button></div>`, dlg => { $('#no', dlg).onclick = closeDialog;
+    dlg.querySelectorAll('[data-dr]').forEach(b => b.onclick = async () => { try { await call('admin_decide_space_delete', { p_request: b.dataset.dr, p_approve: b.dataset.ok === '1' }, b.dataset.ok === '1' ? 'המרחב נמחק' : 'הבקשה נדחתה'); } catch (e) {} draw(); });
     dlg.querySelectorAll('[data-u]').forEach(b => b.onclick = async () => { try { await call('admin_set_user', { p_user: b.dataset.u, p_approved: b.dataset.a === '1' }); } catch (e) {} draw(); }); });
   draw();
 }
