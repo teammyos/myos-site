@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="icons/favicon-64.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>מעקב חתימות · BBM</title>
-<link rel="stylesheet" href="css/app.css?v=20261123c">
+<link rel="stylesheet" href="css/app.css?v=20261123d">
 </head>
 <body>
 <div class="band">
@@ -55,12 +55,12 @@
 
   <div id="results"><p class="hint">טוען…</p></div>
 </main>
-<script src="js/config.js?v=20261123c"></script>
-<script src="js/vendor/supabase.umd.js?v=20261123c"></script>
-<script src="js/lookups.js?v=20261123c"></script>
-<script src="js/demo-data.js?v=20261123c"></script>
-<script src="js/data.js?v=20261123c"></script>
-<script src="js/ui.js?v=20261123c"></script>
+<script src="js/config.js?v=20261123d"></script>
+<script src="js/vendor/supabase.umd.js?v=20261123d"></script>
+<script src="js/lookups.js?v=20261123d"></script>
+<script src="js/demo-data.js?v=20261123d"></script>
+<script src="js/data.js?v=20261123d"></script>
+<script src="js/ui.js?v=20261123d"></script>
 <script>
 (async function () {
   const { ui, data } = BBM, esc = ui.esc;
@@ -245,6 +245,8 @@
       ${note ? `<p class="sig-card-note"><span class="muted">הערות:</span> ${esc(note)}</p>` : ''}
       ${links.length ? `<p class="sig-card-note"><span class="muted">נכסים בחלקה:</span> ${links.map(a => `<a href="assets/asset.html?id=${encodeURIComponent(a.id)}">${esc(a.asset_number)} – ${esc(a.title)}</a>`).join(' · ')}</p>` : ''}
       <p class="hint">${esc(meta)}</p></div></td>`;
+    // הטבלה רחבה מהמסך – הכרטיסייה נשארת ברוחב החלון הנראה
+    const wrap = results.querySelector('.table-wrap'); if (wrap) row.querySelector('.sig-card').style.width = (wrap.clientWidth - 22) + 'px';
     tr.classList.add('sel'); tr.after(row);
   }
   results.addEventListener('click', e => {
