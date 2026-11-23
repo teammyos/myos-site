@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="icons/favicon-64.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>מעקב חתימות · BBM</title>
-<link rel="stylesheet" href="css/app.css?v=20261123b">
+<link rel="stylesheet" href="css/app.css?v=20261123c">
 </head>
 <body>
 <div class="band">
@@ -55,12 +55,12 @@
 
   <div id="results"><p class="hint">טוען…</p></div>
 </main>
-<script src="js/config.js?v=20261123b"></script>
-<script src="js/vendor/supabase.umd.js?v=20261123b"></script>
-<script src="js/lookups.js?v=20261123b"></script>
-<script src="js/demo-data.js?v=20261123b"></script>
-<script src="js/data.js?v=20261123b"></script>
-<script src="js/ui.js?v=20261123b"></script>
+<script src="js/config.js?v=20261123c"></script>
+<script src="js/vendor/supabase.umd.js?v=20261123c"></script>
+<script src="js/lookups.js?v=20261123c"></script>
+<script src="js/demo-data.js?v=20261123c"></script>
+<script src="js/data.js?v=20261123c"></script>
+<script src="js/ui.js?v=20261123c"></script>
 <script>
 (async function () {
   const { ui, data } = BBM, esc = ui.esc;
@@ -180,7 +180,7 @@
     const cols = columns(kind);
     if (!live) { results.innerHTML = '<div class="card">במצב הדגמה אין נתוני מעקב.</div>'; return; }
     if (!shown.length) { results.innerHTML = `<div class="card empty">${ofKind.length ? 'לא נמצאו רשומות לפי החיפוש והסינון' : 'עוד אין רשומות בדוח הזה'}</div>`; return; }
-    results.innerHTML = `<div class="table-wrap"><table class="data sig-table${canEdit ? ' clickable' : ''}"><thead><tr>${cols.map(c => `<th scope="col">${c.title}</th>`).join('')}</tr></thead>
+    results.innerHTML = `<div class="table-wrap"><table class="data sig-table clickable"><thead><tr>${cols.map(c => `<th scope="col">${c.title}</th>`).join('')}</tr></thead>
       <tbody>${shown.map(r => `<tr data-id="${esc(r.id)}">${cols.map(c => `<td class="${c.cls || ''}">${c.html ? c.html(r) : esc(c.value(r) ?? '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   }
 
@@ -225,9 +225,39 @@
   }
   if (canEdit && live) { const nb = document.getElementById('newBtn'); nb.hidden = false; nb.onclick = () => openEdit(null); }
   document.getElementById('cancelEdit').onclick = () => { editCard.hidden = true; };
+  // לחיצה על שורה פותחת מתחתיה כרטיסייה לקריאה בלבד; עריכה רק בכפתור "עריכה" שבתוכה
+  function closeDetail() {
+    results.querySelectorAll('tr.sig-detail').forEach(x => x.remove());
+    results.querySelectorAll('tr.sel').forEach(x => x.classList.remove('sel'));
+  }
+  function openDetail(tr) {
+    const r = all.find(x => x.id === tr.dataset.id); if (!r) return;
+    const def = KDEF[r.kind], links = assetsOf(r);
+    const items = def.fields.filter(f => f.type !== 'area').map(f => [f.t, f.type === 'bool' ? (val(r, f) ? 'כן' : 'לא') : showVal(r, f)]);
+    if (def.stage) items.push(['שלב', def.stage(r)]);
+    const note = def.fields.filter(f => f.type === 'area').map(f => val(r, f)).filter(Boolean).join('\n');
+    const meta = `${r.import_source_row ? 'יובא מהאקסל' : 'נרשם על ידי ' + (r.created_by_name || 'לא ידוע')} · ${new Date(r.created_at).toLocaleDateString('he-IL')}`;
+    const row = document.createElement('tr'); row.className = 'sig-detail';
+    row.innerHTML = `<td colspan="${tr.children.length}"><div class="sig-card">
+      <div class="sig-card-head"><strong>${esc(def.one)}${r.gush ? ` · גוש ${esc(r.gush)}${r.helka ? ' חלקה ' + esc(r.helka) : ''}` : ''}${r.address ? ' · ' + esc(r.address) : ''}</strong>
+        <span class="sig-card-actions">${canEdit ? '<button type="button" class="primary" data-act="edit">✎ עריכה</button>' : ''}<button type="button" data-act="close">סגירה</button></span></div>
+      <dl class="sig-kv">${items.map(([t, v]) => `<div><dt>${esc(t)}</dt><dd>${v ? esc(v) : '<span class="muted">—</span>'}</dd></div>`).join('')}</dl>
+      ${note ? `<p class="sig-card-note"><span class="muted">הערות:</span> ${esc(note)}</p>` : ''}
+      ${links.length ? `<p class="sig-card-note"><span class="muted">נכסים בחלקה:</span> ${links.map(a => `<a href="assets/asset.html?id=${encodeURIComponent(a.id)}">${esc(a.asset_number)} – ${esc(a.title)}</a>`).join(' · ')}</p>` : ''}
+      <p class="hint">${esc(meta)}</p></div></td>`;
+    tr.classList.add('sel'); tr.after(row);
+  }
   results.addEventListener('click', e => {
-    if (!canEdit || e.target.closest('a')) return;
-    const tr = e.target.closest('tr[data-id]'); if (tr) openEdit(all.find(r => r.id === tr.dataset.id));
+    if (e.target.closest('a')) return;
+    const act = e.target.closest('[data-act]');
+    if (act) {
+      const id = act.closest('tr.sig-detail').previousElementSibling.dataset.id;
+      if (act.dataset.act === 'edit' && canEdit) openEdit(all.find(r => r.id === id)); else closeDetail();
+      return;
+    }
+    if (e.target.closest('tr.sig-detail')) return;
+    const tr = e.target.closest('tr[data-id]'); if (!tr) return;
+    const wasOpen = tr.classList.contains('sel'); closeDetail(); if (!wasOpen) openDetail(tr);
   });
   ef.addEventListener('submit', async e => {
     e.preventDefault();

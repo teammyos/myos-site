@@ -244,3 +244,12 @@ button.link.danger { color: var(--bad); }
 .sig-fields { display: contents; }
 table.sig-table { font-size: 13px; }
 table.sig-table th { white-space: nowrap; }
+table.sig-table tr.sel > td { background: #eef3fb; font-weight: 600; }
+table.sig-table tr.sig-detail > td { padding: 0 0 10px; background: #eef3fb; cursor: default; }
+.sig-card { background: #fff; border: 1px solid var(--line); border-inline-start: 4px solid var(--gold, #c9a227); border-radius: 10px; padding: 14px 16px; margin: 0 10px; font-size: 14px; white-space: normal; }
+.sig-card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; font-size: 15px; }
+.sig-card-actions { display: flex; gap: 8px; }
+dl.sig-kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px 18px; margin: 0; }
+dl.sig-kv dt { color: var(--muted); font-size: 12px; }
+dl.sig-kv dd { margin: 0; }
+.sig-card-note { margin: 10px 0 0; white-space: pre-wrap; }
