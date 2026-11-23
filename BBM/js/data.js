@@ -7,7 +7,15 @@
  */
 (function () {
   const TABLES = ['complexes', 'parcels', 'holders', 'assets', 'asset_parcels', 'asset_holdings',
-    'considerations', 'consideration_assets', 'consideration_surveys'];
+    'considerations', 'consideration_assets', 'consideration_surveys', 'asset_notes', 'asset_processes'];
+
+  // תהליכים בנכס: סוגים וסטטוסים (קוד יציב + כיתוב). סוג שאינו ברשימה מוצג כמו שהוא.
+  const PROCESS_TYPES = [['legal_trespass', 'טיפול משפטי בפולש'], ['expropriation_5_7', 'פרסום הפקעה (סעיפים 5 ו-7)'],
+    ['allocation', 'הקצאה'], ['contract', 'חידוש חוזה / הסדרת שימוש'], ['eviction', 'פינוי'], ['demolition', 'הריסה'],
+    ['registration', 'רישום זכויות'], ['survey', 'ביקורת / בירור מצב'], ['renovation', 'שיפוץ / התאמה'], ['other', 'אחר']];
+  const PROCESS_STATUS = [['active', 'פעיל'], ['pending', 'ממתין'], ['closed', 'נסגר']];
+  const processTypeLabel = c => (PROCESS_TYPES.find(t => t[0] === c) || [c, c])[1];
+  const processStatusLabel = c => (PROCESS_STATUS.find(t => t[0] === c) || [c, c])[1];
 
   const cfg = window.BBM_CONFIG || {};
   // ?demo=1 מפעיל מצב הדגמה בלשונית הנוכחית, ?demo=0 מבטל
@@ -166,6 +174,10 @@
       contract_status: contractStatus(current),
       monthly_fee: current ? current.monthly_fee : null,
       holder_name: current && current.holder ? current.holder.name : '',
+      asset_notes: (db.asset_notes || []).filter(n => n.asset_id === a.id).sort((x, y) => (y.created_at || '').localeCompare(x.created_at || '')),
+      processes: (db.asset_processes || []).filter(p => p.asset_id === a.id).sort((x, y) => (y.opened_at || '').localeCompare(x.opened_at || '')),
+      active_processes: (db.asset_processes || []).filter(p => p.asset_id === a.id && p.status === 'active'),
+      open_processes: (db.asset_processes || []).filter(p => p.asset_id === a.id && p.status !== 'closed'),
       considerations,
       consideration_stage: considerations[0] ? considerations[0].stage : '',
       is_commercial: a.use_domain === 'commerce' || a.holding_purpose === 'income'
@@ -183,6 +195,9 @@
       for (const k of ['physical_type', 'record_status', 'right_source', 'holding_purpose', 'use_domain', 'operational_status', 'complex_id'])
         if (f[k] && a[k] !== f[k]) return false;
       if (f.consideration_stage && a.consideration_stage !== f.consideration_stage) return false;
+      if (f.process === 'active' && !a.active_processes.length) return false;
+      if (f.process === 'open' && !a.open_processes.length) return false;
+      if (f.process_type && !a.open_processes.some(p => p.process_type === f.process_type)) return false;
       // שטח בנוי מ־ / עד (נכס בלי שטח רשום לא עובר סינון שטח)
       if (f.area_min !== undefined && f.area_min !== '' && !(a.area_built != null && +a.area_built >= +f.area_min)) return false;
       if (f.area_max !== undefined && f.area_max !== '' && !(a.area_built != null && +a.area_built <= +f.area_max)) return false;
@@ -208,6 +223,28 @@
     if (existing) return existing;
     return write('parcels', { id: uid(), gush, helka, sub_helka }, ['id']);
   }
+
+  // ---------- הערות ותהליכים בנכס ----------
+  // מי רשם ומתי נקבעים בצד המסד (טריגר stamp_author). במצב הדגמה – "משתמש הדגמה".
+  const demoStamp = () => (window.BBM.me && (window.BBM.me.full_name || window.BBM.me.email)) || 'משתמש הדגמה';
+  async function insertRow(table, row, demoExtra) {
+    if (mode === 'demo') { const r = { id: uid(), ...row, ...demoExtra }; db[table].push(r); persistDemo(); return r; }
+    const { data: saved, error } = await sb.from(table).insert(row).select().single();
+    if (error) throw error;
+    db[table].push(saved); return saved;
+  }
+  const addNote = (asset_id, body) => insertRow('asset_notes', { asset_id, body: String(body).trim() }, { created_by_name: demoStamp(), created_at: now() });
+  const deleteNote = id => remove('asset_notes', { id });
+  const addProcess = p => insertRow('asset_processes', { asset_id: p.asset_id, process_type: p.process_type, description: (p.description || '').trim() || null, status: p.status || 'active' },
+    { opened_by_name: demoStamp(), opened_at: now(), closed_at: p.status === 'closed' ? now() : null });
+  async function setProcessStatus(id, status) {
+    const i = db.asset_processes.findIndex(r => r.id === id); if (i < 0) throw new Error('התהליך לא נמצא');
+    if (mode === 'demo') { db.asset_processes[i] = { ...db.asset_processes[i], status, status_by_name: demoStamp(), status_at: now(), closed_at: status === 'closed' ? now() : null }; persistDemo(); return db.asset_processes[i]; }
+    const { data: saved, error } = await sb.from('asset_processes').update({ status }).eq('id', id).select().single();
+    if (error) throw error;
+    db.asset_processes[i] = saved; return saved;
+  }
+  const deleteProcess = id => remove('asset_processes', { id });
 
   // עדכון תהליך תמורה (רק השדות שנשלחו; התהליך יכול להיות משותף לכמה נכסים)
   async function saveConsideration(row) {
@@ -300,6 +337,8 @@
     holders: () => db.holders.slice().sort((a, b) => a.name.localeCompare(b.name, 'he')),
     complexes: () => db.complexes.slice(),
     nextAssetNumber, saveConsideration, displayName,
+    addNote, deleteNote, addProcess, setProcessStatus, deleteProcess,
+    PROCESS_TYPES, PROCESS_STATUS, processTypeLabel, processStatusLabel,
     allAssetsBrief: () => activeAssets().map(a => ({ id: a.id, asset_number: a.asset_number, name: displayName(a) })),
     saveHolder, saveHolding, deleteHolding, toCsv, listConsiderations,
     _db: db

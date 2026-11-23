@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="../icons/favicon-64.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <title>נכסים · BBM</title>
-<link rel="stylesheet" href="../css/app.css?v=20261121a">
+<link rel="stylesheet" href="../css/app.css?v=20261123a">
 </head>
 <body>
 <div class="band">
@@ -36,6 +36,7 @@
           <option value="use_domain">תחום שימוש</option>
           <option value="neighborhood">שכונה</option>
           <option value="contract">מצב חוזה (מושכרים)</option>
+          <option value="process">תהליכים</option>
           <option value="none">ללא קיבוץ</option>
         </select></label>
     </div>
@@ -57,21 +58,23 @@
           <select name="occupancy"><option value="">הכול</option><option value="vacant">פנוי / לא בשימוש</option><option value="in_use">בשימוש</option></select></label>
         <label class="f">מחזיק<select name="holder_id" id="holderSel"><option value="">הכול</option></select></label>
         <label class="f">מתחם<select name="complex_id" id="complexSel"><option value="">הכול</option></select></label>
+        <label class="f">סוג תהליך פתוח<select name="process_type" id="procTypeSel"><option value="">הכול</option></select></label>
         <label class="f chk"><input type="checkbox" name="action" value="1"> רק עם פעולה נדרשת</label>
         <div><button type="reset">ניקוי סינון</button></div>
       </div>
     </details>
     <input type="hidden" name="scope">
+    <input type="hidden" name="process">
   </form>
 
   <div id="results"></div>
 </main>
-<script src="../js/config.js?v=20261121a"></script>
-<script src="../js/vendor/supabase.umd.js?v=20261121a"></script>
-<script src="../js/lookups.js?v=20261121a"></script>
-<script src="../js/demo-data.js?v=20261121a"></script>
-<script src="../js/data.js?v=20261121a"></script>
-<script src="../js/ui.js?v=20261121a"></script>
-<script src="list.js?v=20261121a"></script>
+<script src="../js/config.js?v=20261123a"></script>
+<script src="../js/vendor/supabase.umd.js?v=20261123a"></script>
+<script src="../js/lookups.js?v=20261123a"></script>
+<script src="../js/demo-data.js?v=20261123a"></script>
+<script src="../js/data.js?v=20261123a"></script>
+<script src="../js/ui.js?v=20261123a"></script>
+<script src="list.js?v=20261123a"></script>
 </body>
 </html>

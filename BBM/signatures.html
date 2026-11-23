@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#17344d">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>מעקב חתימות · BBM</title>
+<link rel="stylesheet" href="css/app.css?v=20261123a">
+</head>
+<body>
+<div class="band">
+  <div class="band-in">
+    <div><h1>מעקב חתימות</h1><p class="sub" id="count" aria-live="polite">טופסי 4 ותשריטי בית משותף</p></div>
+    <div class="actions">
+      <button id="exportBtn" type="button" class="on-dark">ייצוא לאקסל</button>
+      <button class="btn gold" id="newBtn" type="button" hidden>+ חתימה חדשה</button>
+    </div>
+  </div>
+</div>
+<main class="under-band">
+  <form class="card search" id="filters" autocomplete="off">
+    <input class="big" name="q" type="search" placeholder="חיפוש לפי כתובת, גוש/חלקה, מספר בקשה, מהות או הערה…" aria-label="חיפוש">
+    <div class="chips-row">
+      <div class="chips" id="kindChips" role="group" aria-label="סוג המסמך"></div>
+      <div class="sig-filters">
+        <label class="group-by">שנה <select name="year" id="yearSel"><option value="">הכול</option></select></label>
+        <label class="group-by" id="paWrap">שטח ציבורי <select name="pa" id="paSel"><option value="">הכול</option></select></label>
+        <label class="group-by chk"><input type="checkbox" name="unsigned" value="1"> לא נחתם</label>
+      </div>
+    </div>
+    <input type="hidden" name="kind" value="form4">
+  </form>
+
+  <section class="card" id="editCard" hidden>
+    <h2 id="editTitle">חתימה חדשה</h2>
+    <form id="editForm" class="sig-form" autocomplete="off">
+      <label class="f">סוג<select name="kind"><option value="form4">טופס 4</option><option value="condo_plan">תשריט בית משותף</option></select></label>
+      <label class="f">תאריך<input type="date" name="sign_date" required></label>
+      <label class="f">גוש<input name="gush" inputmode="numeric"></label>
+      <label class="f">חלקה<input name="helka"></label>
+      <label class="f grow">כתובת<input name="address" required></label>
+      <label class="f only-form4">מס' בקשה<input name="request_number" inputmode="numeric"></label>
+      <label class="f grow">מהות<input name="essence" list="essenceList"><datalist id="essenceList"></datalist></label>
+      <label class="f">נחתם<select name="signed"><option value="true">כן</option><option value="">לא / בבדיקה</option></select></label>
+      <label class="f only-form4">שטח ציבורי<input name="public_area_status" list="paList" placeholder="נמסר / לא קיים / לא נדרש"><datalist id="paList"></datalist></label>
+      <label class="f full">הערות<textarea name="notes" rows="2"></textarea></label>
+      <div class="full sig-actions">
+        <button class="primary" type="submit">שמירה</button>
+        <button type="button" id="cancelEdit">ביטול</button>
+        <button type="button" class="link danger" id="deleteBtn" hidden>מחיקת הרשומה</button>
+        <span class="hint" id="editMeta"></span>
+      </div>
+    </form>
+  </section>
+
+  <div class="card" id="importCard" hidden>
+    <h2>ייבוא ראשוני מהאקסל</h2>
+    <p class="hint">הטבלה ריקה. בוחרים את הקובץ <strong>ייבוא-חתימות.json</strong> מתיקיית "ייבוא" (נוצר מהגיליונות "דו"ח טפסי 4" ו"דו"ח תשריטי בית משותף"). אפשר לייבא רק פעם אחת, כשהטבלה ריקה.</p>
+    <p><input type="file" id="importFile" accept=".json,application/json"> <span id="importMsg" role="status"></span></p>
+  </div>
+
+  <div id="results"><p class="hint">טוען…</p></div>
+</main>
+<script src="js/config.js?v=20261123a"></script>
+<script src="js/vendor/supabase.umd.js?v=20261123a"></script>
+<script src="js/lookups.js?v=20261123a"></script>
+<script src="js/demo-data.js?v=20261123a"></script>
+<script src="js/data.js?v=20261123a"></script>
+<script src="js/ui.js?v=20261123a"></script>
+<script>
+(async function () {
+  const { ui, data } = BBM, esc = ui.esc;
+  if (!(await ui.start({ base: '', active: 'signatures' }))) return;
+  const sb = data.supabase, live = data.mode === 'live';
+  const canEdit = ui.canEdit(), isAdmin = BBM.me && BBM.me.role === 'admin';
+  const form = document.getElementById('filters'), results = document.getElementById('results');
+  const KINDS = [['form4', 'טופסי 4'], ['condo_plan', 'תשריטי בית משותף']];
+  let all = [], shown = [];
+
+  // נכסים לפי גוש/חלקה – כדי לקשר חתימה לנכסים שבאותה חלקה
+  const byParcel = new Map();
+  data.listAssets().forEach(a => (a.parcels || []).forEach(p => {
+    const k = `${p.gush}/${p.helka}`; if (!byParcel.has(k)) byParcel.set(k, []); byParcel.get(k).push(a);
+  }));
+  const assetsOf = r => (r.gush && r.helka && /^\d+$/.test(r.helka)) ? (byParcel.get(`${r.gush}/${r.helka}`) || []) : [];
+
+  async function load() {
+    if (!live) { all = []; return; }
+    const rows = []; const page = 1000;
+    for (let from = 0; ; from += page) {
+      const { data: d, error } = await sb.from('signatures').select('*').order('sign_date', { ascending: false, nullsFirst: false }).range(from, from + page - 1);
+      if (error) { results.innerHTML = `<div class="card error">לא ניתן לטעון את החתימות: ${esc(error.message)}</div>`; throw error; }
+      rows.push(...d); if (d.length < page) break;
+    }
+    all = rows;
+  }
+
+  const norm = s => (s || '').toString().toLowerCase().replace(/["'״׳]/g, '');
+  const fmtD = d => d ? new Date(d).toLocaleDateString('he-IL') : '';
+  const columns = k => [
+    { title: 'תאריך', value: r => r.sign_date, html: r => fmtD(r.sign_date), cls: 'num' },
+    { title: 'גוש', value: r => r.gush, cls: 'num' },
+    { title: 'חלקה', value: r => r.helka, cls: 'num' },
+    { title: 'כתובת', value: r => r.address },
+    ...(k === 'form4' ? [{ title: "מס' בקשה", value: r => r.request_number, cls: 'num' }] : []),
+    { title: 'מהות', value: r => r.essence },
+    { title: 'נחתם', value: r => r.signed ? 'כן' : 'לא', html: r => r.signed ? '<span class="pill ok">נחתם</span>' : '<span class="pill warn">לא נחתם</span>' },
+    ...(k === 'form4' ? [{ title: 'שטח ציבורי', value: r => r.public_area_status }] : []),
+    { title: 'הערות', value: r => r.notes, html: r => r.notes ? `<span class="sig-note">${esc(r.notes)}</span>` : '' },
+    { title: 'נכסים בחלקה', value: r => assetsOf(r).map(a => a.asset_number).join(', '),
+      html: r => assetsOf(r).map(a => `<a href="assets/asset.html?id=${encodeURIComponent(a.id)}" title="${esc(a.title)}">${esc(a.asset_number)}</a>`).join(' ') },
+    { title: 'נרשם על ידי', value: r => r.import_source_row ? 'יובא מהאקסל' : r.created_by_name },
+  ];
+
+  function render() {
+    const f = Object.fromEntries(new FormData(form));
+    const kind = f.kind || 'form4';
+    document.getElementById('kindChips').innerHTML = KINDS.map(([k, t]) =>
+      `<button type="button" class="chip" data-kind="${k}" aria-pressed="${k === kind}">${t} <span class="n">${all.filter(r => r.kind === k).length}</span></button>`).join('');
+    document.getElementById('paWrap').hidden = kind !== 'form4';
+    const ofKind = all.filter(r => r.kind === kind);
+    // רשימות לסינון: שנים וערכי "שטח ציבורי" שקיימים בפועל
+    const years = [...new Set(ofKind.map(r => (r.sign_date || '').slice(0, 4)).filter(Boolean))].sort().reverse();
+    const ySel = document.getElementById('yearSel'), cur = ySel.value;
+    ySel.innerHTML = '<option value="">הכול</option>' + years.map(y => `<option${y === cur ? ' selected' : ''}>${y}</option>`).join('');
+    const pas = [...new Set(all.filter(r => r.kind === 'form4').map(r => r.public_area_status).filter(Boolean))].sort();
+    const pSel = document.getElementById('paSel'), pcur = pSel.value;
+    pSel.innerHTML = '<option value="">הכול</option>' + pas.map(v => `<option${v === pcur ? ' selected' : ''}>${esc(v)}</option>`).join('');
+    document.getElementById('paList').innerHTML = pas.map(v => `<option value="${esc(v)}">`).join('');
+
+    const q = norm(f.q).trim();
+    shown = ofKind.filter(r => {
+      if (ySel.value && (r.sign_date || '').slice(0, 4) !== ySel.value) return false;
+      if (kind === 'form4' && pSel.value && r.public_area_status !== pSel.value) return false;
+      if (f.unsigned && r.signed) return false;
+      if (!q) return true;
+      const hay = norm([r.address, r.gush, r.helka, `${r.gush}/${r.helka}`, r.request_number, r.essence, r.notes, r.public_area_status].join(' '));
+      return q.split(/\s+/).every(w => hay.includes(w));
+    });
+    document.getElementById('count').textContent = `${KINDS.find(k => k[0] === kind)[1]}: ${shown.length === ofKind.length ? ofKind.length : shown.length + ' מתוך ' + ofKind.length} רשומות`;
+    const cols = columns(kind);
+    if (!live) { results.innerHTML = '<div class="card">במצב הדגמה אין נתוני חתימות.</div>'; return; }
+    if (!shown.length) { results.innerHTML = `<div class="card empty">${all.length ? 'לא נמצאו רשומות לפי החיפוש והסינון' : 'עוד לא נרשמו חתימות'}</div>`; return; }
+    results.innerHTML = `<div class="table-wrap"><table class="data${canEdit ? ' clickable' : ''}"><thead><tr>${cols.map(c => `<th scope="col">${c.title}</th>`).join('')}</tr></thead>
+      <tbody>${shown.map(r => `<tr data-id="${esc(r.id)}">${cols.map(c => `<td class="${c.cls || ''}">${c.html ? c.html(r) : esc(c.value(r) ?? '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }
+
+  document.getElementById('kindChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-kind]'); if (!b) return;
+    form.elements.kind.value = b.dataset.kind; document.getElementById('yearSel').value = ''; render();
+  });
+  form.addEventListener('input', render);
+  form.addEventListener('submit', e => e.preventDefault());
+  document.getElementById('exportBtn').onclick = () => {
+    const kind = form.elements.kind.value, stamp = new Date().toISOString().slice(0, 10);
+    ui.download(`${kind === 'form4' ? 'טופסי-4' : 'תשריטי-בית-משותף'}-${stamp}.csv`, data.toCsv(shown, columns(kind)));
+  };
+
+  // ---------- הוספה ועריכה ----------
+  const editCard = document.getElementById('editCard'), ef = document.getElementById('editForm');
+  let editing = null;
+  const toggleKindFields = () => ef.querySelectorAll('.only-form4').forEach(el => el.hidden = ef.kind.value !== 'form4');
+  ef.kind.addEventListener('change', toggleKindFields);
+  function openEdit(r) {
+    editing = r || null;
+    document.getElementById('editTitle').textContent = r ? 'עריכת רשומה' : 'חתימה חדשה';
+    ef.reset();
+    const v = r || { kind: form.elements.kind.value, sign_date: new Date().toISOString().slice(0, 10), signed: true };
+    for (const k of ['kind', 'sign_date', 'gush', 'helka', 'address', 'request_number', 'essence', 'public_area_status', 'notes']) ef[k].value = v[k] == null ? '' : v[k];
+    ef.signed.value = v.signed ? 'true' : '';
+    document.getElementById('essenceList').innerHTML = [...new Set(all.filter(x => x.kind === v.kind).map(x => x.essence).filter(Boolean))].slice(0, 60).map(x => `<option value="${esc(x)}">`).join('');
+    document.getElementById('deleteBtn').hidden = !(r && isAdmin);
+    document.getElementById('editMeta').textContent = r ? `${r.import_source_row ? 'יובא מהאקסל' : 'נרשם על ידי ' + (r.created_by_name || 'לא ידוע')} · ${new Date(r.created_at).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}` : 'השם שלך והתאריך נרשמים אוטומטית.';
+    toggleKindFields(); editCard.hidden = false; editCard.scrollIntoView({ block: 'start' }); ef.address.focus();
+  }
+  if (canEdit && live) { const nb = document.getElementById('newBtn'); nb.hidden = false; nb.onclick = () => openEdit(null); }
+  document.getElementById('cancelEdit').onclick = () => { editCard.hidden = true; };
+  results.addEventListener('click', e => {
+    if (!canEdit || e.target.closest('a')) return;
+    const tr = e.target.closest('tr[data-id]'); if (tr) openEdit(all.find(r => r.id === tr.dataset.id));
+  });
+  ef.addEventListener('submit', async e => {
+    e.preventDefault();
+    const t = k => ef[k].value.trim() || null;
+    const row = { kind: ef.kind.value, sign_date: ef.sign_date.value || null, gush: t('gush'), helka: t('helka'), address: t('address'), essence: t('essence'),
+      signed: ef.signed.value === 'true', notes: t('notes'),
+      request_number: ef.kind.value === 'form4' ? t('request_number') : null, public_area_status: ef.kind.value === 'form4' ? t('public_area_status') : null };
+    const btn = ef.querySelector('button[type=submit]'); btn.disabled = true;
+    const q = editing ? sb.from('signatures').update(row).eq('id', editing.id) : sb.from('signatures').insert(row);
+    const { data: saved, error } = await q.select().single();
+    btn.disabled = false;
+    if (error) { ui.toast('השמירה נכשלה: ' + error.message, 'err'); return; }
+    if (editing) all[all.findIndex(r => r.id === editing.id)] = saved; else all.unshift(saved);
+    all.sort((x, y) => (y.sign_date || '').localeCompare(x.sign_date || ''));
+    form.elements.kind.value = saved.kind; editCard.hidden = true; ui.toast('נשמר'); render();
+  });
+  const del = document.getElementById('deleteBtn');
+  del.onclick = async () => {
+    if (!del.dataset.sure) { del.dataset.sure = '1'; del.textContent = 'ללחוץ שוב לאישור המחיקה'; return; }
+    const { error } = await sb.from('signatures').delete().eq('id', editing.id);
+    delete del.dataset.sure; del.textContent = 'מחיקת הרשומה';
+    if (error) { ui.toast('המחיקה נכשלה: ' + error.message, 'err'); return; }
+    all = all.filter(r => r.id !== editing.id); editCard.hidden = true; ui.toast('נמחק'); render();
+  };
+
+  // ---------- ייבוא ראשוני (מנהל, רק כשהטבלה ריקה) ----------
+  function setupImport() {
+    const card = document.getElementById('importCard');
+    card.hidden = !(live && isAdmin && !all.length);
+    document.getElementById('importFile').onchange = async e => {
+      const msg = document.getElementById('importMsg'), f = e.target.files[0]; if (!f) return;
+      let p; try { p = JSON.parse(await f.text()); } catch (err) { p = null; }
+      if (!p || p.kind !== 'signatures' || !Array.isArray(p.rows)) { msg.innerHTML = '<span class="error">זה לא קובץ ייבוא של חתימות.</span>'; return; }
+      const chk = await sb.from('signatures').select('id', { count: 'exact', head: true });
+      if (chk.error || chk.count) { msg.innerHTML = '<span class="error">הטבלה כבר לא ריקה – הייבוא בוטל.</span>'; return; }
+      msg.textContent = `מייבא ${p.rows.length} רשומות…`;
+      for (let i = 0; i < p.rows.length; i += 200) {
+        const { error } = await sb.from('signatures').insert(p.rows.slice(i, i + 200));
+        if (error) { msg.innerHTML = `<span class="error">הייבוא נעצר אחרי ${i} רשומות: ${esc(error.message)}</span>`; return; }
+      }
+      ui.toast('הייבוא הסתיים'); await load(); setupImport(); render();
+    };
+  }
+
+  await load(); setupImport(); render();
+})();
+</script>
+</body>
+</html>

@@ -15,6 +15,7 @@
   document.getElementById('complexSel').insertAdjacentHTML('beforeend',
     data.complexes().map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join(''));
   if (!ui.canEdit()) document.getElementById('newBtn').hidden = true;
+  document.getElementById('procTypeSel').insertAdjacentHTML('beforeend', data.PROCESS_TYPES.map(([v, t]) => `<option value="${v}">${t}</option>`).join(''));
 
   // ---------- תצוגה (כרטיסיות / טבלה) – נשמרת לכל צופה בדפדפן ----------
   let view = 'cards';
@@ -42,6 +43,8 @@
   const inScope = (a, s) => !s || (s === 'pc' ? a.right_source === 'public_consideration' : a.right_source !== 'public_consideration');
   const chips = document.getElementById('scopeChips');
   chips.addEventListener('click', e => {
+    const pc = e.target.closest('[data-procchip]');
+    if (pc) { form.elements.process.value = form.elements.process.value === 'active' ? '' : 'active'; render(); return; }
     const b = e.target.closest('[data-scope]'); if (!b) return;
     form.elements.scope.value = b.dataset.scope; render();
   });
@@ -50,6 +53,8 @@
   const STAGE_ORDER = ['construction', 'commitment', 'permit', 'form4', 'delivered', 'unknown', ''];
   const CONTRACT = { expired: 'חוזה פג', none: 'אין חוזה', soon: 'חוזה עומד לפוג', valid: 'חוזה בתוקף', '': 'בלי חוזה שכירות' };
   const GROUPS = {
+    process: { key: a => a.active_processes.length ? 'active' : a.open_processes.length ? 'pending' : '',
+      name: k => ({ active: 'יש תהליך פעיל', pending: 'תהליך ממתין', '': 'בלי תהליך פתוח' })[k], order: ['active', 'pending', ''] },
     contract: { key: a => a.contract_status || '', name: k => CONTRACT[k], order: ['expired', 'none', 'soon', 'valid', ''] },
     stage: { key: a => a.consideration_stage || '', name: k => k ? label('consideration_stage', k) : 'ללא תהליך תמורה', order: STAGE_ORDER },
     operational_status: { key: a => a.operational_status || 'unknown', name: k => label('operational_status', k) || 'לא ידוע',
@@ -77,6 +82,7 @@
     { title: 'מחזיק', value: a => a.holder_name },
     { title: 'דמי שימוש לחודש', value: a => a.monthly_fee, cls: 'num' },
     { title: 'חוזה עד', value: a => a.current_holding ? a.current_holding.contract_end : '', cls: 'num' },
+    { title: 'תהליכים פתוחים', value: a => a.open_processes.map(p => `${data.processTypeLabel(p.process_type)} (${data.processStatusLabel(p.status)})`).join('; ') },
     { title: 'פעולה נדרשת', value: a => actionOf(a) },
   ];
 
@@ -101,6 +107,7 @@
           <a class="folder-btn" href="bbmasset:${encodeURIComponent(a.asset_number)}" title="פתיחת תיקיית הנכס במחשב (עירייה)" aria-label="פתיחת תיקיית נכס ${esc(a.asset_number)}">📂</a></span>
         <span class="pills">
           ${known(st) ? `<span class="pill ${STATUS_CLS[st] || ''}">${esc(label('operational_status', st))}</span>` : ''}
+          ${a.active_processes.length ? `<span class="pill warn" title="${esc(a.active_processes.map(p => data.processTypeLabel(p.process_type)).join(', '))}">תהליך פעיל${a.active_processes.length > 1 ? ' ×' + a.active_processes.length : ''}</span>` : ''}
           ${a.record_status === 'future' ? '<span class="pill future">עתידי</span>' : ''}
           ${a.contract_status === 'expired' ? '<span class="pill bad">חוזה פג</span>' : a.contract_status === 'soon' ? '<span class="pill warn">חוזה עומד לפוג</span>' : a.contract_status === 'none' ? '<span class="pill bad">אין חוזה</span>' : ''}
         </span>
@@ -137,7 +144,8 @@
     const total = data.listAssets().length;
 
     chips.innerHTML = SCOPES.map(([s, t]) => `<button type="button" class="chip" data-scope="${s}" aria-pressed="${(f.scope || '') === s}">
-      ${t} <span class="n">${all.filter(a => inScope(a, s)).length}</span></button>`).join('');
+      ${t} <span class="n">${all.filter(a => inScope(a, s)).length}</span></button>`).join('')
+      + `<button type="button" class="chip chip-proc" data-procchip aria-pressed="${f.process === 'active'}">⚑ תהליך פעיל <span class="n">${data.listAssets().filter(a => a.active_processes.length).length}</span></button>`;
     document.getElementById('count').textContent = rows.length === total ? `${total} נכסים` : `${rows.length} מתוך ${total} נכסים`;
     document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
 

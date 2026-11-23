@@ -85,7 +85,44 @@
       c.request_number ? `בקשה ${esc(c.request_number)}` : ''].filter(Boolean).map(t => `<span class="pill">${t}</span>`).join('')).join(' ');
 
     // לשוניות הכרטיס
-    const TABS = [['main', 'ראשי'], ['rights', 'זכויות וחלקות'], ['holders', 'מחזיקים', a.holdings.length], ['surveys', 'ביקורות', surveys.length]];
+    const TABS = [['main', 'ראשי'], ['rights', 'זכויות וחלקות'], ['holders', 'מחזיקים', a.holdings.length], ['surveys', 'ביקורות', surveys.length],
+      ['notes', 'הערות', a.asset_notes.length], ['proc', 'תהליכים', a.open_processes.length]];
+
+    // ----- הערות (מי ומתי נרשמים אוטומטית) -----
+    const canNote = ui.canEditLimited(), isAdmin = BBM.me && BBM.me.role === 'admin';
+    const when = d => d ? new Date(d).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' }) : '';
+    const notesHtml = `
+      ${canNote ? `<form id="noteForm" class="inline-form">
+          <label class="f">הערה חדשה<textarea name="body" rows="3" maxlength="5000" required placeholder="מה קרה, מה סוכם, מה צריך לזכור"></textarea></label>
+          <p><button class="primary" type="submit">הוספת הערה</button> <span class="hint">השם שלך והתאריך נרשמים אוטומטית.</span></p>
+        </form>` : ''}
+      ${a.asset_notes.length ? a.asset_notes.map(n => `<article class="log-item" data-note="${esc(n.id)}">
+          <div class="log-head"><span><strong>${esc(n.created_by_name || 'לא ידוע')}</strong> · ${when(n.created_at)}</span>
+            ${isAdmin || (BBM.me && n.created_by === BBM.me.id) ? '<button type="button" class="link" data-del-note>מחיקה</button>' : ''}</div>
+          <div class="log-body">${esc(n.body)}</div>
+        </article>`).join('') : '<p class="empty">עוד לא נרשמו הערות לנכס</p>'}`;
+
+    // ----- תהליכים: פעיל / ממתין / נסגר -----
+    const PST = { active: 'warn', pending: 'info', closed: 'ok' };
+    const procItem = p => `<article class="log-item" data-proc="${esc(p.id)}">
+        <div class="log-head"><span><strong>${esc(data.processTypeLabel(p.process_type))}</strong> <span class="pill ${PST[p.status] || ''}">${esc(data.processStatusLabel(p.status))}</span></span>
+          ${canNote ? `<span class="proc-actions"><select data-status aria-label="סטטוס התהליך">${data.PROCESS_STATUS.map(([v, t]) => `<option value="${v}"${v === p.status ? ' selected' : ''}>${t}</option>`).join('')}</select>
+            ${isAdmin ? '<button type="button" class="link" data-del-proc>מחיקה</button>' : ''}</span>` : ''}</div>
+        ${p.description ? `<div class="log-body">${esc(p.description)}</div>` : ''}
+        <div class="hint">נפתח: ${esc(p.opened_by_name || 'לא ידוע')} · ${when(p.opened_at)}${p.status_at ? ` · סטטוס עודכן: ${esc(p.status_by_name || '')} · ${when(p.status_at)}` : ''}${p.closed_at ? ` · נסגר ${when(p.closed_at)}` : ''}</div>
+      </article>`;
+    const openP = a.processes.filter(p => p.status !== 'closed'), closedP = a.processes.filter(p => p.status === 'closed');
+    const procHtml = `
+      ${canNote ? `<form id="procForm" class="inline-form">
+          <div class="proc-new">
+            <label class="f">סוג התהליך<select name="process_type" required><option value="">— בחר —</option>${data.PROCESS_TYPES.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select></label>
+            <label class="f">סטטוס<select name="status">${data.PROCESS_STATUS.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select></label>
+            <label class="f grow">פירוט<input name="description" maxlength="1000" placeholder="למשל: הוגשה תביעת פינוי, ממתין לדיון"></label>
+          </div>
+          <p><button class="primary" type="submit">פתיחת תהליך</button> <span class="hint">השם שלך ותאריך הפתיחה נרשמים אוטומטית.</span></p>
+        </form>` : ''}
+      ${openP.length ? openP.map(procItem).join('') : '<p class="empty">אין תהליכים פתוחים בנכס</p>'}
+      ${closedP.length ? `<details class="more"><summary>תהליכים שנסגרו (${closedP.length})</summary>${closedP.map(procItem).join('')}</details>` : ''}`;
 
     main.innerHTML = `
       <p><a href="${ui.listUrl('../')}">→ חזרה לרשימת הנכסים</a></p>
@@ -137,7 +174,7 @@
           ${row('שימוש מפורט', esc(L('use_detail', a.use_detail)))}
         </dl></section>
 
-        <section class="card"><h2>הערות</h2>${a.notes ? `<p style="white-space:pre-wrap;margin:0">${esc(a.notes)}</p>` : '<p class="empty">אין הערות</p>'}</section>
+        <section class="card"><h2>טקסט חופשי</h2>${a.notes ? `<p style="white-space:pre-wrap;margin:0">${esc(a.notes)}</p>` : '<p class="empty">אין טקסט</p>'}</section>
       </div>
 
       ${k.length ? `<details class="group cons-group" id="consBox">
@@ -177,6 +214,14 @@
         <section class="card"><h2>ביקורות</h2>${surveysHtml}</section>
       </div>
 
+      <div class="tabpanel" role="tabpanel" id="panel-notes" aria-labelledby="tab-notes" hidden>
+        <section class="card"><h2>הערות</h2>${notesHtml}</section>
+      </div>
+
+      <div class="tabpanel" role="tabpanel" id="panel-proc" aria-labelledby="tab-proc" hidden>
+        <section class="card"><h2>תהליכים</h2>${procHtml}</section>
+      </div>
+
       ${a.import_source_row ? `<p class="hint">מקור ייבוא: ${esc(a.import_source_file || '')} · גיליון ${esc(a.import_source_sheet || '')} · שורה ${esc(a.import_source_row)}</p>` : ''}`;
 
     // מעבר בין לשוניות; הלשונית נשמרת בכתובת (#cons וכד'), כך שרענון או קישור חוזרים לאותה לשונית
@@ -195,6 +240,24 @@
         if (d) { e.preventDefault(); show(tabs[(i + d + tabs.length) % tabs.length].dataset.tab, true); }
       };
     });
+    // ----- פעולות בהערות ובתהליכים: אחרי כל פעולה הכרטיס נטען מחדש באותה לשונית -----
+    const reload = tab => { location.hash = tab; location.reload(); };
+    const act = async (fn, tab, okMsg) => { try { await fn(); ui.toast(okMsg); reload(tab); } catch (err) { ui.toast(ui.authError ? ui.authError(err) : (err.message || String(err)), 'err'); } };
+    const nf = document.getElementById('noteForm');
+    if (nf) nf.addEventListener('submit', e => { e.preventDefault(); const body = nf.body.value.trim(); if (!body) return; nf.querySelector('button').disabled = true;
+      act(() => data.addNote(a.id, body), 'notes', 'ההערה נוספה'); });
+    const pf = document.getElementById('procForm');
+    if (pf) pf.addEventListener('submit', e => { e.preventDefault(); if (!pf.process_type.value) return; pf.querySelector('button').disabled = true;
+      act(() => data.addProcess({ asset_id: a.id, process_type: pf.process_type.value, description: pf.description.value, status: pf.status.value }), 'proc', 'התהליך נפתח'); });
+    main.addEventListener('change', e => { const sel = e.target.closest('[data-status]'); if (!sel) return;
+      act(() => data.setProcessStatus(sel.closest('[data-proc]').dataset.proc, sel.value), 'proc', 'הסטטוס עודכן'); });
+    main.addEventListener('click', e => {
+      const dn = e.target.closest('[data-del-note]'), dp = e.target.closest('[data-del-proc]');
+      if (dn && dn.dataset.sure) act(() => data.deleteNote(dn.closest('[data-note]').dataset.note), 'notes', 'ההערה נמחקה');
+      else if (dp && dp.dataset.sure) act(() => data.deleteProcess(dp.closest('[data-proc]').dataset.proc), 'proc', 'התהליך נמחק');
+      else if (dn || dp) { const b = dn || dp; b.dataset.sure = '1'; b.textContent = 'ללחוץ שוב לאישור המחיקה'; }  // אישור בלי חלון קופץ
+    });
+
     // #cons (חזרה מעריכת התמורה): לשונית ראשי עם נתוני התמורה פתוחים
     const h0 = location.hash.slice(1);
     show(h0 === 'cons' ? 'main' : h0 || 'main');
