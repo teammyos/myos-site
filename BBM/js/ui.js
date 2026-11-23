@@ -6,7 +6,7 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const param = name => new URLSearchParams(location.search).get(name);
   // גרסת האתר: מוצמדת לקישורים פנימיים, כדי שהדפדפן לא יציג דף ישן מהזיכרון אחרי עדכון
-  const VERSION = '20261123d';
+  const VERSION = '20261123e';
   const withV = url => url + (url.includes('?') ? '&' : '?') + 'v=' + VERSION;
   // קישור חזרה לרשימת הנכסים – עם החיפוש והסינון האחרונים
   function listUrl(base = '') {
@@ -16,18 +16,26 @@
   }
 
   function header(base, active) {
+    // תפריט צד (ימין), בסגנון Gmail. פריטים עם soon – מתוכננים, עוד לא נבנו.
     const items = [
-      ['index.html', 'דף הבית', 'home'],
-      ['assets/index.html', 'נכסים', 'assets'],
-      ['signatures.html', 'מעקב חתימות', 'signatures'],
-      ['assets/dashboard.html', 'תמונת מצב', 'dashboard']
+      ['index.html', 'דף הבית', 'home', '🏠'],
+      ['assets/index.html', 'נכסים', 'assets', '🏢'],
+      ['signatures.html', 'מעקב חתימות', 'signatures', '✍️'],
+      ['assets/dashboard.html', 'תמונת מצב', 'dashboard', '📊'],
+      [null, 'תהליכים', 'processes', '⚑'],
+      [null, 'אנשי קשר', 'contacts', '👤'],
+      [null, 'דוחות', 'reports', '📑'],
+      ['feedback.html', 'פניות ושיפורים', 'feedback', '💬']
     ];
-    const nav = items.map(([href, text, key]) =>
-      `<a href="${withV(base + href)}"${key === active ? ' aria-current="page"' : ''}>${text}</a>`).join('');
+    const nav = items.map(([href, text, key, ico]) => href
+      ? `<a href="${withV(base + href)}"${key === active ? ' aria-current="page"' : ''}><span class="ico" aria-hidden="true">${ico}</span>${text}</a>`
+      : `<span class="soon" title="מתוכנן – עוד לא נבנה"><span class="ico" aria-hidden="true">${ico}</span>${text}<small>בקרוב</small></span>`).join('');
     const demo = BBM.data.mode === 'demo'
       ? '<div class="demo-bar" role="status">מצב הדגמה: נתוני דוגמה בלבד. שינויים נשמרים רק בלשונית הזו ונמחקים כשסוגרים אותה. <button class="link" type="button" onclick="BBM.data.resetDemo()">איפוס נתוני הדוגמה</button> · <a href="?demo=0">יציאה ממצב הדגמה</a></div>' : '';
-    return `${demo}<header class="top"><a class="brand" href="${withV(base + 'index.html')}">BBM · ניהול נכסים</a>
-      <nav>${nav}</nav><div class="user" id="userBox"></div></header>`;
+    document.body.classList.add('has-side');
+    return `${demo}<header class="top"><div class="side-head"><a class="brand" href="${withV(base + 'index.html')}">BBM · ניהול נכסים</a>
+      <button type="button" class="nav-toggle" aria-label="תפריט" aria-expanded="false" onclick="const h=this.closest('header');this.setAttribute('aria-expanded',h.classList.toggle('open'))">☰</button></div>
+      <nav aria-label="תפריט ראשי">${nav}</nav><div class="user" id="userBox"></div></header>`;
   }
 
   // בדיקת גרסה: אם עלתה לאתר גרסה חדשה והדפדפן מציג דף ישן מהזיכרון – טוען מחדש פעם אחת.
@@ -64,9 +72,8 @@
       // קישור לניהול משתמשים – למנהלים בלבד
       if (me.role === 'admin') {
         const nav = document.querySelector('header.top nav');
-        nav.insertAdjacentHTML('beforeend', `<a href="${base}users.html"${active === 'users' ? ' aria-current="page"' : ''}>ניהול משתמשים</a>`);
-        nav.insertAdjacentHTML('beforeend', `<a href="${base}import.html"${active === 'import' ? ' aria-current="page"' : ''}>ייבוא</a>`);
-        nav.insertAdjacentHTML('beforeend', `<a href="${withV(base + 'feedback.html')}"${active === 'feedback' ? ' aria-current="page"' : ''}>פניות</a>`);
+        const link = (href, text, key, ico) => `<a href="${withV(base + href)}"${active === key ? ' aria-current="page"' : ''}><span class="ico" aria-hidden="true">${ico}</span>${text}</a>`;
+        nav.insertAdjacentHTML('beforeend', '<div class="nav-sep">ניהול</div>' + link('users.html', 'ניהול משתמשים', 'users', '🔑') + link('import.html', 'ייבוא', 'import', '⬆️'));
       }
     } else {
       BBM.me = { role: 'admin', approved: true };
