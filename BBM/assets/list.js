@@ -50,13 +50,14 @@
   });
 
   // ---------- קיבוץ ----------
-  const STAGE_ORDER = ['construction', 'commitment', 'permit', 'form4', 'delivered', 'unknown', ''];
+  const STAGE_ORDER = ['future', 'construction', 'commitment', 'permit', 'form4', 'delivered', 'unknown', ''];
   const CONTRACT = { expired: 'חוזה פג', none: 'אין חוזה', soon: 'חוזה עומד לפוג', valid: 'חוזה בתוקף', '': 'בלי חוזה שכירות' };
   const GROUPS = {
     process: { key: a => a.active_processes.length ? 'active' : a.open_processes.length ? 'pending' : '',
       name: k => ({ active: 'יש תהליך פעיל', pending: 'תהליך ממתין', '': 'בלי תהליך פתוח' })[k], order: ['active', 'pending', ''] },
     contract: { key: a => a.contract_status || '', name: k => CONTRACT[k], order: ['expired', 'none', 'soon', 'valid', ''] },
-    stage: { key: a => a.consideration_stage || '', name: k => k ? label('consideration_stage', k) : 'ללא תהליך תמורה', order: STAGE_ORDER },
+    // כל נכס עתידי נכנס לקבוצה אחת "עתידי" (התחייבות, היתר או בבנייה מוצגים כתגית על הכרטיסייה); נכס קיים – לפי שלב התמורה
+    stage: { key: a => a.record_status === 'future' ? 'future' : a.consideration_stage || '', name: k => k === 'future' ? 'עתידי' : k ? label('consideration_stage', k) : 'ללא תהליך תמורה', order: STAGE_ORDER },
     operational_status: { key: a => a.operational_status || 'unknown', name: k => label('operational_status', k) || 'לא ידוע',
       order: ['trespass', 'unused', 'vacant', 'under_construction', 'third_party', 'active', 'renovation', 'unknown'] },
     use_domain: { key: a => a.use_domain || 'unknown', name: k => label('use_domain', k) || 'לא ידוע' },
@@ -87,6 +88,7 @@
   ];
 
   // ---------- כרטיסייה ----------
+  let byStage = false;   // האם הרשימה מקובצת כרגע לפי שלב
   function card(a) {
     const c = firstCons(a);
     const st = a.operational_status;
@@ -101,6 +103,9 @@
     ].filter(([, v]) => v);
     const act = actionOf(a);
     const href = `asset.html?id=${encodeURIComponent(a.id)}`;
+    // בקיבוץ לפי שלב הקבוצה עצמה נקראת "עתידי", ולכן על הכרטיסייה מוצג השלב (התחייבות / היתר...) במקום התגית "עתידי"
+    const stagePill = (a, st) => { const t = known(a.consideration_stage) ? label('consideration_stage', a.consideration_stage) : '';
+      return t && t !== (known(st) ? label('operational_status', st) : '') ? `<span class="pill future">${esc(t)}</span>` : ''; };
     return `<div class="acard" data-href="${href}">
       <div class="acard-top">
         <span class="acard-id"><a class="acard-num" href="${href}">נכס ${esc(a.asset_number)}</a>
@@ -108,7 +113,8 @@
         <span class="pills">
           ${known(st) ? `<span class="pill ${STATUS_CLS[st] || ''}">${esc(label('operational_status', st))}</span>` : ''}
           ${a.active_processes.length ? `<span class="pill warn" title="${esc(a.active_processes.map(p => data.processTypeLabel(p.process_type)).join(', '))}">תהליך פעיל${a.active_processes.length > 1 ? ' ×' + a.active_processes.length : ''}</span>` : ''}
-          ${a.record_status === 'future' ? '<span class="pill future">עתידי</span>' : ''}
+          ${a.record_status !== 'future' ? '' : !byStage ? '<span class="pill future">עתידי</span>'
+            : stagePill(a, st)}
           ${a.contract_status === 'expired' ? '<span class="pill bad">חוזה פג</span>' : a.contract_status === 'soon' ? '<span class="pill warn">חוזה עומד לפוג</span>' : a.contract_status === 'none' ? '<span class="pill bad">אין חוזה</span>' : ''}
         </span>
       </div>
@@ -156,6 +162,7 @@
       results.innerHTML = `<div class="table-wrap"><table class="data clickable">${head}<tbody>${body}</tbody></table></div>`;
     } else {
       const g = GROUPS[f.group || 'stage'];
+      byStage = g === GROUPS.stage;
       if (!g) { results.innerHTML = `<div class="cards">${rows.map(card).join('')}</div>`; }
       else {
         const map = new Map();
