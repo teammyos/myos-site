@@ -61,6 +61,13 @@ select.chip{width:auto;padding:3px 8px}
 .add input{border:0;padding:6px 0;outline:0!important;background:transparent}
 .add .plus{font-size:20px;width:22px;text-align:center}
 .addx{padding:0 52px 10px 20px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.addbox{margin:6px 16px 18px;border:1px solid var(--line);border-radius:14px;background:var(--bg);padding:2px 0}
+.addbox .add{padding:8px 14px}.addbox .addx{padding:0 14px 10px}
+.newt{margin:2px 12px 10px;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;font-weight:600;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.rail .newt{margin:2px 6px 8px;padding:8px 0}
+.lnk{display:inline-block;margin-top:5px;font-size:12.5px;color:var(--acc);cursor:pointer}
+.cd.drop{outline:2px dashed var(--acc);outline-offset:-3px;background:var(--acc-bg)}
+.ce[draggable=true]{cursor:grab}
 .row{display:flex;gap:10px;padding:8px 20px;align-items:flex-start;border-top:1px solid transparent;cursor:pointer}
 .row:hover{background:#f8fafd}.row.sel{background:var(--acc-bg)}
 .ck{flex:none;width:20px;height:20px;border:2px solid #747775;border-radius:50%;margin-top:2px;display:grid;place-items:center;background:#fff;padding:0;font-size:13px;color:transparent}
@@ -176,7 +183,7 @@ const fmtD = s => { if (!s) return ''; if (s === today()) return 'היום'; if 
   return new Date(s + 'T12:00').toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'short' }); };
 const fmtT = s => new Date(s).toLocaleString('he-IL', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-const ERR = { personal_space: 'אי אפשר למחוק את המרחב האישי', too_many_invites: 'נשלחו הרבה הזמנות היום. אפשר להמשיך מחר', feedback_empty: 'חסר נושא או פירוט', feedback_too_many: 'נשלחו הרבה פניות היום. אפשר לנסות שוב מחר', admins_only: 'רק מנהל מערכת יכול לעשות את זה', owner_only: 'רק אחראי המשימה או מנהל המרחב יכולים לעשות את זה', waiting_needs_followup_date: 'להמתנה חייבים לקבוע תאריך מעקב',
+const ERR = { reason_required: 'צריך לכתוב סיבה לשינוי התאריך', personal_space: 'אי אפשר למחוק את המרחב האישי', too_many_invites: 'נשלחו הרבה הזמנות היום. אפשר להמשיך מחר', feedback_empty: 'חסר נושא או פירוט', feedback_too_many: 'נשלחו הרבה פניות היום. אפשר לנסות שוב מחר', admins_only: 'רק מנהל מערכת יכול לעשות את זה', owner_only: 'רק אחראי המשימה או מנהל המרחב יכולים לעשות את זה', waiting_needs_followup_date: 'להמתנה חייבים לקבוע תאריך מעקב',
   stale_version: 'מישהו עדכן את המשימה בינתיים. רענן ונסה שוב', user_not_found: 'אין משתמש רשום עם המייל הזה. הוא צריך להירשם קודם',
   not_approved: 'החשבון ממתין לאישור מנהל', managers_only: 'רק מנהל המרחב יכול לעשות את זה', step_not_active: 'הפעולה כבר לא פעילה. רענן',
   later_step_done: 'אי אפשר לבטל: כבר בוצעה פעולה מאוחרת יותר', not_found: 'המשימה לא נמצאה או שאין לך גישה אליה', admins_only: 'רק מנהל מערכת',
@@ -345,6 +352,7 @@ function renderSide() {
   $('#app').classList.toggle('rail', S.rail);
   $('#shade').classList.toggle('hid', S.rail);
   $('#side').innerHTML = `<div class="brand"><button class="menu" id="menu" title="${S.rail ? 'פתיחת התפריט' : 'צמצום התפריט'}">☰</button><span class="lb"><span style="color:var(--acc)">✓</span> <b>MyOS</b> משימות</span></div>
+    <button class="pri newt" id="newTask" title="משימה חדשה, עם כל הפרטים"><span>＋</span><span class="lb">משימה חדשה</span></button>
     ${VIEWS.map(v => { const n = ['done', 'trash', 'all', 'rec', 'cal'].includes(v[0]) ? '' : cnt(v[0]); const bad = v[0] === 'mine' && open.some(t => inView(t, 'mine') && t.overdue);
       return `<div class="nav ${S.view === v[0] ? 'on' : ''}" data-v="${v[0]}" title="${v[1]}"><span class="ic">${v[2]}</span><span class="lb">${v[1]}</span><span class="n ${bad ? 'bad' : ''}">${n || ''}</span></div>`; }).join('')}
     <div class="sec">מרחבים <button id="newSpace" title="מרחב חדש">+</button></div>
@@ -362,6 +370,7 @@ function renderSide() {
     const v = e.target.closest('[data-v]'); if (v) { S.view = v.dataset.v; if (narrow()) S.rail = true; return render(); }
     const s = e.target.closest('[data-s]'); if (s) { S.space = s.dataset.s || null; S.f.who = ''; S.f.project = ''; S.f.owner = ''; if (narrow()) S.rail = true; return render(); }
     if (e.target.closest('#newSpace')) return newSpaceDialog();
+    if (e.target.closest('#newTask')) { if (narrow()) { S.rail = true; render(); } return newTaskDialog({ space: S.space || personal() }); }
     if (e.target.closest('#users')) return usersDialog();
     if (e.target.closest('#fb')) return feedbackDialog();
     if (e.target.closest('#out')) dialog('<h2>להתנתק מהחשבון?</h2><p>תצטרך להתחבר שוב כדי לראות את המשימות.</p><div class="btns"><button class="pri" id="ok">התנתקות</button><button id="no">ביטול</button></div>',
@@ -409,8 +418,8 @@ function renderList() {
       <label style="font-size:12.5px;color:var(--mut)">עד <input type="date" id="f_to" value="${f.to}" style="width:auto;padding:2px 6px;font-size:12.5px"></label>
       ${advOn ? '<span class="chip" id="f_clear">נקה</span>' : ''}
     </div>` : ''}`}
-    ${canAdd && !searching ? `<label class="add"><span class="plus">＋</span><input type="text" id="q" placeholder="הוספת משימה${sp ? '' : ' (למרחב האישי)'}" autocomplete="off"></label>
-      <div class="addx ${S.adding ? '' : 'hid'}" id="qx">${quick('q_due', '')}${isPersonal(addSp) ? '' : `<select class="chip" id="q_doer" title="מבצע">${peopleOpts(addSp, myPerson(addSp))}</select>`}<button class="pri sm" id="q_ok">הוספה</button><button class="sm" id="q_more" style="color:var(--acc)" title="פירוט המשימה כבר בפתיחה: מבצע, המתנה, פרויקט, הערה">עוד פרטים…</button></div>` : ''}
+    ${canAdd && !searching ? `<div class="addbox"><label class="add"><span class="plus">＋</span><input type="text" id="q" placeholder="הוספת משימה${sp ? '' : ' (למרחב האישי)'}" autocomplete="off"></label>
+      <div class="addx ${S.adding ? '' : 'hid'}" id="qx">${quick('q_due', '')}${isPersonal(addSp) ? '' : `<select class="chip" id="q_doer" title="מבצע">${peopleOpts(addSp, myPerson(addSp))}</select>`}<button class="pri sm" id="q_ok">הוספה</button><button class="sm" id="q_more" style="color:var(--acc)" title="פירוט המשימה כבר בפתיחה: מבצע, המתנה, פרויקט, הערה">עוד פרטים…</button></div></div>` : ''}
     ${rows.length ? rows.map(rowHtml).join('') : `<div class="empty">${searching ? 'לא נמצאו משימות שמתאימות לחיפוש' : S.view === 'mine' ? 'אין אצלך כלום כרגע 🎉' : S.view === 'day' ? 'סמן ☆ ליד משימות שתרצה לעבוד עליהן היום' : 'אין כאן משימות'}</div>`}
     ${canAdd && S.view !== 'day' && !searching ? (() => { const d = S.board.filter(t => !t.deleted_at && t.state !== 'open' && inSpace(t) && (S.view !== 'mine' || iOwn(t))).sort((a, b) => b.updated_at.localeCompare(a.updated_at)).slice(0, 30);
       return d.length ? `<div class="grp" id="tgDone">${S.showDone ? '▾' : '◂'} הושלמו (${d.length})</div>${S.showDone ? d.map(rowHtml).join('') : ''}` : ''; })() : ''}`;
@@ -423,6 +432,7 @@ function renderList() {
     q.onfocus = () => { S.adding = true; $('#qx', L).classList.remove('hid'); };
     q.onkeydown = e => { if (e.key === 'Enter') add(); if (e.key === 'Escape') { q.value = ''; S.adding = false; q.blur(); $('#qx', L).classList.add('hid'); } };
     $('#q_ok', L).onclick = add;
+    q.onpaste = e => { const tx = (e.clipboardData || window.clipboardData).getData('text'); if (taskLines(tx).length > 1) { e.preventDefault(); newTaskDialog({ space: addSp, multi: true, title: tx, due: $('#q_due', L).value, doer: ($('#q_doer', L) || {}).value }); } };
     $('#q_more', L).onclick = () => newTaskDialog({ space: addSp, title: q.value.trim(), due: $('#q_due', L).value, doer: ($('#q_doer', L) || {}).value });
   }
   const on = (id, ev, fn) => { const el = $(id, L); if (el) el[ev] = fn; };
@@ -467,7 +477,7 @@ function renderCal() {
   let cells = ''; for (let i = 0; i < lead; i++) cells += '<div class="cd x' + (i === 6 ? ' sat' : '') + '"></div>';
   for (let d = 1; d <= days; d++) { const dt = new Date(c.y, c.m, d, 12), ds = iso(dt), hp = hebParts(dt), list = (by[ds] || []).sort(sortT);
     cells += `<div class="cd ${ds === today() ? 'tod' : ''} ${dt.getDay() === 6 ? 'sat' : ''} ${c.day === ds ? 'sel' : ''}" data-day="${ds}"><div class="cn"><b>${d}</b><span>${gem(hp.d)}${hp.d === 1 ? ' ' + esc(hp.m) : ''}</span></div>
-      ${list.slice(0, 3).map(t => `<div class="ce ${t.overdue ? 'red' : t.status === 'waiting' ? 'amb' : ''}" data-id="${t.id}" title="${esc(t.title)}${t.step_title && t.step_title !== t.title ? ' ▸ ' + esc(t.step_title) : ''}">${esc(t.title)}</div>`).join('')}${list.length > 3 ? `<div class="cm">ועוד ${list.length - 3}</div>` : ''}</div>`; }
+      ${list.slice(0, 3).map(t => `<div class="ce ${t.overdue ? 'red' : t.status === 'waiting' ? 'amb' : ''}" data-id="${t.id}" draggable="true" title="${esc(t.title)}${t.step_title && t.step_title !== t.title ? ' ▸ ' + esc(t.step_title) : ''}">${esc(t.title)}</div>`).join('')}${list.length > 3 ? `<div class="cm">ועוד ${list.length - 3}</div>` : ''}</div>`; }
   const tail = (7 - ((lead + days) % 7)) % 7; for (let i = 0; i < tail; i++) cells += '<div class="cd x' + (i === tail - 1 ? ' sat' : '') + '"></div>';
   const dayList = c.day ? (by[c.day] || []) : [];
   $('#list').innerHTML = `<h1>${esc(first.toLocaleDateString('he-IL', { month: 'long', year: 'numeric' }))} <small>${esc(heb)}</small><span class="sp"></span><button class="sm" id="c_next" title="החודש הקודם">›</button><button class="out sm" id="c_today">היום</button><button class="sm" id="c_prev" title="החודש הבא">‹</button></h1>
@@ -475,8 +485,15 @@ function renderCal() {
     <div class="cal">${['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'].map((x, i) => `<div class="cw ${i === 6 ? 'sat' : ''}">${x}</div>`).join('')}${cells}</div>
     ${c.day ? `<div class="grp" style="cursor:default">${esc(new Date(c.day + 'T12:00').toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' }))} · ${gem(hebParts(new Date(c.day + 'T12:00')).d)} ב${esc(hebParts(new Date(c.day + 'T12:00')).m)}</div>
       ${dayList.length ? dayList.map(rowHtml).join('') : '<div class="empty" style="padding:14px 20px">אין משימות ביום הזה</div>'}
-      <div style="padding:4px 14px 12px"><button class="sm" id="c_add" style="color:var(--acc)">＋ משימה ליום הזה</button></div>` : '<div style="padding:10px 20px 14px;color:var(--mut);font-size:12.5px">לחיצה על יום מציגה את המשימות שלו ומאפשרת להוסיף משימה לאותו יום.</div>'}`;
+      <div style="padding:4px 14px 12px"><button class="sm" id="c_add" style="color:var(--acc)">＋ משימה ליום הזה</button></div>` : '<div style="padding:10px 20px 14px;color:var(--mut);font-size:12.5px">לחיצה על יום מציגה את המשימות שלו ומאפשרת להוסיף משימה לאותו יום. אפשר לגרור משימה מיום ליום.</div>'}`;
   const L = $('#list'), move = n => { const d = new Date(c.y, c.m + n, 1); c.y = d.getFullYear(); c.m = d.getMonth(); c.day = null; renderCal(); };
+  // גרירת משימה מיום ליום: משנה את התאריך של הפעולה הנוכחית
+  const undrop = () => L.querySelectorAll('.cd.drop').forEach(x => x.classList.remove('drop'));
+  L.ondragstart = e => { const ev = e.target.closest && e.target.closest('.ce[data-id]'); if (!ev) return; S.drag = ev.dataset.id; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', ev.dataset.id); };
+  L.ondragover = e => { const d = S.drag && e.target.closest && e.target.closest('.cd[data-day]'); if (!d) return; e.preventDefault(); if (!d.classList.contains('drop')) { undrop(); d.classList.add('drop'); } };
+  L.ondragend = () => { S.drag = null; undrop(); };
+  L.ondrop = e => { const d = e.target.closest && e.target.closest('.cd[data-day]'), id = S.drag; S.drag = null; undrop(); if (!d || !id) return; e.preventDefault();
+    const t = S.board.find(x => x.id === id); if (t && t.step_id) changeDue(t, { id: t.step_id, version: t.step_version, due_date: t.due_date }, d.dataset.day); };
   L.onclick = e => {
     if (e.target.closest('#c_prev')) return move(1);
     if (e.target.closest('#c_next')) return move(-1);
@@ -528,7 +545,7 @@ async function openTask(id) { S.sel = id; S.showTl = false; try { S.det = await 
 
 const EV = { task_created: () => 'המשימה נוצרה', step_started: e => 'נפתחה פעולה: ' + e.body + (e.data && e.data.doer ? ' · אצל ' + P(e.data.doer).name : ''), step_planned: e => 'תוכננה פעולה: ' + e.body,
   step_done: e => 'בוצע: ' + e.body, step_undone: e => 'בוטל הסימון: ' + e.body, step_dropped: e => 'הוסרה פעולה: ' + e.body, step_renamed: e => 'שם הפעולה שונה ל: ' + e.body,
-  handed_over: e => 'הועבר מ' + P(e.data.from).name + ' ל' + P(e.data.to).name, due_changed: e => 'התאריך שונה: ' + (fmtD(e.data.from) || 'ללא') + ' ← ' + (fmtD(e.data.to) || 'ללא'),
+  handed_over: e => 'הועבר מ' + P(e.data.from).name + ' ל' + P(e.data.to).name, due_changed: e => 'התאריך שונה: ' + (fmtD(e.data.from) || 'ללא') + ' ← ' + (fmtD(e.data.to) || 'ללא') + (e.data.reason ? ' · סיבה: ' + e.data.reason : ''),
   followup: e => 'פנייה שתועדה' + (e.body ? ': ' + e.body : ''), returned_to_owner: () => 'הוחזר לאחראי המשימה', task_done: () => 'המשימה הסתיימה', task_cancelled: e => 'המשימה בוטלה' + (e.body ? ': ' + e.body : ''),
   task_reopened: () => 'המשימה נפתחה מחדש', task_trashed: () => 'הועברה לסל המחזור', task_restored: () => 'שוחזרה מסל המחזור', task_renamed: e => 'שם המשימה שונה ל: ' + e.body,
   owner_changed: e => 'אחראי המשימה הוחלף ל' + P(e.data.to).name };
@@ -580,7 +597,7 @@ function renderDet() {
     on('#s_title', 'onchange', e => { const v = e.target.value.trim(); if (v && v !== act.title) upd({ p_title: v }, 'נשמר'); });
     on('#s_w', 'onchange', e => upd({ p_waiting_on: e.target.value.trim() }));
     on('#s_doer', 'onchange', e => upd({ p_doer: e.target.value }, 'הועבר ל' + P(e.target.value).name));
-    bindQuick(el, v => { if (!v && act.kind === 'waiting') { toast(ERR.waiting_needs_followup_date); return renderDet(); } upd({ p_due: v || null, p_clear_due: !v }, v ? 'נשמר: ' + fmtD(v) : 'נשמר: בלי תאריך'); });
+    bindQuick(el, v => { if (!v && act.kind === 'waiting') { toast(ERR.waiting_needs_followup_date); return renderDet(); } changeDue(t, act, v, renderDet); });
     on('#s_done', 'onclick', () => done(t));
     on('#s_fu', 'onclick', () => followupDialog(t, act));
   }
@@ -596,20 +613,42 @@ function renderDet() {
   on('#a_restore', 'onclick', () => call('trash_task', { p_task: t.id, p_restore: true }, 'שוחזר'));
 }
 // פתיחת משימה עם כל הפרטים (רשות). ההוספה המהירה נשארת שורה אחת + Enter.
+// רשימה שמודבקת או נכתבת בכמה שורות: כל שורה היא משימה. תבליטים ומספור בתחילת השורה מוסרים.
+const taskLines = tx => String(tx || '').split(/\r?\n/).map(x => x.replace(/^\s*(?:[-*•·▪◦]|\d{1,3}[.)])\s*/, '').trim()).filter(Boolean);
+// שינוי תאריך של פעולה. מי שאינו מנהל המרחב או אחראי המשימה חייב לכתוב סיבה, והיא נשמרת בהיסטוריה.
+function changeDue(t, step, v, onCancel) {
+  v = v || null; if (v === (step.due_date || null)) return;
+  const go = why => call('update_step', Object.assign({ p_step: step.id, p_version: step.version, p_due: v, p_clear_due: !v }, why ? { p_reason: why } : {}), v ? 'נשמר: ' + fmtD(v) : 'נשמר: בלי תאריך').catch(() => { if (onCancel) onCancel(); });
+  if (isPersonal(t.space_id) || iOwn(t) || !step.due_date) return go();
+  const cancel = () => { closeDialog(); if (onCancel) onCancel(); };
+  dialog(`<h2>למה התאריך משתנה?</h2><p>${esc(t.title)}<br>${fmtD(step.due_date)} ← ${v ? fmtD(v) : 'בלי תאריך'}</p>
+    <div class="f"><label>הסיבה (תירשם בהיסטוריה של המשימה)</label><textarea id="rs_t" rows="3" maxlength="500" placeholder="למשל: הלקוח ביקש לדחות לשבוע הבא"></textarea></div>
+    <div class="btns"><button class="pri" id="ok">שמירה</button><button id="no">ביטול</button></div>`, dlg => {
+    $('#modal .ovl').onmousedown = e => { if (e.target === e.currentTarget) cancel(); };
+    $('#rs_t', dlg).focus(); $('#no', dlg).onclick = cancel;
+    $('#ok', dlg).onclick = () => { const r = $('#rs_t', dlg).value.trim(); if (r.length < 2) return toast(ERR.reason_required); closeDialog(); go(r); }; });
+}
 function newTaskDialog(o) {
-  const st = { space: o.space, waiting: false };
+  const st = { space: o.space, waiting: false, multi: !!o.multi };
   dialog(`<h2>משימה חדשה</h2>
-    <div class="f"><label>שם המשימה</label><input type="text" id="nt_t" value="${esc(o.title || '')}"></div>
+    <div class="f"><label id="nt_tl"></label><div id="nt_tw"></div><span class="lnk" id="nt_multi"></span></div>
     <div class="f"><label>מרחב</label><select id="nt_s">${S.spaces.map(x => `<option value="${x.id}" ${x.id === o.space ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></div>
     <div class="f"><label>הצעד הראשון</label><div class="quick"><span class="chip" data-k="a">פעולה</span><span class="chip" data-k="w">ממתין ל…</span></div></div>
     <div id="nt_f"></div>
-    <div class="f"><label>הערה (רשות)</label><textarea id="nt_n" rows="2" placeholder="פירוט, רקע, מספר תיק…"></textarea></div>
+    <div class="f" id="nt_nw"><label>הערה (רשות)</label><textarea id="nt_n" rows="2" placeholder="פירוט, רקע, מספר תיק…"></textarea></div>
     <div class="btns"><button class="pri" id="ok">הוספה</button><button id="no">ביטול</button></div>`, dlg => {
     const keep = {};
+    const okTxt = () => { const n = st.multi ? taskLines($('#nt_t', dlg).value).length : 1; $('#ok', dlg).textContent = n > 1 ? 'הוספת ' + n + ' משימות' : 'הוספה'; };
+    const drawTitle = val => { $('#nt_tl', dlg).textContent = st.multi ? 'רשימת משימות – כל שורה היא משימה נפרדת' : 'שם המשימה';
+      $('#nt_tw', dlg).innerHTML = st.multi ? '<textarea id="nt_t" rows="6" placeholder="להתקשר לספק&#10;להכין דוח חודשי&#10;לשלוח חשבונית"></textarea>' : '<input type="text" id="nt_t">';
+      const el = $('#nt_t', dlg); el.value = st.multi ? val : taskLines(val)[0] || ''; el.oninput = okTxt;
+      el.onpaste = e => { if (st.multi) return; const tx = (e.clipboardData || window.clipboardData).getData('text'); if (taskLines(tx).length > 1) { e.preventDefault(); st.multi = true; drawTitle(tx); draw(); $('#nt_t', dlg).focus(); } };
+      $('#nt_multi', dlg).textContent = st.multi ? 'חזרה למשימה אחת' : 'כמה משימות בבת אחת…'; $('#nt_nw', dlg).classList.toggle('hid', st.multi); okTxt(); };
+    $('#nt_multi', dlg).onclick = () => { const cur = $('#nt_t', dlg).value; st.multi = !st.multi; drawTitle(cur); draw(); $('#nt_t', dlg).focus(); };
     const draw = () => { const sp = st.space, solo = isPersonal(sp), projs = S.projects.filter(x => x.space_id === sp && x.state !== 'closed');
       ['nt_st', 'nt_w', 'nt_due', 'nt_fin'].forEach(i => { const e = $('#' + i, dlg); if (e) keep[i] = e.value; });
       $('#nt_f', dlg).innerHTML = `
-        <div class="f"><label>${st.waiting ? 'למה מחכים?' : 'מה הפעולה הראשונה? (אם שונה משם המשימה)'}</label><input type="text" id="nt_st" value="${esc(keep.nt_st || '')}" placeholder="${st.waiting ? 'למשל: אישור הוועדה' : 'למשל: להכין טיוטה'}"></div>
+        ${st.multi ? '' : `<div class="f"><label>${st.waiting ? 'למה מחכים?' : 'מה הפעולה הראשונה? (אם שונה משם המשימה)'}</label><input type="text" id="nt_st" value="${esc(keep.nt_st || '')}" placeholder="${st.waiting ? 'למשל: אישור הוועדה' : 'למשל: להכין טיוטה'}"></div>`}
         ${st.waiting ? `<div class="f"><label>על מי מחכים?</label><input type="text" id="nt_w" value="${esc(keep.nt_w || '')}" placeholder="שם הגורם"></div>` : ''}
         ${solo ? '' : `<div class="f"><label>${st.waiting ? 'מי עוקב' : 'מבצע'}</label><select id="nt_d">${peopleOpts(sp, (S.people.find(x => x.id === o.doer && x.space_id === sp) || {}).id || myPerson(sp))}</select></div>`}
         <div class="f"><label>${st.waiting ? 'תאריך מעקב (חובה)' : 'עד מתי'}</label>${quick('nt_due', keep.nt_due != null ? keep.nt_due : (o.due || ''))}</div>
@@ -618,13 +657,19 @@ function newTaskDialog(o) {
       bindQuick($('#nt_f', dlg)); dlg.querySelectorAll('[data-k]').forEach(c => c.classList.toggle('on', (c.dataset.k === 'w') === st.waiting)); };
     dlg.querySelectorAll('[data-k]').forEach(c => c.onclick = () => { st.waiting = c.dataset.k === 'w'; draw(); if (st.waiting && !$('#nt_due', dlg).value) { $('#nt_due', dlg).value = plusW(7); bindQuick($('#nt_f', dlg)); } });
     $('#nt_s', dlg).onchange = e => { st.space = e.target.value; draw(); };
-    draw(); $('#nt_t', dlg).focus(); $('#no', dlg).onclick = closeDialog;
+    drawTitle(o.title || ''); draw(); $('#nt_t', dlg).focus(); $('#no', dlg).onclick = closeDialog;
     $('#ok', dlg).onclick = async () => {
       const v = i => { const e = $('#' + i, dlg); return e ? e.value.trim() : ''; };
-      const title = v('nt_t'), due = v('nt_due') || null, note = v('nt_n');
+      const many = st.multi ? taskLines($('#nt_t', dlg).value) : [], title = many.length ? many[0] : v('nt_t'), due = v('nt_due') || null, note = st.multi ? '' : v('nt_n');
       if (!title) return toast('חסר שם למשימה');
+      if (many.length > 30) return toast('אפשר להוסיף עד 30 משימות בפעם אחת');
       if (st.waiting && !due) return toast(ERR.waiting_needs_followup_date);
+      const base = { p_space: st.space, p_doer: v('nt_d') || null, p_due: due, p_kind: st.waiting ? 'waiting' : 'action', p_waiting_on: st.waiting ? v('nt_w') || null : null, p_project: v('nt_p') || null, p_final_due: v('nt_fin') || null };
       closeDialog(); S.adding = false;
+      if (many.length > 1) { let n = 0;
+        try { for (const ln of many) { await api.rpc('create_task', Object.assign({ p_title: ln, p_request: uid() }, base)); n++; } await refresh(); toast('נוספו ' + n + ' משימות'); }
+        catch (e) { await refresh().catch(() => {}); toast((n ? 'נוספו ' + n + ' מתוך ' + many.length + '. ' : '') + errMsg(e)); }
+        return; }
       try { const id = await api.rpc('create_task', { p_space: st.space, p_title: title, p_step_title: v('nt_st') || null, p_doer: v('nt_d') || null, p_due: due, p_kind: st.waiting ? 'waiting' : 'action',
           p_waiting_on: st.waiting ? v('nt_w') || null : null, p_project: v('nt_p') || null, p_final_due: v('nt_fin') || null, p_request: uid() });
         if (note && id) await api.rpc('add_note', { p_task: id, p_body: note, p_request: uid() });
