@@ -161,7 +161,7 @@
 
       <div class="tabpanel grid2" role="tabpanel" id="panel-main" aria-labelledby="tab-main">
         <section class="card"><h2>זיהוי ומיקום</h2><dl class="fields">
-          ${row('מספר נכס', inp('asset_number', esc(a.asset_number), 'text', 'required inputmode="numeric"'))}
+          ${row('מספר נכס', esc(a.asset_number) + (E ? ' <span class="hint">(קבוע, לא ניתן לשינוי)</span>' : ''))}
           ${row('שם / תיאור', inp('name', esc(a.name), 'text', 'placeholder="למשל: גן ילדים של חני. בלי הכתובת"'))}
           ${E ? row('רחוב', inp('street')) + row('מספר בית', inp('house_number')) + row('הערת כתובת', inp('address_note', '', 'text', 'placeholder="למשל: בניין מס׳ 13"'))
               : row('כתובת', esc(a.address) + (a.address_note && !String(a.address || '').includes(a.address_note) ? ` <span class="hint">(${esc(a.address_note)})</span>` : ''))}
