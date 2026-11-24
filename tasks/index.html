@@ -82,6 +82,9 @@ select.chip{width:auto;padding:3px 8px}
 .star{flex:none;padding:2px 6px;font-size:17px;color:#9aa0a6}.star.on{color:var(--acc)}
 .grp{padding:12px 20px 4px;font-size:12.5px;color:var(--mut);cursor:pointer;user-select:none}
 .empty{padding:36px 20px 44px;text-align:center;color:var(--mut)}
+.fl{margin-inline-end:5px}.fl.hi{color:var(--red)}.fl.lo{color:#9aa0a6}
+.row{border-inline-start:3px solid transparent}.row.p-hi{border-inline-start-color:var(--red)}.row.p-lo .t{color:var(--mut)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
 .card.wide{max-width:1180px}
 .trow{display:grid;grid-template-columns:22px minmax(0,2.4fr) minmax(0,1fr) minmax(0,1.1fr) minmax(0,1fr) 128px 104px;gap:10px;align-items:center;padding:6px 16px;font-size:13.5px;border-top:1px solid var(--line);border-inline-start:4px solid transparent}
 .trow > div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -204,7 +207,7 @@ const ERR = { reason_required: 'צריך לכתוב סיבה לשינוי התא
 const errMsg = e => { const m = String(e && e.message || e); for (const k in ERR) if (m.includes(k)) return ERR[k]; return 'משהו השתבש: ' + m; };
 
 const S = { me: null, profile: null, spaces: [], members: [], people: [], projects: [], board: [], profiles: [], invites: [], recs: [], feedback: [], delreqs: [], q: '', adv: false, cal: { y: new Date().getFullYear(), m: new Date().getMonth(), day: null, mine: false },
-  view: 'mine', space: null, sel: null, det: null, f: { who: '', overdue: false, when: '', project: '', status: '', owner: '', from: '', to: '' }, showDone: false, showNod: true, showTl: false, adding: false, demo: false };
+  view: 'mine', space: null, sel: null, det: null, f: { who: '', overdue: false, when: '', project: '', status: '', owner: '', from: '', to: '', prio: '', sort: '' }, showDone: false, showNod: true, showTl: false, adding: false, demo: false };
 let api;
 
 /* ------------------------------------------------------------ שרת אמיתי */
@@ -247,6 +250,9 @@ const spaceOf = id => S.spaces.find(s => s.id === id) || {};
 const myPerson = sp => (S.people.find(p => p.space_id === sp && p.user_id === S.me) || {}).id;
 const iManage = sp => S.members.some(m => m.space_id === sp && m.user_id === S.me && m.role === 'manager');
 const iOwn = t => P(t.owner_id).user_id === S.me || iManage(t.space_id);
+// רמת דחיפות: 1 גבוהה, 0 רגילה, -1 נמוכה
+const PRN = { 1: 'גבוהה', 0: 'רגילה', '-1': 'נמוכה' };
+const flag = t => t.priority === 1 ? '<span class="fl hi" title="דחיפות גבוהה">⚑</span>' : t.priority === -1 ? '<span class="fl lo" title="דחיפות נמוכה">⚐</span>' : '';
 const waitMe = t => t.status === 'waiting' && !!t.waiting_person_id && P(t.waiting_person_id).user_id === S.me;   // מחכים לתשובה ממני
 const isPersonal = sp => spaceOf(sp).kind === 'personal';   // מרחב אישי: רק משימה ו"בוצע", בלי אחראי ומבצע
 const personal = () => (S.spaces.find(s => s.kind === 'personal') || S.spaces[0] || {}).id;
@@ -271,6 +277,7 @@ function passF(t) {
   if (f.who && t.doer_id !== f.who && !(P(t.doer_id).user_id && P(t.doer_id).user_id === P(f.who).user_id)) return false;
   if (f.overdue && !t.overdue) return false;
   if (f.project && t.project_id !== f.project) return false;
+  if (f.prio && String(t.priority || 0) !== f.prio) return false;
   if (f.when === 'today' && t.due_date !== today()) return false;
   if (f.when === 'week' && !(t.due_date && t.due_date <= plus(7))) return false;
   if (f.when === 'none' && t.due_date) return false;
@@ -286,7 +293,7 @@ function matchQ(t) {
   const hay = [t.title, t.step_title, t.waiting_on, t.entity, P(t.owner_id).name, t.doer_id ? P(t.doer_id).name : '', (S.projects.find(p => p.id === t.project_id) || {}).name, spaceOf(t.space_id).name].filter(Boolean).join(' \n ').toLowerCase();
   return q.split(/\s+/).every(w => hay.includes(w));
 }
-const sortT = (a, b) => (!a.due_date - !b.due_date) * -1 || (a.due_date ? a.due_date.localeCompare(b.due_date) || a.created_at.localeCompare(b.created_at) : b.created_at.localeCompare(a.created_at));
+const sortT = (a, b) => (!a.due_date - !b.due_date) * -1 || (a.due_date ? a.due_date.localeCompare(b.due_date) || a.created_at.localeCompare(b.created_at) : ((b.priority || 0) - (a.priority || 0)) || b.created_at.localeCompare(a.created_at));
 
 /* ------------------------------------------------------------ פעולות */
 async function call(fn, args, okMsg) {
@@ -403,13 +410,13 @@ function rowHtml(t) {
   if (!S.space && sp.kind !== 'personal') chips.push(`<span class="chip plain" title="המרחב שהמשימה שייכת אליו">${esc(sp.name)}</span>`);
   if (t.project_id) chips.push(`<span class="chip plain" title="הפרויקט שהמשימה שייכת אליו">📁 ${esc((S.projects.find(p => p.id === t.project_id) || {}).name || '')}</span>`);
   if (t.planned_steps) chips.push(`<span class="chip plain" title="פעולות שכבר תוכננו לאחר הפעולה הנוכחית">+${t.planned_steps} בהמשך</span>`);
-  return `<div class="row ${fin ? 'fin' : ''} ${S.sel === t.id ? 'sel' : ''}" data-id="${t.id}">
+  return `<div class="row ${fin ? 'fin' : t.priority === 1 ? 'p-hi' : t.priority === -1 ? 'p-lo' : ''} ${S.sel === t.id ? 'sel' : ''}" data-id="${t.id}">
     <button class="ck ${fin ? 'done' : ''} ${t.status === 'waiting' ? 'wait' : ''}" data-ck title="${fin ? 'פתח מחדש' : t.status === 'undecided' ? 'קבע צעד הבא' : 'סמן כבוצע'}">✓</button>
-    <div class="tx"><div class="t">${esc(t.title)}</div>${other && !fin ? `<div class="s">▸ ${esc(t.step_title)}</div>` : ''}${chips.length ? `<div class="m">${chips.join('')}</div>` : ''}</div>
+    <div class="tx"><div class="t">${fin ? '' : flag(t)}${esc(t.title)}</div>${other && !fin ? `<div class="s">▸ ${esc(t.step_title)}</div>` : ''}${chips.length ? `<div class="m">${chips.join('')}</div>` : ''}</div>
     ${fin || t.deleted_at ? '' : `<button class="star ${t.my_day ? 'on' : ''}" data-star title="לעבוד עליו היום">${t.my_day ? '★' : '☆'}</button>`}</div>`;
 }
 // תצוגת טבלה: שורה אחת למשימה, ממוינת לפי דחיפות, עם פס צבע לפי מצב. אותה רשימה, בצפיפות אחרת.
-const sortU = (a, b) => (b.overdue - a.overdue) || (!a.due_date - !b.due_date) || (a.due_date ? a.due_date.localeCompare(b.due_date) || a.created_at.localeCompare(b.created_at) : b.created_at.localeCompare(a.created_at));
+const sortU = (a, b) => (b.overdue - a.overdue) || (!a.due_date - !b.due_date) || (a.due_date ? a.due_date.localeCompare(b.due_date) || a.created_at.localeCompare(b.created_at) : ((b.priority || 0) - (a.priority || 0)) || b.created_at.localeCompare(a.created_at));
 const tHead = () => `<div class="trow th"><div></div><div>משימה</div><div>אחראי</div><div>אצל מי</div><div>${S.space ? 'פרויקט' : 'מרחב'}</div><div>תאריך</div><div>מצב</div></div>`;
 function trowHtml(t) {
   const fin = t.state !== 'open', sp = spaceOf(t.space_id), pers = sp.kind === 'personal', other = t.step_title && t.step_title !== t.title;
@@ -418,7 +425,7 @@ function trowHtml(t) {
   const grp = S.space ? (S.projects.find(p => p.id === t.project_id) || {}).name || '' : pers ? 'אישי' : sp.name;
   return `<div class="row trow ${st[0] ? 's-' + st[0] : ''} ${fin ? 'fin' : ''} ${S.sel === t.id ? 'sel' : ''}" data-id="${t.id}">
     <button class="ck ${fin ? 'done' : ''} ${t.status === 'waiting' ? 'wait' : ''}" data-ck title="${fin ? 'פתח מחדש' : t.status === 'undecided' ? 'קבע צעד הבא' : 'סמן כבוצע'}">✓</button>
-    <div title="${esc(t.title)}${other ? ' ▸ ' + esc(t.step_title) : ''}">${esc(t.title)}${other && !fin ? ` <span class="mu">▸ ${esc(t.step_title)}</span>` : ''}</div>
+    <div title="${esc(t.title)}${other ? ' ▸ ' + esc(t.step_title) : ''}">${fin ? '' : flag(t)}${esc(t.title)}${other && !fin ? ` <span class="mu">▸ ${esc(t.step_title)}</span>` : ''}</div>
     <div>${pers ? '' : esc(P(t.owner_id).name)}</div><div title="${esc(who)}">${esc(who)}</div><div>${esc(grp)}</div>
     <div class="${t.overdue ? 'd-red' : ''}">${t.due_date && !fin ? fmtD(t.due_date) : ''}</div><div>${st[1] ? `<span class="chip plain ${st[0] === 'acc' ? 'on' : st[0]}">${st[1]}</span>` : ''}</div></div>`;
 }
@@ -431,7 +438,8 @@ function renderList() {
   const v = VIEWS.find(x => x[0] === S.view), sp = S.space ? spaceOf(S.space) : null, searching = !!S.q.trim();
   const rows = S.board.filter(t => (searching ? (S.view === 'trash' ? !!t.deleted_at : !t.deleted_at) : inView(t, S.view)) && inSpace(t) && passF(t) && matchQ(t)).sort(S.view === 'done' || S.view === 'trash' ? (a, b) => b.updated_at.localeCompare(a.updated_at) : sortT);
   const canAdd = !['done', 'trash'].includes(S.view), addSp = S.space || personal();
-  const tableOn = S.table && !narrow(); if (tableOn && !['done', 'trash'].includes(S.view)) rows.sort(sortU); $('#list').classList.toggle('wide', tableOn);
+  const tableOn = S.table && !narrow(); if (tableOn && !['done', 'trash'].includes(S.view)) rows.sort(sortU);
+  if (S.f.sort === 'prio' && !['done', 'trash'].includes(S.view)) { const base = tableOn ? sortU : sortT; rows.sort((a, b) => ((b.priority || 0) - (a.priority || 0)) || base(a, b)); } $('#list').classList.toggle('wide', tableOn);
   const split = ['mine', 'all'].includes(S.view) && !searching && !tableOn, dated = split ? rows.filter(t => t.due_date) : rows, nod = split ? rows.filter(t => !t.due_date) : [], twoCol = nod.length > 0 && wide() && !S.sel;
   const whoList = S.space ? S.people.filter(p => p.space_id === S.space && p.active) : S.people.filter((p, i, a) => p.user_id && p.active && a.findIndex(x => x.user_id === p.user_id) === i);
   const projs = S.projects.filter(p => !S.space || p.space_id === S.space);
@@ -442,6 +450,8 @@ function renderList() {
       ${S.space && isPersonal(S.space) ? '' : `<select class="chip ${f.who ? 'on' : ''}" id="f_who"><option value="">כל העובדים</option>${whoList.map(p => `<option value="${p.id}" ${f.who === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>`}
       <span class="chip ${f.overdue ? 'on' : ''}" id="f_over">באיחור</span>
       <select class="chip ${f.when ? 'on' : ''}" id="f_when"><option value="">כל התאריכים</option><option value="today" ${f.when === 'today' ? 'selected' : ''}>היום</option><option value="week" ${f.when === 'week' ? 'selected' : ''}>עד שבוע</option><option value="none" ${f.when === 'none' ? 'selected' : ''}>בלי תאריך</option></select>
+      <select class="chip ${f.prio ? 'on' : ''}" id="f_prio" title="סינון לפי רמת דחיפות"><option value="">כל הדחיפויות</option><option value="1" ${f.prio === '1' ? 'selected' : ''}>⚑ גבוהה</option><option value="0" ${f.prio === '0' ? 'selected' : ''}>רגילה</option><option value="-1" ${f.prio === '-1' ? 'selected' : ''}>⚐ נמוכה</option></select>
+      <select class="chip ${f.sort ? 'on' : ''}" id="f_sort" title="סדר הרשימה"><option value="">מיון: תאריך</option><option value="prio" ${f.sort === 'prio' ? 'selected' : ''}>מיון: דחיפות</option></select>
       ${projs.length ? `<select class="chip ${f.project ? 'on' : ''}" id="f_proj"><option value="">כל הפרויקטים</option>${projs.map(p => `<option value="${p.id}" ${f.project === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>` : ''}
       <span class="chip ${S.adv || advOn ? 'on' : ''}" id="f_adv" title="מצב, אחראי משימה וטווח תאריכים">סינון מתקדם ${S.adv ? '▾' : '◂'}</span>
     </div>${S.adv ? `<div class="filters" style="padding-top:0">
@@ -473,6 +483,8 @@ function renderList() {
   on('#f_who', 'onchange', e => { f.who = e.target.value; renderList(); });
   on('#f_when', 'onchange', e => { f.when = e.target.value; renderList(); });
   on('#f_proj', 'onchange', e => { f.project = e.target.value; renderList(); });
+  on('#f_prio', 'onchange', e => { f.prio = e.target.value; renderList(); });
+  on('#f_sort', 'onchange', e => { f.sort = e.target.value; renderList(); });
   on('#f_over', 'onclick', () => { f.overdue = !f.overdue; renderList(); });
   on('#tgDone', 'onclick', () => { S.showDone = !S.showDone; renderList(); });
   on('#tgNod', 'onclick', () => { S.showNod = !S.showNod; renderList(); });
@@ -583,7 +595,8 @@ async function openTask(id) { S.sel = id; S.showTl = false; try { S.det = await 
 
 const EV = { task_created: () => 'המשימה נוצרה', step_started: e => 'נפתחה פעולה: ' + e.body + (e.data && e.data.doer ? ' · אצל ' + P(e.data.doer).name : ''), step_planned: e => 'תוכננה פעולה: ' + e.body,
   step_done: e => 'בוצע: ' + e.body, step_undone: e => 'בוטל הסימון: ' + e.body, step_dropped: e => 'הוסרה פעולה: ' + e.body, step_renamed: e => 'שם הפעולה שונה ל: ' + e.body,
-  handed_over: e => 'הועבר מ' + P(e.data.from).name + ' ל' + P(e.data.to).name, due_changed: e => 'התאריך שונה: ' + (fmtD(e.data.from) || 'ללא') + ' ← ' + (fmtD(e.data.to) || 'ללא') + (e.data.reason ? ' · סיבה: ' + e.data.reason : ''),
+  handed_over: e => 'הועבר מ' + P(e.data.from).name + ' ל' + P(e.data.to).name, priority_changed: e => 'הדחיפות שונתה: ' + (PRN[e.data.from] || '') + ' ← ' + (PRN[e.data.to] || ''),
+  due_changed: e => 'התאריך שונה: ' + (fmtD(e.data.from) || 'ללא') + ' ← ' + (fmtD(e.data.to) || 'ללא') + (e.data.reason ? ' · סיבה: ' + e.data.reason : ''),
   followup: e => 'פנייה שתועדה' + (e.body ? ': ' + e.body : ''), returned_to_owner: () => 'הוחזר לאחראי המשימה', task_done: () => 'המשימה הסתיימה', task_cancelled: e => 'המשימה בוטלה' + (e.body ? ': ' + e.body : ''),
   task_reopened: () => 'המשימה נפתחה מחדש', task_trashed: () => 'הועברה לסל המחזור', task_restored: () => 'שוחזרה מסל המחזור', task_renamed: e => 'שם המשימה שונה ל: ' + e.body,
   owner_changed: e => 'אחראי המשימה הוחלף ל' + P(e.data.to).name };
@@ -599,6 +612,7 @@ function renderDet() {
       ${open ? `<button class="star ${t.my_day ? 'on' : ''}" id="d_star" title="לעבוד עליו היום">${t.my_day ? '★' : '☆'}</button>` : ''}<button class="out sm" id="d_x">סגור ✕</button></div>
     <textarea class="title" id="d_title" rows="1" ${open ? '' : 'readonly'}>${esc(t.title)}</textarea>
     <div class="kv">${solo ? '' : `<span>אחראי משימה</span><select id="d_owner" ${own && open ? '' : 'disabled'}>${peopleOpts(sp, t.owner_id)}</select>`}
+      <span>דחיפות</span>${own && open ? `<div class="seg">${[[1, '⚑ גבוהה'], [0, 'רגילה'], [-1, '⚐ נמוכה']].map(x => `<span class="chip ${(t.priority || 0) === x[0] ? 'on' : ''}" data-pr="${x[0]}">${x[1]}</span>`).join('')}</div>` : `<span>${flag(t)}${PRN[t.priority || 0]}</span>`}
       <span>יעד סופי</span><input type="date" id="d_final" value="${t.final_due || ''}" ${open ? '' : 'disabled'}>
       ${projs.length || t.project_id ? `<span>פרויקט</span><select id="d_proj" ${open ? '' : 'disabled'}><option value="">ללא</option>${projs.map(p => `<option value="${p.id}" ${p.id === t.project_id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>` : ''}</div>
     ${t.deleted_at ? '<div class="box wt">המשימה בסל המחזור</div>' : t.state === 'done' ? '<div class="box">המשימה הסתיימה</div>' : t.state === 'cancelled' ? '<div class="box">המשימה בוטלה</div>' : ''}
@@ -626,6 +640,7 @@ function renderDet() {
   const ta = $('#d_title', el); const fit = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }; fit(); ta.oninput = fit;
   ta.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); ta.blur(); } };
   ta.onchange = () => { const v = ta.value.trim(); if (v && v !== t.title) call('update_task', { p_task: t.id, p_version: t.version, p_title: v }); };
+  el.querySelectorAll('[data-pr]').forEach(x => x.onclick = () => { const p = Number(x.dataset.pr); if (p !== (t.priority || 0)) call('set_task_priority', { p_task: t.id, p_priority: p }, 'דחיפות: ' + PRN[p]).catch(() => {}); });
   on('#d_x', 'onclick', () => { S.sel = null; S.det = null; render(); });
   on('#d_star', 'onclick', () => call('set_my_day', { p_task: t.id, p_on: !t.my_day }));
   on('#d_owner', 'onchange', e => call('update_task', { p_task: t.id, p_version: t.version, p_owner: e.target.value }, 'אחראי המשימה הוחלף'));
@@ -674,9 +689,11 @@ function newTaskDialog(o) {
     <div class="f"><label>מרחב</label><select id="nt_s">${S.spaces.map(x => `<option value="${x.id}" ${x.id === o.space ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></div>
     <div class="f"><label>הצעד הראשון</label><div class="quick"><span class="chip" data-k="a">פעולה</span><span class="chip" data-k="w">ממתין ל…</span></div></div>
     <div id="nt_f"></div>
+    <div class="f"><label>דחיפות</label><div class="seg" id="nt_pr"></div></div>
     <div class="f" id="nt_nw"><label>הערה (רשות)</label><textarea id="nt_n" rows="2" placeholder="פירוט, רקע, מספר תיק…"></textarea></div>
     <div class="btns"><button class="pri" id="ok">הוספה</button><button id="no">ביטול</button></div>`, dlg => {
     const keep = {};
+    const drawPr = () => { $('#nt_pr', dlg).innerHTML = `${[[1, '⚑ גבוהה'], [0, 'רגילה'], [-1, '⚐ נמוכה']].map(x => `<span class="chip ${(st.prio || 0) === x[0] ? 'on' : ''}" data-np="${x[0]}">${x[1]}</span>`).join('')}`; $('#nt_pr', dlg).querySelectorAll('[data-np]').forEach(x => x.onclick = () => { st.prio = Number(x.dataset.np); drawPr(); }); }; drawPr();
     const okTxt = () => { const n = st.multi ? taskLines($('#nt_t', dlg).value).length : 1; $('#ok', dlg).textContent = n > 1 ? 'הוספת ' + n + ' משימות' : 'הוספה'; };
     const drawTitle = val => { $('#nt_tl', dlg).textContent = st.multi ? 'רשימת משימות – כל שורה היא משימה נפרדת' : 'שם המשימה';
       $('#nt_tw', dlg).innerHTML = st.multi ? '<textarea id="nt_t" rows="6" placeholder="להתקשר לספק&#10;להכין דוח חודשי&#10;לשלוח חשבונית"></textarea>' : '<input type="text" id="nt_t">';
@@ -706,12 +723,13 @@ function newTaskDialog(o) {
       const base = { p_space: st.space, p_doer: v('nt_d') || null, p_due: due, p_kind: st.waiting ? 'waiting' : 'action', p_waiting_on: st.waiting ? v('nt_w') || null : null, p_project: v('nt_p') || null, p_final_due: v('nt_fin') || null };
       closeDialog(); S.adding = false;
       if (many.length > 1) { let n = 0;
-        try { for (const ln of many) { await api.rpc('create_task', Object.assign({ p_title: ln, p_request: uid() }, base)); n++; } await refresh(); toast('נוספו ' + n + ' משימות'); }
+        try { for (const ln of many) { const nid = await api.rpc('create_task', Object.assign({ p_title: ln, p_request: uid() }, base)); if (st.prio && nid) await api.rpc('set_task_priority', { p_task: nid, p_priority: st.prio }); n++; } await refresh(); toast('נוספו ' + n + ' משימות'); }
         catch (e) { await refresh().catch(() => {}); toast((n ? 'נוספו ' + n + ' מתוך ' + many.length + '. ' : '') + errMsg(e)); }
         return; }
       try { const id = await api.rpc('create_task', { p_space: st.space, p_title: title, p_step_title: v('nt_st') || null, p_doer: v('nt_d') || null, p_due: due, p_kind: st.waiting ? 'waiting' : 'action',
           p_waiting_on: st.waiting ? v('nt_w') || null : null, p_project: v('nt_p') || null, p_final_due: v('nt_fin') || null, p_request: uid() });
         if (note && id) await api.rpc('add_note', { p_task: id, p_body: note, p_request: uid() });
+        if (st.prio && id) await api.rpc('set_task_priority', { p_task: id, p_priority: st.prio });
         await refresh(); toast('המשימה נוספה'); } catch (e) { toast(errMsg(e)); await refresh().catch(() => {}); }
     };
   });
