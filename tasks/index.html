@@ -82,6 +82,14 @@ select.chip{width:auto;padding:3px 8px}
 .star{flex:none;padding:2px 6px;font-size:17px;color:#9aa0a6}.star.on{color:var(--acc)}
 .grp{padding:12px 20px 4px;font-size:12.5px;color:var(--mut);cursor:pointer;user-select:none}
 .empty{padding:36px 20px 44px;text-align:center;color:var(--mut)}
+.card.wide{max-width:1180px}
+.trow{display:grid;grid-template-columns:22px minmax(0,2.4fr) minmax(0,1fr) minmax(0,1.1fr) minmax(0,1fr) 128px 104px;gap:10px;align-items:center;padding:6px 16px;font-size:13.5px;border-top:1px solid var(--line);border-inline-start:4px solid transparent}
+.trow > div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trow.th{font-size:12px;color:var(--mut);border-top:0;padding-top:10px}
+.trow .ck{margin-top:0}.trow .mu{color:var(--mut)}
+.trow.s-red{border-inline-start-color:var(--red)}.trow.s-amb{border-inline-start-color:#e8a000}.trow.s-acc{border-inline-start-color:var(--acc)}
+.trow .d-red{color:var(--red);font-weight:600}
+@media (max-width:900px){#tg_tbl{display:none}}
 #nod{flex:none;width:330px;max-width:none;position:sticky;top:0;max-height:calc(100vh - 28px);overflow:auto}
 #nod h1{font-size:15px}
 #nod .row{padding-inline:14px}
@@ -165,6 +173,7 @@ select.chip{width:auto;padding:3px 8px}
 </div>
 <div id="toast" class="hid"></div>
 <div id="modal"></div>
+<datalist id="wo_dl"></datalist>
 <script src="config.js"></script>
 <script src="../js/supabase.umd.js"></script>
 <script>
@@ -238,6 +247,7 @@ const spaceOf = id => S.spaces.find(s => s.id === id) || {};
 const myPerson = sp => (S.people.find(p => p.space_id === sp && p.user_id === S.me) || {}).id;
 const iManage = sp => S.members.some(m => m.space_id === sp && m.user_id === S.me && m.role === 'manager');
 const iOwn = t => P(t.owner_id).user_id === S.me || iManage(t.space_id);
+const waitMe = t => t.status === 'waiting' && !!t.waiting_person_id && P(t.waiting_person_id).user_id === S.me;   // מחכים לתשובה ממני
 const isPersonal = sp => spaceOf(sp).kind === 'personal';   // מרחב אישי: רק משימה ו"בוצע", בלי אחראי ומבצע
 const personal = () => (S.spaces.find(s => s.kind === 'personal') || S.spaces[0] || {}).id;
 const peopleOpts = (sp, sel) => S.people.filter(p => p.space_id === sp && (p.active || p.id === sel)).sort((a, b) => (b.user_id === S.me) - (a.user_id === S.me))
@@ -249,7 +259,7 @@ function inView(t, v) {
   if (t.deleted_at) return false;
   if (v === 'done') return t.state !== 'open';
   if (t.state !== 'open') return false;
-  if (v === 'mine') return t.status === 'undecided' ? P(t.owner_id).user_id === S.me : P(t.doer_id).user_id === S.me;
+  if (v === 'mine') return t.status === 'undecided' ? P(t.owner_id).user_id === S.me : P(t.doer_id).user_id === S.me || waitMe(t);
   if (v === 'day') return t.my_day;
   if (v === 'waiting') return t.status === 'waiting';
   if (v === 'undecided') return t.status === 'undecided';
@@ -327,7 +337,7 @@ function whatNow(t) {
 // טופס פעולה: כותרת, מבצע, תאריך עם כפתורים מהירים
 function stepForm(sp, o = {}) {
   return `<div class="f"><label>${o.waiting ? 'למה מחכים?' : 'מה הפעולה?'}</label><input type="text" id="sf_t" value="${esc(o.title || '')}" placeholder="${o.waiting ? 'למשל: אישור הוועדה' : 'למשל: לשלוח טיוטה ללקוח'}"></div>
-  ${o.waiting ? `<div class="f"><label>על מי מחכים?</label><input type="text" id="sf_w" value="${esc(o.waiting_on || '')}" placeholder="שם הגורם"></div>` : (isPersonal(sp) ? '' : `<div class="f"><label>מבצע</label><select id="sf_d">${peopleOpts(sp, o.doer)}</select></div>`)}
+  ${o.waiting ? `<div class="f"><label>על מי מחכים?</label><input type="text" id="sf_w" value="${esc(o.waiting_on || '')}" placeholder="שם הגורם, או עובד מהרשימה" list="wo_dl" data-wo="${sp}" autocomplete="off"></div>` : (isPersonal(sp) ? '' : `<div class="f"><label>מבצע</label><select id="sf_d">${peopleOpts(sp, o.doer)}</select></div>`)}
   <div class="f"><label>${o.waiting ? 'תאריך מעקב (חובה)' : 'עד מתי'}</label>${quick('sf_due', o.due || '')}</div>`;
 }
 const quick = (id, val, clear) => `<div class="quick" data-q="${id}"><span class="chip" data-d="${today()}">היום</span><span class="chip" data-d="${plus(1)}">מחר</span><span class="chip" data-d="${nextWeek()}">שבוע הבא</span><input type="date" id="${id}" value="${val}" title="בחירת תאריך אחר">${clear && val ? '<span class="chip" data-d="" title="המשימה תישאר בלי תאריך">הסר תאריך</span>' : ''}</div>`;
@@ -384,6 +394,7 @@ function rowHtml(t) {
   const fin = t.state !== 'open', sp = spaceOf(t.space_id), other = t.step_title && t.step_title !== t.title;
   const chips = [];
   if (t.due_date && !fin) chips.push(`<span class="chip plain ${t.overdue ? 'red' : ''}" title="${t.status === 'waiting' ? 'תאריך המעקב הבא' : 'עד מתי הפעולה'}${t.overdue ? ' – עבר' : ''}">${t.status === 'waiting' ? 'מעקב ' : ''}${fmtD(t.due_date)}</span>`);
+  if (waitMe(t)) chips.push('<span class="chip plain on" title="מישהו רשם שהוא מחכה לתשובה ממך">מחכים לתשובה ממך</span>');
   if (t.status === 'waiting') chips.push(`<span class="chip plain amb" title="על מי מחכים, וכמה פניות כבר תועדו">ממתין${t.waiting_on ? ': ' + esc(t.waiting_on) : ''}${t.followups ? ' · ' + t.followups + ' פניות' : ''}</span>`);
   if (t.status === 'undecided') chips.push('<span class="chip plain amb" title="אין פעולה פעילה. אחראי המשימה צריך לקבוע צעד הבא">לבירור – מה הצעד הבא?</span>');
   if (t.state === 'cancelled') chips.push('<span class="chip plain">בוטלה</span>');
@@ -397,6 +408,20 @@ function rowHtml(t) {
     <div class="tx"><div class="t">${esc(t.title)}</div>${other && !fin ? `<div class="s">▸ ${esc(t.step_title)}</div>` : ''}${chips.length ? `<div class="m">${chips.join('')}</div>` : ''}</div>
     ${fin || t.deleted_at ? '' : `<button class="star ${t.my_day ? 'on' : ''}" data-star title="לעבוד עליו היום">${t.my_day ? '★' : '☆'}</button>`}</div>`;
 }
+// תצוגת טבלה: שורה אחת למשימה, ממוינת לפי דחיפות, עם פס צבע לפי מצב. אותה רשימה, בצפיפות אחרת.
+const sortU = (a, b) => (b.overdue - a.overdue) || (!a.due_date - !b.due_date) || (a.due_date ? a.due_date.localeCompare(b.due_date) || a.created_at.localeCompare(b.created_at) : b.created_at.localeCompare(a.created_at));
+const tHead = () => `<div class="trow th"><div></div><div>משימה</div><div>אחראי</div><div>אצל מי</div><div>${S.space ? 'פרויקט' : 'מרחב'}</div><div>תאריך</div><div>מצב</div></div>`;
+function trowHtml(t) {
+  const fin = t.state !== 'open', sp = spaceOf(t.space_id), pers = sp.kind === 'personal', other = t.step_title && t.step_title !== t.title;
+  const st = fin ? ['', t.state === 'cancelled' ? 'בוטלה' : 'הסתיימה'] : t.overdue ? ['red', 'באיחור'] : waitMe(t) ? ['acc', 'מחכים לך'] : t.status === 'waiting' ? ['amb', 'ממתין'] : t.status === 'undecided' ? ['amb', 'לבירור'] : t.due_date === today() ? ['acc', 'היום'] : ['', ''];
+  const who = fin ? '' : t.status === 'waiting' ? 'ממתין: ' + (t.waiting_on || '') : t.status === 'undecided' ? '' : pers ? '' : P(t.doer_id).name;
+  const grp = S.space ? (S.projects.find(p => p.id === t.project_id) || {}).name || '' : pers ? 'אישי' : sp.name;
+  return `<div class="row trow ${st[0] ? 's-' + st[0] : ''} ${fin ? 'fin' : ''} ${S.sel === t.id ? 'sel' : ''}" data-id="${t.id}">
+    <button class="ck ${fin ? 'done' : ''} ${t.status === 'waiting' ? 'wait' : ''}" data-ck title="${fin ? 'פתח מחדש' : t.status === 'undecided' ? 'קבע צעד הבא' : 'סמן כבוצע'}">✓</button>
+    <div title="${esc(t.title)}${other ? ' ▸ ' + esc(t.step_title) : ''}">${esc(t.title)}${other && !fin ? ` <span class="mu">▸ ${esc(t.step_title)}</span>` : ''}</div>
+    <div>${pers ? '' : esc(P(t.owner_id).name)}</div><div title="${esc(who)}">${esc(who)}</div><div>${esc(grp)}</div>
+    <div class="${t.overdue ? 'd-red' : ''}">${t.due_date && !fin ? fmtD(t.due_date) : ''}</div><div>${st[1] ? `<span class="chip plain ${st[0] === 'acc' ? 'on' : st[0]}">${st[1]}</span>` : ''}</div></div>`;
+}
 // משימות בלי תאריך מוצגות בנפרד: במסך רחב בטור משלהן, ובמסך צר או כשמשימה פתוחה – כקבוצה מתחת למשימות עם התאריך.
 const wide = () => window.matchMedia('(min-width:1150px)').matches;
 function renderList() {
@@ -406,12 +431,13 @@ function renderList() {
   const v = VIEWS.find(x => x[0] === S.view), sp = S.space ? spaceOf(S.space) : null, searching = !!S.q.trim();
   const rows = S.board.filter(t => (searching ? (S.view === 'trash' ? !!t.deleted_at : !t.deleted_at) : inView(t, S.view)) && inSpace(t) && passF(t) && matchQ(t)).sort(S.view === 'done' || S.view === 'trash' ? (a, b) => b.updated_at.localeCompare(a.updated_at) : sortT);
   const canAdd = !['done', 'trash'].includes(S.view), addSp = S.space || personal();
-  const split = ['mine', 'all'].includes(S.view) && !searching, dated = split ? rows.filter(t => t.due_date) : rows, nod = split ? rows.filter(t => !t.due_date) : [], twoCol = nod.length > 0 && wide() && !S.sel;
+  const tableOn = S.table && !narrow(); if (tableOn && !['done', 'trash'].includes(S.view)) rows.sort(sortU); $('#list').classList.toggle('wide', tableOn);
+  const split = ['mine', 'all'].includes(S.view) && !searching && !tableOn, dated = split ? rows.filter(t => t.due_date) : rows, nod = split ? rows.filter(t => !t.due_date) : [], twoCol = nod.length > 0 && wide() && !S.sel;
   const whoList = S.space ? S.people.filter(p => p.space_id === S.space && p.active) : S.people.filter((p, i, a) => p.user_id && p.active && a.findIndex(x => x.user_id === p.user_id) === i);
   const projs = S.projects.filter(p => !S.space || p.space_id === S.space);
   const f = S.f;
   const advOn = f.status || f.owner || f.from || f.to, ownerList = whoList.filter(p => p.user_id);
-  $('#list').innerHTML = `<h1>${searching ? 'תוצאות חיפוש' : esc(v[1])} <small>${sp ? esc(sp.name) : 'כל המרחבים'}</small><span class="sp"></span>${sp && sp.kind === 'team' && !searching ? `<button class="out sm" id="sp_mng" title="חברים, הזמנות, פרויקטים והגדרות המרחב">⚙ ${iManage(sp.id) ? 'ניהול המרחב והוספת עובדים' : 'פרטי המרחב'}</button>` : ''}<input type="text" id="s_q" placeholder="🔍 חיפוש" value="${esc(S.q)}" style="width:150px;font-size:13px;padding:5px 10px;border-radius:16px" autocomplete="off"><small>${rows.length || ''}</small></h1>
+  $('#list').innerHTML = `<h1>${searching ? 'תוצאות חיפוש' : esc(v[1])} <small>${sp ? esc(sp.name) : 'כל המרחבים'}</small><span class="sp"></span>${sp && sp.kind === 'team' && !searching ? `<button class="out sm" id="sp_mng" title="חברים, הזמנות, פרויקטים והגדרות המרחב">⚙ ${iManage(sp.id) ? 'ניהול המרחב והוספת עובדים' : 'פרטי המרחב'}</button>` : ''}<button class="out sm" id="tg_tbl" title="${S.table ? 'חזרה לרשימה הרגילה' : 'טבלה: שורה אחת לכל משימה, לפי דחיפות'}">${S.table ? '☰ רשימה' : '▦ טבלה'}</button><input type="text" id="s_q" placeholder="🔍 חיפוש" value="${esc(S.q)}" style="width:150px;font-size:13px;padding:5px 10px;border-radius:16px" autocomplete="off"><small>${rows.length || ''}</small></h1>
     ${['done', 'trash'].includes(S.view) && !searching ? '' : `<div class="filters">
       ${S.space && isPersonal(S.space) ? '' : `<select class="chip ${f.who ? 'on' : ''}" id="f_who"><option value="">כל העובדים</option>${whoList.map(p => `<option value="${p.id}" ${f.who === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>`}
       <span class="chip ${f.overdue ? 'on' : ''}" id="f_over">באיחור</span>
@@ -427,7 +453,7 @@ function renderList() {
     </div>` : ''}`}
     ${canAdd && !searching ? `<div class="addbox"><label class="add"><span class="plus">＋</span><input type="text" id="q" placeholder="הוספת משימה${sp ? '' : ' (למרחב האישי)'}" autocomplete="off"></label>
       <div class="addx ${S.adding ? '' : 'hid'}" id="qx">${quick('q_due', '')}${isPersonal(addSp) ? '' : `<select class="chip" id="q_doer" title="מבצע">${peopleOpts(addSp, myPerson(addSp))}</select>`}<button class="pri sm" id="q_ok">הוספה</button><button class="sm" id="q_more" style="color:var(--acc)" title="פירוט המשימה כבר בפתיחה: מבצע, המתנה, פרויקט, הערה">עוד פרטים…</button></div></div>` : ''}
-    ${nod.length && !twoCol && dated.length ? '<div class="grp" style="cursor:default">עם תאריך (' + dated.length + ')</div>' : ''}${dated.length ? dated.map(rowHtml).join('') : nod.length ? (twoCol ? '<div class="empty">אין משימות עם תאריך</div>' : '') : `<div class="empty">${searching ? 'לא נמצאו משימות שמתאימות לחיפוש' : S.view === 'mine' ? 'אין אצלך כלום כרגע 🎉' : S.view === 'day' ? 'סמן ☆ ליד משימות שתרצה לעבוד עליהן היום' : 'אין כאן משימות'}</div>`}
+    ${nod.length && !twoCol && dated.length ? '<div class="grp" style="cursor:default">עם תאריך (' + dated.length + ')</div>' : ''}${dated.length ? (tableOn ? tHead() + dated.map(trowHtml).join('') : dated.map(rowHtml).join('')) : nod.length ? (twoCol ? '<div class="empty">אין משימות עם תאריך</div>' : '') : `<div class="empty">${searching ? 'לא נמצאו משימות שמתאימות לחיפוש' : S.view === 'mine' ? 'אין אצלך כלום כרגע 🎉' : S.view === 'day' ? 'סמן ☆ ליד משימות שתרצה לעבוד עליהן היום' : 'אין כאן משימות'}</div>`}
     ${nod.length && !twoCol ? `<div class="grp" id="tgNod">${S.showNod ? '▾' : '◂'} בלי תאריך (${nod.length})</div>${S.showNod ? nod.map(rowHtml).join('') : ''}` : ''}
     ${canAdd && S.view !== 'day' && !searching ? (() => { const d = S.board.filter(t => !t.deleted_at && t.state !== 'open' && inSpace(t) && (S.view !== 'mine' || iOwn(t))).sort((a, b) => b.updated_at.localeCompare(a.updated_at)).slice(0, 30);
       return d.length ? `<div class="grp" id="tgDone">${S.showDone ? '▾' : '◂'} הושלמו (${d.length})</div>${S.showDone ? d.map(rowHtml).join('') : ''}` : ''; })() : ''}`;
@@ -450,6 +476,7 @@ function renderList() {
   on('#f_over', 'onclick', () => { f.overdue = !f.overdue; renderList(); });
   on('#tgDone', 'onclick', () => { S.showDone = !S.showDone; renderList(); });
   on('#tgNod', 'onclick', () => { S.showNod = !S.showNod; renderList(); });
+  on('#tg_tbl', 'onclick', () => { S.table = !S.table; try { localStorage.setItem('myos_table', S.table ? '1' : '0'); } catch (e) {} renderList(); });
   on('#f_adv', 'onclick', () => { S.adv = !S.adv; renderList(); });
   on('#f_status', 'onchange', e => { f.status = e.target.value; renderList(); });
   on('#f_owner', 'onchange', e => { f.owner = e.target.value; renderList(); });
@@ -578,7 +605,8 @@ function renderDet() {
     ${open ? `<div class="lbl">${act ? (act.kind === 'waiting' ? 'ממתינים' : solo && !planned.length && !past.length ? 'מה לעשות' : 'הפעולה עכשיו') : 'לבירור'}</div>` : ''}
     ${open && act ? `<div class="box ${act.kind === 'waiting' ? 'wt' : 'act'}">
         <input type="text" id="s_title" value="${esc(act.title)}">
-        <div class="kv">${act.kind === 'waiting' ? `<span>על מי מחכים</span><input type="text" id="s_w" value="${esc(act.waiting_on || '')}">` : ''}
+        ${waitMe(t) ? '<div class="warn"><span>מחכים לתשובה ממך. אפשר לענות בהערה למטה.</span></div>' : ''}
+        <div class="kv">${act.kind === 'waiting' ? `<span>על מי מחכים</span><input type="text" id="s_w" value="${esc(act.waiting_on || '')}" list="wo_dl" data-wo="${t.space_id}" autocomplete="off">` : ''}
           ${solo ? '' : `<span>${act.kind === 'waiting' ? 'מי עוקב' : 'מבצע'}</span><select id="s_doer">${peopleOpts(sp, act.doer_id)}</select>`}</div>
         <div class="lbl" style="margin-top:8px">${act.kind === 'waiting' ? 'תאריך מעקב' : 'עד מתי'}${t.overdue ? ' · <span style="color:var(--red)">באיחור</span>' : ''}</div>${quick('s_due', act.due_date || '', act.kind !== 'waiting')}
         ${act.kind === 'waiting' ? `<div style="margin-top:10px;display:flex;gap:8px;align-items:center"><button class="out sm" id="s_fu">פניתי שוב</button><span>${fu.length ? fu.length + ' פניות שתועדו' : 'עוד לא תועדו פניות'}</span></div>
@@ -660,7 +688,7 @@ function newTaskDialog(o) {
       ['nt_st', 'nt_w', 'nt_due', 'nt_fin'].forEach(i => { const e = $('#' + i, dlg); if (e) keep[i] = e.value; });
       $('#nt_f', dlg).innerHTML = `
         ${st.multi ? '' : `<div class="f"><label>${st.waiting ? 'למה מחכים?' : 'מה הפעולה הראשונה? (אם שונה משם המשימה)'}</label><input type="text" id="nt_st" value="${esc(keep.nt_st || '')}" placeholder="${st.waiting ? 'למשל: אישור הוועדה' : 'למשל: להכין טיוטה'}"></div>`}
-        ${st.waiting ? `<div class="f"><label>על מי מחכים?</label><input type="text" id="nt_w" value="${esc(keep.nt_w || '')}" placeholder="שם הגורם"></div>` : ''}
+        ${st.waiting ? `<div class="f"><label>על מי מחכים?</label><input type="text" id="nt_w" value="${esc(keep.nt_w || '')}" placeholder="שם הגורם, או עובד מהרשימה" list="wo_dl" data-wo="${st.space}" autocomplete="off"></div>` : ''}
         ${solo ? '' : `<div class="f"><label>${st.waiting ? 'מי עוקב' : 'מבצע'}</label><select id="nt_d">${peopleOpts(sp, (S.people.find(x => x.id === o.doer && x.space_id === sp) || {}).id || myPerson(sp))}</select></div>`}
         <div class="f"><label>${st.waiting ? 'תאריך מעקב (חובה)' : 'עד מתי'}</label>${quick('nt_due', keep.nt_due != null ? keep.nt_due : (o.due || ''))}</div>
         ${projs.length ? `<div class="f"><label>פרויקט</label><select id="nt_p"><option value="">ללא</option>${projs.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></div>` : ''}
@@ -831,9 +859,13 @@ async function start() {
     $('#as').onchange = e => { api.as(e.target.value); S.sel = null; S.det = null; S.space = null; start(); }; }
   await refresh();
 }
+// השלמת שמות בשדה "על מי מחכים": האנשים של אותו מרחב. עובד עם חשבון יקבל מייל ויראה את המשימה אצלו.
+document.addEventListener('focusin', e => { const el = e.target, sp = el && el.dataset ? el.dataset.wo : null; if (!sp) return;
+  $('#wo_dl').innerHTML = S.people.filter(p => p.space_id === sp && p.active && p.user_id !== S.me).map(p => `<option value="${esc(p.name)}">${p.user_id ? 'עובד במרחב – יקבל מייל' : 'גורם חיצוני'}</option>`).join(''); });
 window.addEventListener('resize', () => { clearTimeout(window._rz); window._rz = setTimeout(() => { const a = document.activeElement; if (S.spaces.length && !$('#modal').innerHTML && !(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName))) renderList(); }, 200); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (narrow() && !S.rail) toggleSide(false); else if ($('#modal').innerHTML) closeDialog(); else if (S.sel && !(document.activeElement && document.activeElement.id === 'q')) { S.sel = null; S.det = null; render(); } } });
 (function boot() {
+  try { S.table = localStorage.getItem('myos_table') === '1'; } catch (e) {}
   S.rail = narrow(); try { const r = localStorage.getItem('myos_rail'); if (r && !narrow()) S.rail = r === '1'; } catch (e) {}
   S.demo = false;
   if (!window.MYOS_SUPABASE || !window.supabase) return loginScreen('המערכת לא נטענה במלואה. רענן את הדף; אם זה חוזר, ייתכן שהסינון חוסם קובץ.');
