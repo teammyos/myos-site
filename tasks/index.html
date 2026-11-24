@@ -82,6 +82,9 @@ select.chip{width:auto;padding:3px 8px}
 .star{flex:none;padding:2px 6px;font-size:17px;color:#9aa0a6}.star.on{color:var(--acc)}
 .grp{padding:12px 20px 4px;font-size:12.5px;color:var(--mut);cursor:pointer;user-select:none}
 .empty{padding:36px 20px 44px;text-align:center;color:var(--mut)}
+#nod{flex:none;width:330px;max-width:none;position:sticky;top:0;max-height:calc(100vh - 28px);overflow:auto}
+#nod h1{font-size:15px}
+#nod .row{padding-inline:14px}
 #det{width:400px;flex:none;background:var(--card);border-radius:var(--r);box-shadow:0 1px 2px rgba(0,0,0,.08);padding:14px 18px 18px;position:sticky;top:0;max-height:calc(100vh - 28px);overflow:auto}
 #det .top{display:flex;align-items:center;gap:4px;margin:-4px -8px 4px}
 #det .top .sp{margin-inline-start:auto}
@@ -158,7 +161,7 @@ select.chip{width:auto;padding:3px 8px}
   <div id="demo" class="demo hid"></div>
   <div id="shade" class="hid" onclick="toggleSide(false)"></div>
   <aside id="side"></aside>
-  <main><section class="card" id="list"></section><section id="det" class="hid"></section></main>
+  <main><section class="card" id="list"></section><section class="card hid" id="nod"></section><section id="det" class="hid"></section></main>
 </div>
 <div id="toast" class="hid"></div>
 <div id="modal"></div>
@@ -192,7 +195,7 @@ const ERR = { reason_required: 'צריך לכתוב סיבה לשינוי התא
 const errMsg = e => { const m = String(e && e.message || e); for (const k in ERR) if (m.includes(k)) return ERR[k]; return 'משהו השתבש: ' + m; };
 
 const S = { me: null, profile: null, spaces: [], members: [], people: [], projects: [], board: [], profiles: [], invites: [], recs: [], feedback: [], delreqs: [], q: '', adv: false, cal: { y: new Date().getFullYear(), m: new Date().getMonth(), day: null, mine: false },
-  view: 'mine', space: null, sel: null, det: null, f: { who: '', overdue: false, when: '', project: '', status: '', owner: '', from: '', to: '' }, showDone: false, showTl: false, adding: false, demo: false };
+  view: 'mine', space: null, sel: null, det: null, f: { who: '', overdue: false, when: '', project: '', status: '', owner: '', from: '', to: '' }, showDone: false, showNod: true, showTl: false, adding: false, demo: false };
 let api;
 
 /* ------------------------------------------------------------ שרת אמיתי */
@@ -394,12 +397,16 @@ function rowHtml(t) {
     <div class="tx"><div class="t">${esc(t.title)}</div>${other && !fin ? `<div class="s">▸ ${esc(t.step_title)}</div>` : ''}${chips.length ? `<div class="m">${chips.join('')}</div>` : ''}</div>
     ${fin || t.deleted_at ? '' : `<button class="star ${t.my_day ? 'on' : ''}" data-star title="לעבוד עליו היום">${t.my_day ? '★' : '☆'}</button>`}</div>`;
 }
+// משימות בלי תאריך מוצגות בנפרד: במסך רחב בטור משלהן, ובמסך צר או כשמשימה פתוחה – כקבוצה מתחת למשימות עם התאריך.
+const wide = () => window.matchMedia('(min-width:1150px)').matches;
 function renderList() {
+  $('#nod').classList.add('hid');
   if (S.view === 'rec') return renderRecs();
   if (S.view === 'cal') return renderCal();
   const v = VIEWS.find(x => x[0] === S.view), sp = S.space ? spaceOf(S.space) : null, searching = !!S.q.trim();
   const rows = S.board.filter(t => (searching ? (S.view === 'trash' ? !!t.deleted_at : !t.deleted_at) : inView(t, S.view)) && inSpace(t) && passF(t) && matchQ(t)).sort(S.view === 'done' || S.view === 'trash' ? (a, b) => b.updated_at.localeCompare(a.updated_at) : sortT);
   const canAdd = !['done', 'trash'].includes(S.view), addSp = S.space || personal();
+  const split = ['mine', 'all'].includes(S.view) && !searching, dated = split ? rows.filter(t => t.due_date) : rows, nod = split ? rows.filter(t => !t.due_date) : [], twoCol = nod.length > 0 && wide() && !S.sel;
   const whoList = S.space ? S.people.filter(p => p.space_id === S.space && p.active) : S.people.filter((p, i, a) => p.user_id && p.active && a.findIndex(x => x.user_id === p.user_id) === i);
   const projs = S.projects.filter(p => !S.space || p.space_id === S.space);
   const f = S.f;
@@ -420,7 +427,8 @@ function renderList() {
     </div>` : ''}`}
     ${canAdd && !searching ? `<div class="addbox"><label class="add"><span class="plus">＋</span><input type="text" id="q" placeholder="הוספת משימה${sp ? '' : ' (למרחב האישי)'}" autocomplete="off"></label>
       <div class="addx ${S.adding ? '' : 'hid'}" id="qx">${quick('q_due', '')}${isPersonal(addSp) ? '' : `<select class="chip" id="q_doer" title="מבצע">${peopleOpts(addSp, myPerson(addSp))}</select>`}<button class="pri sm" id="q_ok">הוספה</button><button class="sm" id="q_more" style="color:var(--acc)" title="פירוט המשימה כבר בפתיחה: מבצע, המתנה, פרויקט, הערה">עוד פרטים…</button></div></div>` : ''}
-    ${rows.length ? rows.map(rowHtml).join('') : `<div class="empty">${searching ? 'לא נמצאו משימות שמתאימות לחיפוש' : S.view === 'mine' ? 'אין אצלך כלום כרגע 🎉' : S.view === 'day' ? 'סמן ☆ ליד משימות שתרצה לעבוד עליהן היום' : 'אין כאן משימות'}</div>`}
+    ${nod.length && !twoCol && dated.length ? '<div class="grp" style="cursor:default">עם תאריך (' + dated.length + ')</div>' : ''}${dated.length ? dated.map(rowHtml).join('') : nod.length ? (twoCol ? '<div class="empty">אין משימות עם תאריך</div>' : '') : `<div class="empty">${searching ? 'לא נמצאו משימות שמתאימות לחיפוש' : S.view === 'mine' ? 'אין אצלך כלום כרגע 🎉' : S.view === 'day' ? 'סמן ☆ ליד משימות שתרצה לעבוד עליהן היום' : 'אין כאן משימות'}</div>`}
+    ${nod.length && !twoCol ? `<div class="grp" id="tgNod">${S.showNod ? '▾' : '◂'} בלי תאריך (${nod.length})</div>${S.showNod ? nod.map(rowHtml).join('') : ''}` : ''}
     ${canAdd && S.view !== 'day' && !searching ? (() => { const d = S.board.filter(t => !t.deleted_at && t.state !== 'open' && inSpace(t) && (S.view !== 'mine' || iOwn(t))).sort((a, b) => b.updated_at.localeCompare(a.updated_at)).slice(0, 30);
       return d.length ? `<div class="grp" id="tgDone">${S.showDone ? '▾' : '◂'} הושלמו (${d.length})</div>${S.showDone ? d.map(rowHtml).join('') : ''}` : ''; })() : ''}`;
   const L = $('#list');
@@ -441,6 +449,7 @@ function renderList() {
   on('#f_proj', 'onchange', e => { f.project = e.target.value; renderList(); });
   on('#f_over', 'onclick', () => { f.overdue = !f.overdue; renderList(); });
   on('#tgDone', 'onclick', () => { S.showDone = !S.showDone; renderList(); });
+  on('#tgNod', 'onclick', () => { S.showNod = !S.showNod; renderList(); });
   on('#f_adv', 'onclick', () => { S.adv = !S.adv; renderList(); });
   on('#f_status', 'onchange', e => { f.status = e.target.value; renderList(); });
   on('#f_owner', 'onchange', e => { f.owner = e.target.value; renderList(); });
@@ -462,6 +471,8 @@ function renderList() {
     if (S.sel === t.id) { S.sel = null; S.det = null; return render(); }
     openTask(t.id);
   };
+  const N = $('#nod'); N.onclick = L.onclick;
+  if (twoCol) { N.classList.remove('hid'); N.innerHTML = `<h1>בלי תאריך <small>${nod.length}</small></h1><div style="padding:0 20px 6px;color:var(--mut);font-size:12.5px">משימות שעוד לא נקבע להן מתי. כשקובעים תאריך, המשימה עוברת לרשימה הראשית.</div>${nod.map(rowHtml).join('')}`; }
 }
 // לוח שנה לועזי ועברי. בכל יום מופיעות המשימות הפתוחות שהיעד שלהן (או תאריך המעקב) חל בו.
 const GEM = [[400, 'ת'], [300, 'ש'], [200, 'ר'], [100, 'ק'], [90, 'צ'], [80, 'פ'], [70, 'ע'], [60, 'ס'], [50, 'נ'], [40, 'מ'], [30, 'ל'], [20, 'כ'], [10, 'י'], [9, 'ט'], [8, 'ח'], [7, 'ז'], [6, 'ו'], [5, 'ה'], [4, 'ד'], [3, 'ג'], [2, 'ב'], [1, 'א']];
@@ -820,6 +831,7 @@ async function start() {
     $('#as').onchange = e => { api.as(e.target.value); S.sel = null; S.det = null; S.space = null; start(); }; }
   await refresh();
 }
+window.addEventListener('resize', () => { clearTimeout(window._rz); window._rz = setTimeout(() => { const a = document.activeElement; if (S.spaces.length && !$('#modal').innerHTML && !(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName))) renderList(); }, 200); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (narrow() && !S.rail) toggleSide(false); else if ($('#modal').innerHTML) closeDialog(); else if (S.sel && !(document.activeElement && document.activeElement.id === 'q')) { S.sel = null; S.det = null; render(); } } });
 (function boot() {
   S.rail = narrow(); try { const r = localStorage.getItem('myos_rail'); if (r && !narrow()) S.rail = r === '1'; } catch (e) {}
