@@ -3,7 +3,12 @@
   if (!(await ui.start({ base: '../', active: 'assets' }))) return;
   const esc = ui.esc, L = data.label, main = document.getElementById('main');
 
-  function render() {
+  let dirty = false;
+  window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+  // E = מצב עריכה: אותה תצוגה בדיוק, והשדות הופכים לתיבות עריכה
+  function render(E = false) {
+    dirty = false; document.body.classList.toggle('asset-editing', E);
     const a = data.getAsset(ui.param('id'));
     if (!a) { main.innerHTML = `<div class="card error">הנכס לא נמצא. <a href="${ui.listUrl('../')}">חזרה לרשימה</a></div>`; return; }
     document.title = `${a.asset_number} · ${a.title || 'נכס'} · BBM`;
@@ -11,6 +16,12 @@
     const row = (t, v, calc) => `<dt>${t}</dt><dd${calc ? ' class="calc"' : ''}>${v === '' || v == null ? '<span class="empty">—</span>' : v}</dd>`;
     const link = x => `<a href="asset.html?id=${encodeURIComponent(x.id)}">${esc(x.asset_number)} · ${esc(x.title || data.displayName(x))}</a>`;
     const edit = ui.canEdit();
+    // עוזרי עריכה: בתצוגה מחזירים את הערך, בעריכה – תיבה עם אותו שם שדה
+    const val = key => esc(a[key] == null ? '' : a[key]);
+    const inp = (key, view, type = 'text', extra = '') => E ? `<input name="${key}" type="${type}" value="${val(key)}" ${extra}>` : view;
+    const pick = (key, list, view) => E ? ui.selectHtml(key, list, a[key]) : view;
+    const holding = a.current_holding || {};
+    const hval = key => esc(holding[key] == null ? '' : holding[key]);
     const yn = v => v === true ? 'כן' : v === false ? 'לא' : '';
 
     // שרשרת אבות לתצוגת עץ
@@ -22,7 +33,7 @@
       const realized = c.id ? data.listAssets().filter(x => x.considerations.some(y => y.id === c.id && y.role === 'realized')) : [];
       const delivered = realized.reduce((s, x) => s + (Number(x.area_built) || 0), 0);
       const shared = c.id ? data.listAssets().filter(x => x.id !== a.id && x.considerations.some(y => y.id === c.id)) : [];
-      return `${edit && c.id ? `<p><a class="btn primary" href="consideration.html?id=${encodeURIComponent(c.id)}&asset=${encodeURIComponent(a.id)}">עריכת התמורה</a></p>` : ''}
+      return `${edit && !E && c.id ? `<p><a class="btn primary" href="consideration.html?id=${encodeURIComponent(c.id)}&asset=${encodeURIComponent(a.id)}">עריכת התמורה</a></p>` : ''}
       ${shared.length ? `<p class="hint">הבקשה משותפת גם לנכסים: ${shared.map(link).join(' · ')}</p>` : ''}
       <dl class="fields">
         ${row('תפקיד הנכס בתמורה', c.role === 'commitment' ? 'רשומת ההתחייבות' : 'נכס שמומש')}
@@ -89,7 +100,7 @@
       ['notes', 'הערות', a.asset_notes.length], ['proc', 'תהליכים', a.open_processes.length]];
 
     // ----- הערות (מי ומתי נרשמים אוטומטית) -----
-    const canNote = ui.canEditLimited(), isAdmin = BBM.me && BBM.me.role === 'admin';
+    const canNote = ui.canEditLimited() && !E, isAdmin = BBM.me && BBM.me.role === 'admin';
     const when = d => d ? new Date(d).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' }) : '';
     const notesHtml = `
       ${canNote ? `<form id="noteForm" class="inline-form">
@@ -98,7 +109,7 @@
         </form>` : ''}
       ${a.asset_notes.length ? a.asset_notes.map(n => `<article class="log-item" data-note="${esc(n.id)}">
           <div class="log-head"><span><strong>${esc(n.created_by_name || 'לא ידוע')}</strong> · ${when(n.created_at)}</span>
-            ${isAdmin || (BBM.me && n.created_by === BBM.me.id) ? '<button type="button" class="link" data-del-note>מחיקה</button>' : ''}</div>
+            ${!E && (isAdmin || (BBM.me && n.created_by === BBM.me.id)) ? '<button type="button" class="link" data-del-note>מחיקה</button>' : ''}</div>
           <div class="log-body">${esc(n.body)}</div>
         </article>`).join('') : '<p class="empty">עוד לא נרשמו הערות לנכס</p>'}`;
 
@@ -130,18 +141,19 @@
         <div>
           <h1>${esc(a.asset_number)} · ${esc(a.title || '')}</h1>
           <p class="sub">${esc(a.address)} &nbsp;
-            <span class="tag ${a.record_status}">${esc(L('record_status', a.record_status))}</span>
+            ${a.record_status === 'future' ? '<span class="pill future">עתידי</span>' : ''}
             ${a.operational_status ? `<span class="tag ${['trespass', 'vacant', 'unused'].includes(a.operational_status) ? 'warn' : ''}">${esc(L('operational_status', a.operational_status))}</span>` : ''}
             ${a.realization_status && a.realization_status !== 'not_relevant' ? `<span class="tag">${esc(L('realization_status', a.realization_status))}</span>` : ''}
           </p>
         </div>
         <div class="actions">
-          <a class="btn" href="bbmasset:${encodeURIComponent(a.asset_number)}" title="פתיחת תיקיית הנכס במחשב (עירייה)">📂 תיקייה</a>
-          ${edit ? `<a class="btn primary" href="edit.html?id=${encodeURIComponent(a.id)}">עריכה</a>
+          ${E ? '' : `<a class="btn" href="bbmasset:${encodeURIComponent(a.asset_number)}" title="פתיחת תיקיית הנכס במחשב (עירייה)">📂 תיקייה</a>
+          ${edit ? `<button class="primary" id="editBtn" type="button">✎ עריכה</button>
           <a class="btn" href="edit.html?parent=${encodeURIComponent(a.id)}">+ נכס משנה</a>
-          <button class="danger" id="delBtn" type="button">ביטול נכס</button>` : ''}
+          <button class="danger" id="delBtn" type="button">ביטול נכס</button>` : ''}`}
         </div>
       </div>
+      ${E ? '<div class="edit-banner" role="status">✎ <strong>מצב עריכה.</strong> משנים את השדות בכל הלשוניות, ובסוף לוחצים "שמירה" למטה. עד אז שום דבר לא נשמר.</div>' : ''}
 
       <div class="tabs" role="tablist" aria-label="חלקי כרטיס הנכס">
         ${TABS.map(([id, t, n]) => `<button type="button" role="tab" id="tab-${id}" data-tab="${id}" aria-controls="panel-${id}">${t}${n ? ` <span class="n">${n}</span>` : ''}</button>`).join('')}
@@ -149,32 +161,35 @@
 
       <div class="tabpanel grid2" role="tabpanel" id="panel-main" aria-labelledby="tab-main">
         <section class="card"><h2>זיהוי ומיקום</h2><dl class="fields">
-          ${row('מספר נכס', esc(a.asset_number))}
-          ${row('כתובת', esc(a.address) + (a.address_note && !String(a.address || '').includes(a.address_note) ? ` <span class="hint">(${esc(a.address_note)})</span>` : ''))}
-          ${row('גוש וחלקה', a.parcels.map(pc => `גוש ${esc(pc.gush)} · חלקה ${esc(pc.helka)}${pc.sub_helka ? ' · תת־חלקה ' + esc(pc.sub_helka) : ''}`).join('<br>'))}
-          ${row('שכונה', esc(a.neighborhood))}
-          ${row('קוד רחוב', esc(a.street_code))}
-          ${row('ייעוד תכנוני', esc(a.planning_designation))}
-          ${row('תכנית', esc(a.plan_number))}
-          ${row('שם מוסד', esc(a.institution_name))}
-          ${row('סמל מוסד', esc(a.institution_code))}
-          ${k.some(c => c.developer) ? row('יזם', k.map(c => esc(c.developer || '')).filter(Boolean).join('<br>')) : ''}
+          ${row('מספר נכס', inp('asset_number', esc(a.asset_number), 'text', 'required inputmode="numeric"'))}
+          ${row('שם / תיאור', inp('name', esc(a.name), 'text', 'placeholder="למשל: גן ילדים של חני. בלי הכתובת"'))}
+          ${E ? row('רחוב', inp('street')) + row('מספר בית', inp('house_number')) + row('הערת כתובת', inp('address_note', '', 'text', 'placeholder="למשל: בניין מס׳ 13"'))
+              : row('כתובת', esc(a.address) + (a.address_note && !String(a.address || '').includes(a.address_note) ? ` <span class="hint">(${esc(a.address_note)})</span>` : ''))}
+          ${row('גוש וחלקה', a.parcels.map(pc => `גוש ${esc(pc.gush)} · חלקה ${esc(pc.helka)}${pc.sub_helka ? ' · תת־חלקה ' + esc(pc.sub_helka) : ''}`).join('<br>') + (E ? '<br><span class="hint">נערך בלשונית "זכויות וחלקות"</span>' : ''))}
+          ${row('שכונה', inp('neighborhood', esc(a.neighborhood)))}
+          ${k.some(c => c.developer) ? row('יזם', k.map(c => esc(c.developer || '')).filter(Boolean).join('<br>') + (E ? '<br><span class="hint">נערך ב"עריכת התמורה"</span>' : '')) : ''}
         </dl></section>
 
-        <section class="card"><h2>סיווג</h2><dl class="fields">
-          ${row('סוג פיזי', esc(L('physical_type', a.physical_type)))}
-          ${row('מצב פיזי', esc(L('physical_condition', a.physical_condition)))}
-          ${row('שטח בנוי', ui.fmtNum(a.area_built) && ui.fmtNum(a.area_built) + ' מ"ר')}
-          ${row('שטח חצר', ui.fmtNum(a.area_yard) && ui.fmtNum(a.area_yard) + ' מ"ר')}
+        <section class="card"><h2>מצב</h2><dl class="fields">
+          ${row('קיים / עתידי', pick('record_status', 'record_status', esc(L('record_status', a.record_status))))}
+          ${row('מצב תפעולי', pick('operational_status', 'operational_status', esc(L('operational_status', a.operational_status))))}
+          ${row('מצב מימוש', pick('realization_status', 'realization_status', esc(L('realization_status', a.realization_status))))}
+          ${row('מצב פיזי', pick('physical_condition', 'physical_condition', esc(L('physical_condition', a.physical_condition))))}
+        </dl></section>
+
+        <section class="card"><h2>סיווג ושטחים</h2><dl class="fields">
+          ${row('סוג פיזי', pick('physical_type', 'physical_type', esc(L('physical_type', a.physical_type))))}
+          ${row('שטח בנוי' + (E ? ' (מ"ר)' : ''), inp('area_built', ui.fmtNum(a.area_built) && ui.fmtNum(a.area_built) + ' מ"ר', 'number', 'step="0.01" min="0"'))}
+          ${row('שטח חצר' + (E ? ' (מ"ר)' : ''), inp('area_yard', ui.fmtNum(a.area_yard) && ui.fmtNum(a.area_yard) + ' מ"ר', 'number', 'step="0.01" min="0"'))}
         </dl></section>
 
         <section class="card"><h2>שימוש ומטרת החזקה</h2><dl class="fields">
-          ${row('מטרת החזקה', esc(L('holding_purpose', a.holding_purpose)))}
-          ${row('תחום שימוש', esc(L('use_domain', a.use_domain)))}
-          ${row('שימוש מפורט', esc(L('use_detail', a.use_detail)))}
+          ${row('מטרת החזקה', pick('holding_purpose', 'holding_purpose', esc(L('holding_purpose', a.holding_purpose))))}
+          ${row('תחום שימוש', pick('use_domain', 'use_domain', esc(L('use_domain', a.use_domain))))}
+          ${row('שימוש מפורט', E ? '<span id="useDetailWrap"></span>' : esc(L('use_detail', a.use_detail)))}
         </dl></section>
 
-        <section class="card"><h2>טקסט חופשי</h2>${a.notes ? `<p style="white-space:pre-wrap;margin:0">${esc(a.notes)}</p>` : '<p class="empty">אין טקסט</p>'}</section>
+        <section class="card"><h2>טקסט חופשי</h2>${E ? `<textarea name="notes" rows="5">${val('notes')}</textarea>` : a.notes ? `<p style="white-space:pre-wrap;margin:0">${esc(a.notes)}</p>` : '<p class="empty">אין טקסט</p>'}</section>
       </div>
 
       ${k.length ? `<details class="group cons-group" id="consBox">
@@ -184,12 +199,18 @@
 
       <div class="tabpanel grid2" role="tabpanel" id="panel-rights" aria-labelledby="tab-rights" hidden>
         <section class="card"><h2>זכויות</h2><dl class="fields">
-          ${row('סוג הזכות', esc(L('right_type', a.right_type)))}
-          ${row('מקור הזכות', esc(L('right_source', a.right_source)))}
+          ${row('סוג הזכות', pick('right_type', 'right_type', esc(L('right_type', a.right_type))))}
+          ${row('מקור הזכות', pick('right_source', 'right_source', esc(L('right_source', a.right_source))))}
+        </dl></section>
+
+        <section class="card"><h2>תכנון</h2><dl class="fields">
+          ${row('ייעוד תכנוני', inp('planning_designation', esc(a.planning_designation), 'text', 'placeholder="למשל: שב״צ, שצ״פ, דרך"'))}
+          ${row('תכנית', inp('plan_number', esc(a.plan_number)))}
         </dl></section>
 
         <section class="card"><h2>גוש וחלקה</h2>
-          ${a.parcels.length ? '<ul class="links">' + a.parcels.map(pc => {
+          ${E ? '<div id="parcels"></div><button type="button" id="addParcel">+ הוספת חלקה</button>'
+          : a.parcels.length ? '<ul class="links">' + a.parcels.map(pc => {
             const others = data.listAssets({ gush: pc.gush, helka: pc.helka }).filter(x => x.id !== a.id);
             return `<li><strong>גוש ${esc(pc.gush)} · חלקה ${esc(pc.helka)}${pc.sub_helka ? ' · תת־חלקה ' + esc(pc.sub_helka) : ''}</strong>
               ${others.length ? `<br><span class="hint">נכסים נוספים בחלקה: ${others.map(link).join(' · ')}</span>` : ''}</li>`;
@@ -197,17 +218,45 @@
         </section>
 
         <section class="card"><h2>נכס אב ונכסי משנה</h2>
-          ${chain.length || a.children.length ? `<ul class="links">
+          ${E ? (() => {
+            const blocked = new Set([a.id, ...data.descendants(a.id)]);
+            const po = data.allAssetsBrief().filter(x => !blocked.has(x.id))
+              .sort((x, y) => String(x.asset_number).localeCompare(String(y.asset_number), 'he', { numeric: true }))
+              .map(x => `<option value="${esc(x.id)}"${x.id === a.parent_asset_id ? ' selected' : ''}>${esc(x.asset_number)} · ${esc(x.name || '')}</option>`).join('');
+            const co = data.complexes().map(c => `<option value="${esc(c.id)}"${c.id === a.complex_id ? ' selected' : ''}>${esc(c.complex_number || '')} · ${esc(c.name)}</option>`).join('');
+            return `<dl class="fields">${row('נכס אב', `<select name="parent_asset_id"><option value="">— ללא נכס אב —</option>${po}</select>`)}
+              ${row('מתחם', `<select name="complex_id"><option value="">— ללא מתחם —</option>${co}</select>`)}</dl>
+              <p class="hint">נכס אב = הנכס הפיזי שהנכס נמצא בתוכו. שיתוף באותה חלקה אינו מצריך נכס אב.</p>`;
+          })() : `${chain.length || a.children.length ? `<ul class="links">
             ${chain.map((x, i) => `<li style="padding-inline-start:${i * 18}px">${link(x)}</li>`).join('')}
             <li style="padding-inline-start:${chain.length * 18}px"><strong>${esc(a.asset_number)} · ${esc(a.title || '')}</strong> (נכס זה)</li>
             ${a.children.map(x => `<li style="padding-inline-start:${(chain.length + 1) * 18}px">${link(x)}</li>`).join('')}
           </ul>` : '<p class="empty">נכס עצמאי – ללא נכס אב וללא נכסי משנה</p>'}
-          ${a.complex ? `<p style="margin-top:12px"><strong>מתחם:</strong> ${esc(a.complex.complex_number || '')} · ${esc(a.complex.name)}</p>` : ''}
+          ${a.complex ? `<p style="margin-top:12px"><strong>מתחם:</strong> ${esc(a.complex.complex_number || '')} · ${esc(a.complex.name)}</p>` : ''}`}
         </section>
       </div>
 
       <div class="tabpanel" role="tabpanel" id="panel-holders" aria-labelledby="tab-holders" hidden>
-        <section class="card"><h2>מחזיקים${a.is_commercial ? ' · נכס מניב' : ''}</h2>${holdingsHtml}</section>
+        <section class="card"><h2>מחזיקים${a.is_commercial ? ' · נכס מניב' : ''}</h2>${E ? `<dl class="fields">
+            ${row('מחזיק', `<select name="h_holder_id"><option value="">— ללא / מחזיק חדש —</option>${data.holders().map(h => `<option value="${esc(h.id)}"${h.id === holding.holder_id ? ' selected' : ''}>${esc(h.name)}</option>`).join('')}</select>`)}
+            ${row('או מחזיק חדש – שם', '<input name="h_new_name">')}
+            ${row('סוג (למחזיק חדש)', ui.selectHtml('h_new_type', 'holder_type', ''))}
+            ${row('איש קשר (למחזיק חדש)', '<input name="h_new_contact">')}
+            ${row('טלפון (למחזיק חדש)', '<input name="h_new_phone" inputmode="tel">')}
+            ${row('אופן ההחזקה', ui.selectHtml('h_holding_method', 'holding_method', holding.holding_method))}
+            ${row('מצב הסכם', ui.selectHtml('h_agreement_status', 'agreement_status', holding.agreement_status))}
+            ${row('דמי שימוש לחודש, לפני מע"מ (₪)', `<input type="number" min="0" step="any" inputmode="decimal" name="h_monthly_fee" value="${hval('monthly_fee')}">`)}
+            ${row('חל מע"מ (עוסק)', `<select name="h_vat_applies"><option value="">לא ידוע</option><option value="true"${holding.vat_applies === true ? ' selected' : ''}>כן – עוסק</option><option value="false"${holding.vat_applies === false ? ' selected' : ''}>לא – מגורים</option></select>`)}
+            ${row('החוזה בתוקף עד', `<input type="date" name="h_contract_end" value="${hval('contract_end')}">`)}
+            ${row('תחילת ההחזקה', `<input type="date" name="h_start_date" value="${hval('start_date')}">`)}
+            ${row('סיום ההחזקה (עזיבה)', `<input type="date" name="h_end_date" value="${hval('end_date')}">`)}
+            ${row('הנכס מנוהל בידי', inp('managed_by'))}
+          </dl>
+          <p class="hint">החלפת המחזיק או ניקוי השדה לא מוחקים את המחזיק הקודם: ההחזקה שלו נסגרת בתאריך של היום ונשמרת בהיסטוריה. פרטי איש הקשר של מחזיק קיים עדיין לא נערכים מכאן.</p>` : holdingsHtml}</section>
+        ${E || a.institution_name || a.institution_code ? `<section class="card"><h2>מוסד</h2><dl class="fields">
+          ${row('שם מוסד', inp('institution_name', esc(a.institution_name)))}
+          ${row('סמל מוסד', inp('institution_code', esc(a.institution_code), 'text', 'inputmode="numeric"'))}
+        </dl></section>` : ''}
       </div>
 
       <div class="tabpanel" role="tabpanel" id="panel-surveys" aria-labelledby="tab-surveys" hidden>
@@ -222,6 +271,7 @@
         <section class="card"><h2>תהליכים</h2>${procHtml}</section>
       </div>
 
+      ${E ? '<div class="sticky-actions edit-actions"><button class="primary" id="saveBtn" type="button">שמירה</button><button id="cancelBtn" type="button">ביטול</button><span class="hint">מצב עריכה – השינויים נשמרים רק בלחיצה על "שמירה"</span></div>' : ''}
       ${a.import_source_row ? `<p class="hint">מקור ייבוא: ${esc(a.import_source_file || '')} · גיליון ${esc(a.import_source_sheet || '')} · שורה ${esc(a.import_source_row)}</p>` : ''}`;
 
     // מעבר בין לשוניות; הלשונית נשמרת בכתובת (#cons וכד'), כך שרענון או קישור חוזרים לאותה לשונית
@@ -263,11 +313,74 @@
     show(h0 === 'cons' ? 'main' : h0 || 'main');
     if (h0 === 'cons') { const cb = document.getElementById('consBox'); if (cb) { cb.open = true; cb.scrollIntoView({ block: 'start' }); } }
 
+    const eb = document.getElementById('editBtn'); if (eb) eb.onclick = () => render(true);
+    if (E) wireEdit(a, holding);
+
     const del = document.getElementById('delBtn');
     if (del) del.onclick = async () => {
       if (!confirm('לבטל את הנכס? הרשומה לא נמחקת, אלא מסומנת כמבוטלת ולא תופיע ברשימה.')) return;
       try { await data.softDeleteAsset(a.id); location.href = ui.listUrl('../'); } catch (e) { ui.toast(e.message, 'err'); }
     };
   }
+
+  // ---------- מצב עריכה: שדות תלויים, חלקות ושמירה ----------
+  function wireEdit(a, holding) {
+    const q = name => main.querySelector(`[name="${name}"]`);
+    main.addEventListener('input', () => { dirty = true; }, { once: true });
+    main.addEventListener('change', () => { dirty = true; }, { once: true });
+    // שימוש מפורט תלוי בתחום השימוש
+    function renderUseDetail() {
+      const domain = q('use_domain').value, cur = q('use_detail') ? q('use_detail').value : a.use_detail;
+      const opts = domain ? data.options('use_detail', domain) : [];
+      document.getElementById('useDetailWrap').innerHTML = opts.length ? ui.selectHtml('use_detail', 'use_detail', cur, { parent: domain })
+        : '<select name="use_detail" disabled><option value="">— אין פירוט לתחום הזה —</option></select>';
+    }
+    q('use_domain').addEventListener('change', renderUseDetail); renderUseDetail();
+    // חלקות
+    const box = document.getElementById('parcels');
+    const parcelRow = (p = {}) => {
+      const div = document.createElement('div'); div.className = 'parcel-row';
+      div.innerHTML = `<input placeholder="גוש" data-k="gush" value="${esc(p.gush || '')}" inputmode="numeric" aria-label="גוש">
+        <input placeholder="חלקה" data-k="helka" value="${esc(p.helka || '')}" inputmode="numeric" aria-label="חלקה">
+        <input placeholder="תת־חלקה" data-k="sub_helka" value="${esc(p.sub_helka || '')}" aria-label="תת חלקה">
+        <button type="button" aria-label="הסרת חלקה">הסרה</button>`;
+      div.querySelector('button').onclick = () => { div.remove(); dirty = true; };
+      box.appendChild(div);
+    };
+    (a.parcels.length ? a.parcels : [{}]).forEach(parcelRow);
+    document.getElementById('addParcel').onclick = () => parcelRow();
+
+    document.getElementById('cancelBtn').onclick = () => { render(false); window.scrollTo(0, 0); };
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.onclick = async () => {
+      // יוצאים מהרשומה המלאה שבמסד ומחליפים רק את השדות שמופיעים בכרטיס – שדה שלא מוצג לא נדרס
+      const raw = data._db.assets.find(x => x.id === a.id);
+      const row = { ...raw }; delete row.updated_at;
+      const hf = {};
+      main.querySelectorAll('[name]').forEach(el => { if (el.disabled) return; const v = el.value.trim();
+        if (el.name.startsWith('h_')) hf[el.name.slice(2)] = v; else row[el.name] = v; });
+      if (q('use_detail') && q('use_detail').disabled) row.use_detail = null;
+      const parcelList = [...box.querySelectorAll('.parcel-row')].map(r => Object.fromEntries([...r.querySelectorAll('input')].map(i => [i.dataset.k, i.value.trim()])));
+      saveBtn.disabled = true;
+      try {
+        await data.saveAsset(row, parcelList);
+        // מחזיק: החלפה או הסרה סוגרות את ההחזקה הקודמת (נשארת בהיסטוריה)
+        let holderId = hf.holder_id;
+        if (!holderId && hf.new_name) holderId = (await data.saveHolder({ name: hf.new_name, holder_type: hf.new_type || null, contact_name: hf.new_contact || null, phone: hf.new_phone || null })).id;
+        const today = new Date().toISOString().slice(0, 10);
+        const same = holding.id && holderId === holding.holder_id;
+        if (holding.id && !same) await data.saveHolding({ id: holding.id, asset_id: holding.asset_id, holder_id: holding.holder_id, end_date: holding.end_date && holding.end_date <= today ? holding.end_date : today });
+        if (holderId) {
+          const h = { asset_id: a.id, holder_id: holderId, holding_method: hf.holding_method, agreement_status: hf.agreement_status, monthly_fee: hf.monthly_fee,
+            vat_applies: hf.vat_applies === 'true' ? true : hf.vat_applies === 'false' ? false : null, contract_end: hf.contract_end, start_date: hf.start_date };
+          if (same) { h.id = holding.id; h.end_date = hf.end_date; }
+          else if (!h.start_date || h.start_date === holding.start_date) h.start_date = today;
+          await data.saveHolding(h);
+        }
+        dirty = false; ui.toast('הנכס נשמר'); location.reload();
+      } catch (err) { ui.toast(err.message || String(err), 'err'); saveBtn.disabled = false; }
+    };
+  }
+
   render();
 })();

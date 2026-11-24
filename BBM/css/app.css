@@ -276,3 +276,11 @@ body.has-side header.top .user { margin: auto 0 0; padding: 12px 18px 16px; bord
   body.has-side header.top.open nav, body.has-side header.top.open .user { display: flex; }
 }
 @media print { body.has-side { padding-inline-start: 0; } body.has-side header.top { display: none; } }
+
+/* ---------- כרטיס נכס במצב עריכה (24.11) ---------- */
+.edit-banner { background: #fff4d6; border: 1px solid #f0dca0; color: #5c4300; border-radius: 10px; padding: 10px 14px; margin: 0 0 14px; }
+body.asset-editing { background: #fbf6e6; }
+body.asset-editing .tabpanel .card { background: #fffdf5; border-color: #ecd9a8; border-inline-start: 3px solid var(--gold); }
+body.asset-editing dl.fields { align-items: center; row-gap: 8px; }
+body.asset-editing .cons-group { opacity: .75; }
+.edit-actions { align-items: center; background: #fbf6e6; border-top: 2px solid var(--gold); z-index: 5; padding-inline: 4px; }
