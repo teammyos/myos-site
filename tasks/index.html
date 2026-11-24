@@ -698,8 +698,7 @@ function spaceDialog(id) {
   });
   draw();
 }
-// כבוי עד שסקריפט 108 (מחיקת מרחב) ירוץ בשרת. במצב הדגמה פעיל.
-const SPACE_DELETE_READY = new URLSearchParams(location.search).has('demo');
+const SPACE_DELETE_READY = true; // סקריפט 108 (מחיקת מרחב) רץ בשרת ב-24.11.2026
 // מחיקת מרחב: בלי משימות – מיד. עם משימות – אזהרה, ואישור של מנהל מערכת (מנהל מערכת שמנהל את המרחב מוחק מיד).
 function deleteSpaceDialog(id) {
   const s = spaceOf(id), n = S.board.filter(t => t.space_id === id && !t.deleted_at).length, direct = !n || S.profile.is_admin;
