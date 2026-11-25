@@ -668,7 +668,18 @@ function renderDet() {
 }
 // פתיחת משימה עם כל הפרטים (רשות). ההוספה המהירה נשארת שורה אחת + Enter.
 // רשימה שמודבקת או נכתבת בכמה שורות: כל שורה היא משימה. תבליטים ומספור בתחילת השורה מוסרים.
-const taskLines = tx => String(tx || '').split(/\r?\n/).map(x => x.replace(/^\s*(?:[-*•·▪◦]|\d{1,3}[.)])\s*/, '').trim()).filter(Boolean);
+const taskLines = tx => {
+  let s = String(tx || '').replace(new RegExp('\\r\\n?|[\\v\\f' + String.fromCharCode(0x85, 0x2028, 0x2029) + ']', 'g'), '\n');   // כל סוגי שבירת השורה (וורד, אאוטלוק, מק)
+  if (!/\n/.test(s) && /\t/.test(s)) s = s.replace(/\t+/g, '\n');   // שורה שהועתקה מאקסל
+  const out = [];
+  for (const ln of s.split('\n')) {
+    const marks = [...ln.matchAll(/(?:^|\s)(\d{1,2})[.)]\s+/g)];   // כמה פריטים ממוספרים באותה שורה: "1. א 2. ב 3. ג"
+    if (marks.length > 1 && marks.every((m, i) => Number(m[1]) === Number(marks[0][1]) + i)) { marks.forEach((m, i) => out.push(ln.slice(m.index + m[0].length, i + 1 < marks.length ? marks[i + 1].index : ln.length))); continue; }
+    if (/\s[•▪◦]\s/.test(ln)) { ln.split(/\s*[•▪◦]\s*/).forEach(x => out.push(x)); continue; }
+    out.push(ln);
+  }
+  return out.map(x => x.replace(/^\s*(?:[-*•·▪◦–]|\d{1,3}[.)])\s*/, '').trim()).filter(Boolean);
+};
 // שינוי תאריך של פעולה. מי שאינו מנהל המרחב או אחראי המשימה חייב לכתוב סיבה, והיא נשמרת בהיסטוריה.
 function changeDue(t, step, v, onCancel) {
   v = v || null; if (v === (step.due_date || null)) return;
@@ -685,7 +696,7 @@ function changeDue(t, step, v, onCancel) {
 function newTaskDialog(o) {
   const st = { space: o.space, waiting: false, multi: !!o.multi };
   dialog(`<h2>משימה חדשה</h2>
-    <div class="f"><label id="nt_tl"></label><div id="nt_tw"></div><span class="lnk" id="nt_multi"></span></div>
+    <div class="f"><label id="nt_tl"></label><div id="nt_tw"></div><small id="nt_multi" style="display:block;margin-top:5px;color:var(--mut);font-size:12.5px"></small></div>
     <div class="f"><label>מרחב</label><select id="nt_s">${S.spaces.map(x => `<option value="${x.id}" ${x.id === o.space ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></div>
     <div class="f"><label>הצעד הראשון</label><div class="quick"><span class="chip" data-k="a">פעולה</span><span class="chip" data-k="w">ממתין ל…</span></div></div>
     <div id="nt_f"></div>
@@ -694,13 +705,14 @@ function newTaskDialog(o) {
     <div class="btns"><button class="pri" id="ok">הוספה</button><button id="no">ביטול</button></div>`, dlg => {
     const keep = {};
     const drawPr = () => { $('#nt_pr', dlg).innerHTML = `${[[1, '⚑ גבוהה'], [0, 'רגילה'], [-1, '⚐ נמוכה']].map(x => `<span class="chip ${(st.prio || 0) === x[0] ? 'on' : ''}" data-np="${x[0]}">${x[1]}</span>`).join('')}`; $('#nt_pr', dlg).querySelectorAll('[data-np]').forEach(x => x.onclick = () => { st.prio = Number(x.dataset.np); drawPr(); }); }; drawPr();
-    const okTxt = () => { const n = st.multi ? taskLines($('#nt_t', dlg).value).length : 1; $('#ok', dlg).textContent = n > 1 ? 'הוספת ' + n + ' משימות' : 'הוספה'; };
-    const drawTitle = val => { $('#nt_tl', dlg).textContent = st.multi ? 'רשימת משימות – כל שורה היא משימה נפרדת' : 'שם המשימה';
-      $('#nt_tw', dlg).innerHTML = st.multi ? '<textarea id="nt_t" rows="6" placeholder="להתקשר לספק&#10;להכין דוח חודשי&#10;לשלוח חשבונית"></textarea>' : '<input type="text" id="nt_t">';
-      const el = $('#nt_t', dlg); el.value = st.multi ? val : taskLines(val)[0] || ''; el.oninput = okTxt;
-      el.onpaste = e => { if (st.multi) return; const tx = (e.clipboardData || window.clipboardData).getData('text'); if (taskLines(tx).length > 1) { e.preventDefault(); st.multi = true; drawTitle(tx); draw(); $('#nt_t', dlg).focus(); } };
-      $('#nt_multi', dlg).textContent = st.multi ? 'חזרה למשימה אחת' : 'כמה משימות בבת אחת…'; $('#nt_nw', dlg).classList.toggle('hid', st.multi); okTxt(); };
-    $('#nt_multi', dlg).onclick = () => { const cur = $('#nt_t', dlg).value; st.multi = !st.multi; drawTitle(cur); draw(); $('#nt_t', dlg).focus(); };
+    // שדה אחד: שורה אחת היא משימה אחת, כמה שורות הן כמה משימות. אין מצב נפרד שצריך למצוא.
+    const syncT = () => { const el = $('#nt_t', dlg), n = taskLines(el.value).length, m = n > 1; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight + 2, 300) + 'px';
+      $('#nt_tl', dlg).textContent = m ? n + ' משימות – כל שורה היא משימה נפרדת' : 'שם המשימה';
+      $('#nt_multi', dlg).textContent = m ? 'כל המשימות יקבלו את אותו מבצע, אותו תאריך ואותו מרחב.' : 'כמה משימות בבת אחת? כותבים כל משימה בשורה נפרדת (Enter), או מדביקים רשימה.';
+      $('#ok', dlg).textContent = m ? 'הוספת ' + n + ' משימות' : 'הוספה'; $('#nt_nw', dlg).classList.toggle('hid', m);
+      if (m !== st.multi) { st.multi = m; draw(); } };
+    const drawTitle = val => { $('#nt_tw', dlg).innerHTML = '<textarea id="nt_t" rows="1" style="resize:vertical;overflow:auto;min-height:36px" placeholder="מה צריך לעשות?"></textarea>';
+      const el = $('#nt_t', dlg); el.value = String(val || '').trim(); el.oninput = syncT; st.multi = taskLines(el.value).length > 1; syncT(); };
     const draw = () => { const sp = st.space, solo = isPersonal(sp), projs = S.projects.filter(x => x.space_id === sp && x.state !== 'closed');
       ['nt_st', 'nt_w', 'nt_due', 'nt_fin'].forEach(i => { const e = $('#' + i, dlg); if (e) keep[i] = e.value; });
       $('#nt_f', dlg).innerHTML = `
