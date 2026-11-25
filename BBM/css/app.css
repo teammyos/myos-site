@@ -302,3 +302,5 @@ details.notes-group { margin-top: 16px; }
 .contact-body h3 { font-size: 14px; margin: 14px 0 6px; }
 .contact-body dl.sig-kv { margin-top: 10px; }
 @media (max-width: 640px) { .contact-head { grid-template-columns: 1fr auto; } .contact-sub { grid-column: 1 / -1; order: 3; } }
+.copy-btn { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 0 6px; font-size: 14px; line-height: 1.5; cursor: pointer; color: var(--accent); vertical-align: baseline; }
+.copy-btn:hover { background: var(--accent-soft); }

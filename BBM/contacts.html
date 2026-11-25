@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="icons/favicon-64.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>אנשי קשר · BBM</title>
-<link rel="stylesheet" href="css/app.css?v=20261125b">
+<link rel="stylesheet" href="css/app.css?v=20261125c">
 </head>
 <body>
 <div class="band">
@@ -46,12 +46,12 @@
 
   <div id="results"><p class="hint">טוען…</p></div>
 </main>
-<script src="js/config.js?v=20261125b"></script>
-<script src="js/vendor/supabase.umd.js?v=20261125b"></script>
-<script src="js/lookups.js?v=20261125b"></script>
-<script src="js/demo-data.js?v=20261125b"></script>
-<script src="js/data.js?v=20261125b"></script>
-<script src="js/ui.js?v=20261125b"></script>
+<script src="js/config.js?v=20261125c"></script>
+<script src="js/vendor/supabase.umd.js?v=20261125c"></script>
+<script src="js/lookups.js?v=20261125c"></script>
+<script src="js/demo-data.js?v=20261125c"></script>
+<script src="js/data.js?v=20261125c"></script>
+<script src="js/ui.js?v=20261125c"></script>
 <script>
 (async function () {
   const { ui, data } = BBM, esc = ui.esc, L = data.label;
@@ -103,7 +103,7 @@
           <dl class="sig-kv">
             <div><dt>איש קשר</dt><dd>${esc(c.contact_name) || '<span class="muted">—</span>'}</dd></div>
             <div><dt>טלפון</dt><dd>${tel(c.phone) || '<span class="muted">—</span>'}</dd></div>
-            <div><dt>מייל</dt><dd>${c.email ? `<a href="mailto:${esc(c.email)}" dir="ltr">${esc(c.email)}</a>` : '<span class="muted">—</span>'}</dd></div>
+            <div><dt>מייל</dt><dd>${c.email ? `<a href="mailto:${esc(c.email)}" dir="ltr">${esc(c.email)}</a> <button type="button" class="copy-btn" data-copy="${esc(c.email)}" title="העתקת כתובת המייל" aria-label="העתקת כתובת המייל">⧉</button>` : '<span class="muted">—</span>'}</dd></div>
           </dl>
           ${c.notes ? `<p class="sig-card-note"><span class="muted">הערות:</span> ${esc(c.notes)}</p>` : ''}
           <h3>נכסים שמחזיק היום</h3>
@@ -118,6 +118,14 @@
   form.addEventListener('input', render);
   form.addEventListener('submit', e => e.preventDefault());
   results.addEventListener('click', e => {
+    const cp = e.target.closest('[data-copy]');
+    if (cp) {   // העתקת כתובת מייל ללוח
+      const txt = cp.dataset.copy;
+      const done = () => { ui.toast('הכתובת הועתקה: ' + txt); cp.textContent = '✓'; setTimeout(() => { cp.textContent = '⧉'; }, 1500); };
+      const fallback = () => { const t = document.createElement('textarea'); t.value = txt; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); done(); } catch (x) { ui.toast('לא ניתן להעתיק', 'err'); } t.remove(); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, fallback); else fallback();
+      return;
+    }
     const art = e.target.closest('.contact'); if (!art) return;
     if (e.target.closest('[data-act=edit]')) { openEdit(build().find(c => c.id === art.dataset.id)); return; }
     if (!e.target.closest('.contact-head')) return;
