@@ -97,7 +97,7 @@
 
     // לשוניות הכרטיס
     const TABS = [['main', 'ראשי'], ['rights', 'זכויות וחלקות'], ['holders', 'מחזיקים', a.holdings.length], ['surveys', 'ביקורות', surveys.length],
-      ['notes', 'הערות', a.asset_notes.length], ['proc', 'תהליכים', a.open_processes.length]];
+      ['proc', 'תהליכים', a.open_processes.length]];
 
     // ----- הערות (מי ומתי נרשמים אוטומטית) -----
     const canNote = ui.canEditLimited() && !E, isAdmin = BBM.me && BBM.me.role === 'admin';
@@ -108,9 +108,9 @@
           <p><button class="primary" type="submit">הוספת הערה</button> <span class="hint">השם שלך והתאריך נרשמים אוטומטית.</span></p>
         </form>` : ''}
       ${a.asset_notes.length ? a.asset_notes.map(n => `<article class="log-item" data-note="${esc(n.id)}">
-          <div class="log-head"><span><strong>${esc(n.created_by_name || 'לא ידוע')}</strong> · ${when(n.created_at)}</span>
-            ${!E && (isAdmin || (BBM.me && n.created_by === BBM.me.id)) ? '<button type="button" class="link" data-del-note>מחיקה</button>' : ''}</div>
+          <div class="log-head"><strong>${esc(n.created_by_name || 'לא ידוע')}</strong><span class="log-when">${when(n.created_at)}</span></div>
           <div class="log-body">${esc(n.body)}</div>
+          ${!E && (isAdmin || (BBM.me && n.created_by === BBM.me.id)) ? '<div class="log-foot"><button type="button" class="link" data-del-note>מחיקה</button></div>' : ''}
         </article>`).join('') : '<p class="empty">עוד לא נרשמו הערות לנכס</p>'}`;
 
     // ----- תהליכים: פעיל / ממתין / נסגר -----
@@ -197,6 +197,11 @@
         <section class="card">${considerationHtml}</section>
       </details>` : ''}
 
+      <details class="group notes-group" id="notesBox" open>
+        <summary><span class="dot"></span>הערות <span class="n">${a.asset_notes.length}</span></summary>
+        <section class="card">${notesHtml}</section>
+      </details>
+
       <div class="tabpanel grid2" role="tabpanel" id="panel-rights" aria-labelledby="tab-rights" hidden>
         <section class="card"><h2>זכויות</h2><dl class="fields">
           ${row('סוג הזכות', pick('right_type', 'right_type', esc(L('right_type', a.right_type))))}
@@ -263,10 +268,6 @@
         <section class="card"><h2>ביקורות</h2>${surveysHtml}</section>
       </div>
 
-      <div class="tabpanel" role="tabpanel" id="panel-notes" aria-labelledby="tab-notes" hidden>
-        <section class="card"><h2>הערות</h2>${notesHtml}</section>
-      </div>
-
       <div class="tabpanel" role="tabpanel" id="panel-proc" aria-labelledby="tab-proc" hidden>
         <section class="card"><h2>תהליכים</h2>${procHtml}</section>
       </div>
@@ -281,6 +282,7 @@
       tabs.forEach(b => { const on = b.dataset.tab === id; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
       main.querySelectorAll('.tabpanel').forEach(pn => pn.hidden = pn.id !== 'panel-' + id);
       const cb = document.getElementById('consBox'); if (cb) cb.hidden = id !== 'main';
+      document.getElementById('notesBox').hidden = id !== 'main';
       history.replaceState(null, '', location.pathname + location.search + (id === 'main' ? '' : '#' + id));
     }
     tabs.forEach((b, i) => {
@@ -310,7 +312,8 @@
 
     // #cons (חזרה מעריכת התמורה): לשונית ראשי עם נתוני התמורה פתוחים
     const h0 = location.hash.slice(1);
-    show(h0 === 'cons' ? 'main' : h0 || 'main');
+    show(h0 === 'cons' || h0 === 'notes' ? 'main' : h0 || 'main');
+    if (h0 === 'notes') { document.getElementById('notesBox').scrollIntoView({ block: 'start' }); history.replaceState(null, '', location.pathname + location.search); }
     if (h0 === 'cons') { const cb = document.getElementById('consBox'); if (cb) { cb.open = true; cb.scrollIntoView({ block: 'start' }); } }
 
     const eb = document.getElementById('editBtn'); if (eb) eb.onclick = () => render(true);

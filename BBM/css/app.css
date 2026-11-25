@@ -284,3 +284,9 @@ body.asset-editing .tabpanel .card { background: #fffdf5; border-color: #ecd9a8;
 body.asset-editing dl.fields { align-items: center; row-gap: 8px; }
 body.asset-editing .cons-group { opacity: .75; }
 .edit-actions { align-items: center; background: #fbf6e6; border-top: 2px solid var(--gold); z-index: 5; padding-inline: 4px; }
+
+/* ---------- הערות בתחתית "ראשי" (25.11) ---------- */
+details.notes-group { margin-top: 16px; }
+.notes-group .log-item { background: #fffdf7; border-color: #ecd9a8; border-inline-start: 3px solid var(--gold); }
+.log-when { color: #9a7b2f; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.log-foot { font-size: 13px; }
