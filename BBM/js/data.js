@@ -340,7 +340,7 @@
     addNote, deleteNote, addProcess, setProcessStatus, deleteProcess,
     PROCESS_TYPES, PROCESS_STATUS, processTypeLabel, processStatusLabel,
     allAssetsBrief: () => activeAssets().map(a => ({ id: a.id, asset_number: a.asset_number, name: displayName(a) })),
-    saveHolder, saveHolding, deleteHolding, toCsv, listConsiderations,
+    saveHolder, saveHolding, deleteHolding, deleteHolder: id => remove('holders', { id }), toCsv, listConsiderations,
     _db: db
   };
 })();

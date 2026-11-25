@@ -65,7 +65,7 @@
     const holdingItem = (h, isCurrent) => {
       const cs = isCurrent ? CS[a.contract_status] : null;
       return `<li>
-        <strong>${esc(h.holder ? h.holder.name : '')}</strong> ${h.holder && h.holder.holder_type ? `<span class="tag">${esc(L('holder_type', h.holder.holder_type))}</span>` : ''}
+        <strong>${h.holder ? `<a href="../contacts.html?id=${encodeURIComponent(h.holder.id)}" title="לכרטיס איש הקשר">${esc(h.holder.name)}</a>` : ''}</strong> ${h.holder && h.holder.holder_type ? `<span class="tag">${esc(L('holder_type', h.holder.holder_type))}</span>` : ''}
         ${cs ? `<span class="pill ${cs[1]}">חוזה: ${cs[0]}</span>` : ''}<br>
         ${[esc(L('holding_method', h.holding_method)),
            h.monthly_fee != null ? `דמי שימוש: <strong>${money(h.monthly_fee)}</strong> לחודש${h.vat_applies === true ? ' + מע"מ' : h.vat_applies === false ? ' (מגורים, בלי מע"מ)' : ''}` : '',
@@ -257,7 +257,7 @@
             ${row('סיום ההחזקה (עזיבה)', `<input type="date" name="h_end_date" value="${hval('end_date')}">`)}
             ${row('הנכס מנוהל בידי', inp('managed_by'))}
           </dl>
-          <p class="hint">החלפת המחזיק או ניקוי השדה לא מוחקים את המחזיק הקודם: ההחזקה שלו נסגרת בתאריך של היום ונשמרת בהיסטוריה. פרטי איש הקשר של מחזיק קיים עדיין לא נערכים מכאן.</p>` : holdingsHtml}</section>
+          <p class="hint">החלפת המחזיק או ניקוי השדה לא מוחקים את המחזיק הקודם: ההחזקה שלו נסגרת בתאריך של היום ונשמרת בהיסטוריה. פרטי איש הקשר (טלפון, מייל) נערכים בדף "אנשי קשר".</p>` : holdingsHtml}</section>
         ${E || a.institution_name || a.institution_code ? `<section class="card"><h2>מוסד</h2><dl class="fields">
           ${row('שם מוסד', inp('institution_name', esc(a.institution_name)))}
           ${row('סמל מוסד', inp('institution_code', esc(a.institution_code), 'text', 'inputmode="numeric"'))}

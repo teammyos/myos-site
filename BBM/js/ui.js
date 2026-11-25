@@ -6,7 +6,7 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const param = name => new URLSearchParams(location.search).get(name);
   // גרסת האתר: מוצמדת לקישורים פנימיים, כדי שהדפדפן לא יציג דף ישן מהזיכרון אחרי עדכון
-  const VERSION = '20261125a';
+  const VERSION = '20261125b';
   const withV = url => url + (url.includes('?') ? '&' : '?') + 'v=' + VERSION;
   // קישור חזרה לרשימת הנכסים – עם החיפוש והסינון האחרונים
   function listUrl(base = '') {
@@ -23,7 +23,7 @@
       ['signatures.html', 'מעקב חתימות', 'signatures', '✍️'],
       ['assets/dashboard.html', 'תמונת מצב', 'dashboard', '📊'],
       [null, 'תהליכים', 'processes', '⚑'],
-      [null, 'אנשי קשר', 'contacts', '👤'],
+      ['contacts.html', 'אנשי קשר', 'contacts', '👤'],
       [null, 'דוחות', 'reports', '📑'],
       ['feedback.html', 'פניות ושיפורים', 'feedback', '💬']
     ];

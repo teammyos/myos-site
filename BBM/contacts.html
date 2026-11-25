@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#17344d">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>אנשי קשר · BBM</title>
+<link rel="stylesheet" href="css/app.css?v=20261125b">
+</head>
+<body>
+<div class="band">
+  <div class="band-in">
+    <div><h1>אנשי קשר</h1><p class="sub" id="count" aria-live="polite">מחזיקים, שוכרים וגופים שקשורים לנכסים</p></div>
+    <div class="actions">
+      <button id="exportBtn" type="button" class="on-dark">ייצוא לאקסל</button>
+      <button class="btn gold" id="newBtn" type="button" hidden>+ איש קשר</button>
+    </div>
+  </div>
+</div>
+<main class="under-band">
+  <form class="card search" id="filters" autocomplete="off">
+    <input class="big" name="q" type="search" placeholder="חיפוש לפי שם, איש קשר, טלפון, מייל או כתובת נכס…" aria-label="חיפוש">
+    <div class="chips-row"><div class="chips" id="typeChips" role="group" aria-label="סוג"></div></div>
+    <input type="hidden" name="type" value="">
+  </form>
+
+  <section class="card" id="editCard" hidden>
+    <h2 id="editTitle">איש קשר חדש</h2>
+    <form id="editForm" class="sig-form" autocomplete="off">
+      <label class="f grow">שם (אדם, עמותה, חברה…)<input name="name" required maxlength="200"></label>
+      <label class="f">סוג<span id="typeWrap"></span></label>
+      <label class="f">איש קשר<input name="contact_name" maxlength="200"></label>
+      <label class="f">טלפון<input name="phone" inputmode="tel" dir="ltr" maxlength="60"></label>
+      <label class="f grow">מייל<input name="email" type="email" dir="ltr" maxlength="200"></label>
+      <label class="f full">הערות<textarea name="notes" rows="2"></textarea></label>
+      <div class="full sig-actions">
+        <button class="primary" type="submit">שמירה</button>
+        <button type="button" id="cancelEdit">ביטול</button>
+        <button type="button" class="link danger" id="deleteBtn" hidden>מחיקת איש הקשר</button>
+      </div>
+    </form>
+  </section>
+
+  <div id="results"><p class="hint">טוען…</p></div>
+</main>
+<script src="js/config.js?v=20261125b"></script>
+<script src="js/vendor/supabase.umd.js?v=20261125b"></script>
+<script src="js/lookups.js?v=20261125b"></script>
+<script src="js/demo-data.js?v=20261125b"></script>
+<script src="js/data.js?v=20261125b"></script>
+<script src="js/ui.js?v=20261125b"></script>
+<script>
+(async function () {
+  const { ui, data } = BBM, esc = ui.esc, L = data.label;
+  if (!(await ui.start({ base: '', active: 'contacts' }))) return;
+  const canEdit = ui.canEdit(), isAdmin = BBM.me && BBM.me.role === 'admin';
+  const form = document.getElementById('filters'), results = document.getElementById('results');
+  let openId = ui.param('id') || '', shown = [];
+
+  // איש קשר = רשומת "מחזיק". לכל אחד: הנכסים שהוא מחזיק היום, ונכסים שהחזיק בעבר
+  function build() {
+    const by = new Map(data.holders().map(h => [h.id, { ...h, current: [], past: [] }]));
+    data.listAssets().forEach(a => a.holdings.forEach(h => {
+      const c = by.get(h.holder_id); if (!c) return;
+      const isCur = a.current_holding && a.current_holding.id === h.id;
+      (isCur ? c.current : c.past).push({ a, h });
+    }));
+    return [...by.values()].sort((x, y) => x.name.localeCompare(y.name, 'he'));
+  }
+  const norm = s => (s || '').toString().toLowerCase().replace(/["'״׳\-]/g, '');
+  const tel = p => p ? `<a href="tel:${esc(String(p).replace(/[^\d+]/g, ''))}" dir="ltr">${esc(p)}</a>` : '';
+  const assetLine = ({ a, h }) => `<li><a href="assets/asset.html?id=${encodeURIComponent(a.id)}#holders"><strong>${esc(a.asset_number)}</strong> · ${esc(a.title || a.address || '')}</a>
+      <span class="hint">${[L('holding_method', h.holding_method), h.monthly_fee != null ? `${ui.fmtNum(h.monthly_fee)} ₪ לחודש` : '',
+        h.contract_end ? 'חוזה עד ' + ui.fmtDate(h.contract_end) : '', h.end_date ? 'עד ' + ui.fmtDate(h.end_date) : ''].filter(Boolean).map(esc).join(' · ')}</span></li>`;
+
+  function render() {
+    const all = build(), f = Object.fromEntries(new FormData(form));
+    const types = new Map(); all.forEach(c => { const k = c.holder_type || ''; types.set(k, (types.get(k) || 0) + 1); });
+    document.getElementById('typeChips').innerHTML = [['', 'הכול', all.length], ...[...types].filter(([k]) => k).map(([k, n]) => [k, L('holder_type', k), n]),
+      ...(types.get('') && types.size > 1 ? [['-', 'בלי סוג', types.get('')]] : [])]
+      .map(([k, t, n]) => `<button type="button" class="chip" data-type="${esc(k)}" aria-pressed="${(f.type || '') === k}">${esc(t)} <span class="n">${n}</span></button>`).join('');
+    const q = norm(f.q).trim();
+    shown = all.filter(c => {
+      if (f.type === '-' ? c.holder_type : f.type && c.holder_type !== f.type) return false;
+      if (!q) return true;
+      const hay = norm([c.name, c.contact_name, c.phone, c.email, c.notes, ...c.current.concat(c.past).map(x => `${x.a.asset_number} ${x.a.title} ${x.a.address}`)].join(' '));
+      return q.split(/\s+/).every(w => hay.includes(w));
+    });
+    document.getElementById('count').textContent = `${shown.length === all.length ? all.length : shown.length + ' מתוך ' + all.length} אנשי קשר`;
+    if (!shown.length) { results.innerHTML = `<div class="card empty">${all.length ? 'לא נמצאו אנשי קשר לפי החיפוש' : 'עוד אין אנשי קשר. מחזיק שנוסף לנכס מופיע כאן אוטומטית.'}</div>`; return; }
+    results.innerHTML = `<div class="contacts">${shown.map(c => {
+      const open = c.id === openId;
+      return `<article class="contact${open ? ' open' : ''}" data-id="${esc(c.id)}">
+        <button type="button" class="contact-head" aria-expanded="${open}">
+          <span class="contact-name"><strong>${esc(c.name)}</strong>${c.holder_type ? ` <span class="tag">${esc(L('holder_type', c.holder_type))}</span>` : ''}</span>
+          <span class="contact-sub">${esc([c.contact_name && c.contact_name !== c.name ? c.contact_name : '', c.phone].filter(Boolean).join(' · '))}</span>
+          <span class="pill ${c.current.length ? 'info' : ''}">${c.current.length === 1 ? 'נכס אחד' : c.current.length + ' נכסים'}</span>
+        </button>
+        ${open ? `<div class="contact-body">
+          <dl class="sig-kv">
+            <div><dt>איש קשר</dt><dd>${esc(c.contact_name) || '<span class="muted">—</span>'}</dd></div>
+            <div><dt>טלפון</dt><dd>${tel(c.phone) || '<span class="muted">—</span>'}</dd></div>
+            <div><dt>מייל</dt><dd>${c.email ? `<a href="mailto:${esc(c.email)}" dir="ltr">${esc(c.email)}</a>` : '<span class="muted">—</span>'}</dd></div>
+          </dl>
+          ${c.notes ? `<p class="sig-card-note"><span class="muted">הערות:</span> ${esc(c.notes)}</p>` : ''}
+          <h3>נכסים שמחזיק היום</h3>
+          ${c.current.length ? `<ul class="links">${c.current.map(assetLine).join('')}</ul>` : '<p class="empty">לא מחזיק כרגע בנכס</p>'}
+          ${c.past.length ? `<details class="more"><summary>נכסים שהחזיק בעבר (${c.past.length})</summary><ul class="links">${c.past.map(assetLine).join('')}</ul></details>` : ''}
+          ${canEdit ? '<p class="sig-card-actions"><button type="button" class="primary" data-act="edit">✎ עריכה</button></p>' : ''}
+        </div>` : ''}
+      </article>`; }).join('')}</div>`;
+  }
+
+  document.getElementById('typeChips').addEventListener('click', e => { const b = e.target.closest('[data-type]'); if (!b) return; form.elements.type.value = b.dataset.type; render(); });
+  form.addEventListener('input', render);
+  form.addEventListener('submit', e => e.preventDefault());
+  results.addEventListener('click', e => {
+    const art = e.target.closest('.contact'); if (!art) return;
+    if (e.target.closest('[data-act=edit]')) { openEdit(build().find(c => c.id === art.dataset.id)); return; }
+    if (!e.target.closest('.contact-head')) return;
+    openId = openId === art.dataset.id ? '' : art.dataset.id; render();
+  });
+  document.getElementById('exportBtn').onclick = () => ui.download(`אנשי-קשר-${new Date().toISOString().slice(0, 10)}.csv`, data.toCsv(shown, [
+    { title: 'שם', value: c => c.name }, { title: 'סוג', value: c => L('holder_type', c.holder_type) }, { title: 'איש קשר', value: c => c.contact_name },
+    { title: 'טלפון', value: c => c.phone }, { title: 'מייל', value: c => c.email },
+    { title: 'נכסים שמחזיק היום', value: c => c.current.map(x => x.a.asset_number).join(', ') }, { title: 'הערות', value: c => c.notes }]));
+
+  // ---------- הוספה ועריכה ----------
+  const editCard = document.getElementById('editCard'), ef = document.getElementById('editForm'), del = document.getElementById('deleteBtn');
+  let editing = null;
+  function openEdit(c) {
+    editing = c || null;
+    document.getElementById('editTitle').textContent = c ? 'עריכת איש קשר' : 'איש קשר חדש';
+    document.getElementById('typeWrap').innerHTML = ui.selectHtml('holder_type', 'holder_type', c ? c.holder_type : '');
+    ['name', 'contact_name', 'phone', 'email', 'notes'].forEach(k => { ef.elements[k].value = (c && c[k]) || ''; });
+    // מחיקה: רק מנהל, ורק איש קשר שלא קשור לשום נכס (גם לא בעבר)
+    del.hidden = !(c && isAdmin && !c.current.length && !c.past.length); delete del.dataset.sure; del.textContent = 'מחיקת איש הקשר';
+    editCard.hidden = false; editCard.scrollIntoView({ block: 'start' }); ef.elements.name.focus();
+  }
+  if (canEdit) { const nb = document.getElementById('newBtn'); nb.hidden = false; nb.onclick = () => openEdit(null); }
+  document.getElementById('cancelEdit').onclick = () => { editCard.hidden = true; };
+  ef.addEventListener('submit', async e => {
+    e.preventDefault();
+    const raw = editing ? data._db.holders.find(h => h.id === editing.id) : {};
+    const row = { ...raw };
+    ['name', 'holder_type', 'contact_name', 'phone', 'email', 'notes'].forEach(k => { row[k] = ef.elements[k].value.trim() || null; });
+    if (!row.name) return;
+    const dup = data.holders().find(h => h.id !== row.id && norm(h.name) === norm(row.name));
+    if (dup && !editing) { ui.toast('כבר קיים איש קשר בשם הזה', 'err'); openId = dup.id; render(); return; }
+    const btn = ef.querySelector('button[type=submit]'); btn.disabled = true;
+    try { const saved = await data.saveHolder(row); openId = saved.id; editCard.hidden = true; ui.toast('נשמר'); render(); }
+    catch (err) { ui.toast('השמירה נכשלה: ' + (err.message || err), 'err'); }
+    btn.disabled = false;
+  });
+  del.onclick = async () => {
+    if (!del.dataset.sure) { del.dataset.sure = '1'; del.textContent = 'ללחוץ שוב לאישור המחיקה'; return; }
+    try { await data.deleteHolder(editing.id); editCard.hidden = true; openId = ''; ui.toast('נמחק'); render(); }
+    catch (err) { ui.toast('המחיקה נכשלה: ' + (err.message || err), 'err'); }
+  };
+
+  render();
+  if (openId) { const el = results.querySelector('.contact.open'); if (el) el.scrollIntoView({ block: 'center' }); }
+})();
+</script>
+</body>
+</html>

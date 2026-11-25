@@ -290,3 +290,15 @@ details.notes-group { margin-top: 16px; }
 .notes-group .log-item { background: #fffdf7; border-color: #ecd9a8; border-inline-start: 3px solid var(--gold); }
 .log-when { color: #9a7b2f; font-size: 12.5px; font-variant-numeric: tabular-nums; }
 .log-foot { font-size: 13px; }
+
+/* ---------- אנשי קשר (25.11) ---------- */
+.contacts { display: grid; gap: 8px; }
+.contact { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.contact.open { border-color: #ecd9a8; border-inline-start: 4px solid var(--gold); box-shadow: 0 4px 14px rgba(23,52,77,.08); }
+.contact-head { display: grid; grid-template-columns: minmax(180px, 2fr) minmax(140px, 2fr) auto; gap: 12px; align-items: center; width: 100%; text-align: start; background: none; border: 0; border-radius: 0; padding: 12px 16px; cursor: pointer; font: inherit; color: inherit; }
+.contact-head:hover { background: #f6f8fa; }
+.contact-sub { color: var(--muted); font-size: 13.5px; }
+.contact-body { padding: 4px 16px 14px; border-top: 1px dashed var(--line); }
+.contact-body h3 { font-size: 14px; margin: 14px 0 6px; }
+.contact-body dl.sig-kv { margin-top: 10px; }
+@media (max-width: 640px) { .contact-head { grid-template-columns: 1fr auto; } .contact-sub { grid-column: 1 / -1; order: 3; } }
