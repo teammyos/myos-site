@@ -212,9 +212,15 @@ let api;
 
 /* ------------------------------------------------------------ שרת אמיתי */
 function realApi() {
+  // קישור "שכחתי סיסמה" מחזיר לכאן עם type=recovery בכתובת; קוראים אותו לפני שהספרייה מנקה את הכתובת
+  let rec = /[#&]type=recovery/.test(location.hash); const recErr = /[#&]error_code=otp_expired/.test(location.hash);
   const c = window.MYOS_SUPABASE, sb = supabase.createClient(c.url, c.publishableKey);
+  sb.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') rec = true; });
   const q = async p => { const { data, error } = await p; if (error) throw error; return data; };
   return {
+    recovery: () => rec, recoveryExpired: () => recErr, recoveryDone() { rec = false; },
+    resetPw: email => q(sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname })),
+    setPw: password => q(sb.auth.updateUser({ password })),
     async user() { const { data } = await sb.auth.getSession(); return data.session ? data.session.user : null; },
     google: () => sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } }),
     signIn: (email, password) => q(sb.auth.signInWithPassword({ email, password })),
@@ -878,15 +884,35 @@ function loginScreen(msg) {
     <div class="f"><label>סיסמה</label><input type="password" id="lp" autocomplete="current-password"></div>
     <div class="f hid" id="lnw"><label>שם מלא</label><input type="text" id="ln"></div>
     <div class="btns"><button class="pri" id="li">כניסה</button><button id="ls">הרשמה</button></div>
-    <p style="margin-top:14px;font-size:12px"><a href="privacy.html">מדיניות פרטיות</a></p></div>`;
+    <p style="margin-top:12px;font-size:13px"><a href="#" id="lf">שכחתי סיסמה</a></p>
+    <p style="margin-top:8px;font-size:12px"><a href="privacy.html">מדיניות פרטיות</a></p></div>`;
   $('#g').onclick = () => api.google();
+  $('#lf').onclick = async ev => { ev.preventDefault(); const e = $('#le').value.trim();
+    if (!e) { toast('כתוב את המייל שלך בשדה "מייל", ואז לחץ שוב על "שכחתי סיסמה"'); $('#le').focus(); return; }
+    try { await api.resetPw(e); toast('אם הכתובת רשומה במערכת, נשלח אליה עכשיו מייל עם קישור לבחירת סיסמה חדשה'); }
+    catch (x) { toast(/security purposes|rate limit/i.test(x.message || '') ? 'כבר נשלח מייל לפני רגע. אפשר לבקש שוב בעוד דקה' : errMsg(x)); } };
   const go = async up => { const e = $('#le').value.trim(), p = $('#lp').value; if (!e || !p) return toast('חסר מייל או סיסמה');
     try { if (up) { if ($('#lnw').classList.contains('hid')) { $('#lnw').classList.remove('hid'); $('#ln').focus(); return; } await api.signUp(e, p, $('#ln').value.trim()); toast('נרשמת. אם נשלח אליך מייל אימות – אשר אותו, ואז היכנס'); } else { await api.signIn(e, p); start(); } }
     catch (x) { toast(/Invalid login/i.test(x.message) ? 'מייל או סיסמה שגויים' : errMsg(x)); } };
   $('#li').onclick = () => go(false); $('#ls').onclick = () => go(true); $('#lp').onkeydown = e => { if (e.key === 'Enter') go(false); };
 }
+// אחרי לחיצה על הקישור שבמייל "שכחתי סיסמה": בוחרים סיסמה חדשה, ואז נכנסים כרגיל
+function newPasswordScreen() {
+  $('#app').classList.add('hid'); const L = $('#login'); L.classList.remove('hid');
+  L.innerHTML = `<div class="dlg"><h2><span style="color:var(--acc)">✓</span> בחירת סיסמה חדשה</h2><p>בחר סיסמה חדשה לחשבון שלך. לפחות 6 תווים.</p>
+    <div class="f"><label>סיסמה חדשה</label><input type="password" id="np1" autocomplete="new-password"></div>
+    <div class="f"><label>שוב, לאימות</label><input type="password" id="np2" autocomplete="new-password"></div>
+    <div class="btns"><button class="pri" id="npok">שמירת הסיסמה וכניסה</button></div></div>`;
+  const go = async () => { const a = $('#np1').value, b = $('#np2').value;
+    if (a.length < 6) return toast('הסיסמה קצרה מדי. צריך לפחות 6 תווים'); if (a !== b) return toast('שתי הסיסמאות לא זהות');
+    $('#npok').disabled = true;
+    try { await api.setPw(a); api.recoveryDone(); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} toast('הסיסמה עודכנה'); start(); }
+    catch (x) { $('#npok').disabled = false; toast(/different from the old/i.test(x.message || '') ? 'זו הסיסמה הקודמת. בחר סיסמה אחרת' : /weak|at least/i.test(x.message || '') ? 'הסיסמה חלשה מדי. בחר סיסמה ארוכה יותר' : errMsg(x)); } };
+  $('#npok').onclick = go; $('#np2').onkeydown = e => { if (e.key === 'Enter') go(); }; $('#np1').focus();
+}
 async function start() {
-  const u = await api.user(); if (!u) return loginScreen();
+  const u = await api.user(); if (!u) return loginScreen(api.recoveryExpired && api.recoveryExpired() ? 'הקישור לבחירת סיסמה כבר לא בתוקף. אפשר לבקש קישור חדש ב"שכחתי סיסמה".' : undefined);
+  if (api.recovery && api.recovery()) return newPasswordScreen();
   S.me = u.id;
   try { S.profile = await api.rpc('ensure_setup'); } catch (e) { return loginScreen(errMsg(e)); }
   if (!S.profile.approved) { loginScreen('החשבון ' + (S.profile.email || '') + ' נרשם וממתין לאישור מנהל. אחרי האישור רענן את הדף.'); $('#g').outerHTML = '<button class="out" id="so" style="width:100%;padding:10px">יציאה והחלפת חשבון</button>'; $('#so').onclick = () => api.signOut().then(() => location.reload()); return; }
